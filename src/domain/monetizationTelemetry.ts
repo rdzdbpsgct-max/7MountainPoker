@@ -7,7 +7,11 @@ export type MonetizationEventName =
   | 'tier_downgrade_detected'
   | 'tier_upgrade_detected'
   | 'conversion_free_to_premium'
-  | 'conversion_premium_to_pro';
+  | 'conversion_premium_to_pro'
+  | 'feature_used'
+  | 'feature_discovery_seen'
+  | 'feature_discovery_clicked'
+  | 'session_started';
 
 export interface MonetizationEventPayload {
   feature?: AppFeature;
@@ -40,6 +44,10 @@ function defaultCounters(): MonetizationCounterState {
       tier_upgrade_detected: 0,
       conversion_free_to_premium: 0,
       conversion_premium_to_pro: 0,
+      feature_used: 0,
+      feature_discovery_seen: 0,
+      feature_discovery_clicked: 0,
+      session_started: 0,
     },
     byFeature: {},
     lastEventAt: new Date(0).toISOString(),
@@ -109,4 +117,28 @@ export function trackMonetizationEvent(
 
 export function getMonetizationCounters(): MonetizationCounterState {
   return readCounters();
+}
+
+// ---------------------------------------------------------------------------
+// Convenience tracking helpers
+// ---------------------------------------------------------------------------
+
+/** Track that a specific feature was used (e.g., TV display opened, remote started). */
+export function trackFeatureUsed(feature: AppFeature, mode?: 'setup' | 'game' | 'league'): void {
+  trackMonetizationEvent('feature_used', { feature, mode });
+}
+
+/** Track that a feature discovery tooltip was shown to the user. */
+export function trackFeatureDiscoverySeen(feature: AppFeature): void {
+  trackMonetizationEvent('feature_discovery_seen', { feature });
+}
+
+/** Track that the user clicked/interacted with a feature discovery tooltip. */
+export function trackFeatureDiscoveryClicked(feature: AppFeature): void {
+  trackMonetizationEvent('feature_discovery_clicked', { feature });
+}
+
+/** Track a new app session start. */
+export function trackSessionStarted(): void {
+  trackMonetizationEvent('session_started');
 }
