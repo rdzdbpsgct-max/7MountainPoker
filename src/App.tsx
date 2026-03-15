@@ -12,19 +12,10 @@ import {
   saveCheckpoint,
   loadCheckpoint,
   clearCheckpoint,
-  isRebuyActive,
-  isLateRegistrationOpen,
-  computeTournamentElapsedSeconds,
-  computeAverageStack,
-  scheduleToColorUpMap,
-  isBubble,
-  isInTheMoney,
   buildTournamentResult,
   saveTournamentResult,
   loadLeagues,
   createGameDayFromResult,
-  computeExtendedStandings,
-  loadGameDaysForLeague,
   loadPlayerDatabase,
   createEvent,
 } from './domain/logic';
@@ -75,6 +66,7 @@ import { FeatureGateModal } from './components/FeatureGateModal';
 import { useFeatureGate } from './hooks/useFeatureGate';
 import { usePrintViewWarmup } from './hooks/usePrintViewWarmup';
 import { useSharedPayloads } from './hooks/useSharedPayloads';
+import { useGameComputedState } from './hooks/useGameComputedState';
 
 // Game-mode components (lazy — only needed after tournament starts)
 // DisplayMode is now rendered in a separate TV window via TVDisplayWindow
@@ -372,35 +364,37 @@ function App() {
     return () => clearTimeout(timerId);
   }, [recentTableMoves]);
 
-  // --- Computed rebuy state for game mode ---
-  // Stable integer-second value — limits useMemo cascade to 1×/sec instead of 4×/sec
+  // --- Computed game state (extracted to useGameComputedState hook) ---
   const displaySeconds = Math.floor(timer.timerState.remainingSeconds);
 
-  const tournamentElapsed = useMemo(
-    () =>
-      computeTournamentElapsedSeconds(
-        config.levels,
-        timer.timerState.currentLevelIndex,
-        displaySeconds,
-      ),
-    [config.levels, timer.timerState.currentLevelIndex, displaySeconds],
-  );
-
-  const rebuyActive = useMemo(
-    () =>
-      isRebuyActive(
-        config.rebuy,
-        timer.timerState.currentLevelIndex,
-        config.levels,
-        tournamentElapsed,
-      ),
-    [config.rebuy, timer.timerState.currentLevelIndex, config.levels, tournamentElapsed],
-  );
-
-  const lateRegOpen = useMemo(
-    () => isLateRegistrationOpen(config, timer.timerState.currentLevelIndex, config.levels),
-    [config, timer.timerState.currentLevelIndex],
-  );
+  const computed = useGameComputedState({
+    config,
+    timerState: timer.timerState,
+    tournamentEvents,
+    t,
+    lastRebuyLevelIndex,
+    addOnEndLevelIndex,
+    displaySeconds,
+  });
+  const {
+    tournamentElapsed,
+    rebuyActive,
+    lateRegOpen,
+    addOnWindowOpen,
+    currentPlayLevel,
+    averageStack,
+    colorUpMap,
+    activePlayerCount,
+    paidPlaces,
+    bubbleActive,
+    inTheMoney,
+    isBreak,
+    tournamentFinished,
+    winner,
+    finishedResult,
+    startErrors,
+    leagueDisplayData,
+  } = computed;
 
   // Voice: Late registration closed
   const prevLateRegRef = useRef(lateRegOpen);
@@ -424,74 +418,7 @@ function App() {
     prevRebuyActive.current = rebuyActive;
   }, [rebuyActive, config.addOn.enabled, config.rebuy.enabled, config.rebuy.limitType, timer.timerState.currentLevelIndex]);
 
-  const addOnWindowOpen = useMemo(() => {
-    if (!config.addOn.enabled || !config.rebuy.enabled) return false;
-    const idx = timer.timerState.currentLevelIndex;
-
-    if (config.rebuy.limitType === 'levels' && lastRebuyLevelIndex >= 0) {
-      // Show at the end of the last rebuy level (timer expired, waiting for advance)
-      if (idx === lastRebuyLevelIndex && displaySeconds <= 0) return true;
-      // Show during the break after the last rebuy level (if any) + next play level
-      const nextIdx = lastRebuyLevelIndex + 1;
-      if (nextIdx >= config.levels.length) return false;
-      if (config.levels[nextIdx]?.type === 'break') {
-        // Show only during the break — not in the level after the break
-        return idx === nextIdx;
-      }
-      // No break — show during the next play level only
-      return idx === nextIdx;
-    }
-
-    // Time-based: use reactive detection (addOnEndLevelIndex)
-    return !rebuyActive
-      && addOnEndLevelIndex !== null
-      && idx === addOnEndLevelIndex;
-  }, [config.addOn.enabled, config.rebuy, config.levels, lastRebuyLevelIndex, timer.timerState.currentLevelIndex, displaySeconds, rebuyActive, addOnEndLevelIndex]);
-
-  const currentPlayLevel = useMemo(() => {
-    return config.levels
-      .slice(0, timer.timerState.currentLevelIndex + 1)
-      .filter((l) => l.type === 'level').length;
-  }, [config.levels, timer.timerState.currentLevelIndex]);
-
-  const averageStack = useMemo(
-    () =>
-      computeAverageStack(
-        config.players,
-        config.startingChips,
-        config.rebuy.enabled ? config.rebuy.rebuyChips : 0,
-        config.addOn.enabled ? config.addOn.chips : 0,
-      ),
-    [config.players, config.startingChips, config.rebuy.enabled, config.rebuy.rebuyChips, config.addOn.enabled, config.addOn.chips],
-  );
-
-  const colorUpMap = useMemo(
-    () =>
-      config.chips.enabled && config.chips.colorUpEnabled && config.chips.colorUpSchedule.length > 0
-        ? scheduleToColorUpMap(config.chips.colorUpSchedule, config.chips.denominations)
-        : new Map(),
-    [config.chips.enabled, config.chips.colorUpEnabled, config.chips.colorUpSchedule, config.chips.denominations],
-  );
-
-  const activePlayerCount = useMemo(
-    () => config.players.filter((p) => p.status === 'active').length,
-    [config.players],
-  );
-
-  const paidPlaces = config.payout.entries.length;
-
-  const bubbleActive = useMemo(
-    () => isBubble(activePlayerCount, paidPlaces),
-    [activePlayerCount, paidPlaces],
-  );
-
-  const inTheMoney = useMemo(
-    () => isInTheMoney(activePlayerCount, paidPlaces),
-    [activePlayerCount, paidPlaces],
-  );
-
-  // Break detection for skip/extend buttons
-  const isBreak = config.levels[timer.timerState.currentLevelIndex]?.type === 'break';
+  // Break detection for skip/extend buttons (also in computed, but needed for local callbacks)
 
   const handleSkipBreak = useCallback(() => {
     timer.nextLevel();
@@ -515,18 +442,6 @@ function App() {
   // ---------------------------------------------------------------------------
   // BroadcastChannel: send state to TV display window (placed after computed values)
   // ---------------------------------------------------------------------------
-
-  // Build full-state payload
-  // Compute league standings for TV display (only when leagueId is set)
-  const leagueDisplayData = useMemo(() => {
-    if (!config.leagueId) return undefined;
-    const leagues = loadLeagues();
-    const league = leagues.find((l) => l.id === config.leagueId);
-    if (!league) return undefined;
-    const gameDays = loadGameDaysForLeague(league.id);
-    if (gameDays.length === 0) return undefined;
-    return { name: league.name, standings: computeExtendedStandings(league, gameDays) };
-  }, [config.leagueId]);
 
   // Use ref for timerState in payload to avoid callback recreation every 250ms tick.
   // TV display receives timer updates separately via timer-tick BroadcastChannel messages.
@@ -612,11 +527,6 @@ function App() {
     onCallTheClock: useCallback(() => modals.setShowCallTheClock((v) => !v), [modals]),
   });
 
-  const tournamentFinished = useMemo(() => {
-    if (config.players.length < 2) return false;
-    return config.players.filter((p) => p.status === 'active').length === 1;
-  }, [config.players]);
-
   // Clear checkpoint and save result when tournament finishes
   const resultSavedRef = useRef(false);
   useEffect(() => {
@@ -649,19 +559,6 @@ function App() {
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [mode, tournamentFinished]);
-
-  const winner = useMemo(() => {
-    if (!tournamentFinished) return null;
-    return config.players.find((p) => p.status === 'active') ?? null;
-  }, [tournamentFinished, config.players]);
-
-  // Build the tournament result for direct use (avoids localStorage timing issues)
-  const finishedResult = useMemo(() => {
-    if (!tournamentFinished) return null;
-    return buildTournamentResult(config, tournamentElapsed, currentPlayLevel, tournamentEvents);
-  }, [tournamentFinished, config, tournamentElapsed, currentPlayLevel, tournamentEvents]);
-
-  const startErrors = useMemo(() => collectStartErrors(config, t), [config, t]);
 
   // Game events: victory sound/pause, bubble/ITM effects
   const { showItmFlash, reset: resetGameEvents } = useGameEvents({

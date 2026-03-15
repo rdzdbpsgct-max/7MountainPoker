@@ -1,11 +1,18 @@
 import { renderHook, act } from '@testing-library/react';
 import { useModalManager } from '../src/hooks/useModalManager';
+import { useGameComputedState } from '../src/hooks/useGameComputedState';
+import { defaultConfig } from '../src/domain/logic';
 
 // Mock isWizardCompleted — default: wizard completed (showWizard = false)
-vi.mock('../src/domain/configPersistence', () => ({
-  isWizardCompleted: vi.fn(() => true),
-  isTourCompleted: vi.fn(() => true),
-}));
+// Use partial mock to keep defaultConfig and other exports available
+vi.mock('../src/domain/configPersistence', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/domain/configPersistence')>();
+  return {
+    ...actual,
+    isWizardCompleted: vi.fn(() => true),
+    isTourCompleted: vi.fn(() => true),
+  };
+});
 
 describe('useModalManager', () => {
   beforeEach(() => {
@@ -131,5 +138,91 @@ describe('useModalManager', () => {
 
     act(() => { result.current.setShowSidebar(false); });
     expect(result.current.showSidebar).toBe(false);
+  });
+});
+
+// Minimal t() stub for useGameComputedState tests
+const stubT = ((key: string) => key) as Parameters<typeof useGameComputedState>[0]['t'];
+
+function makeComputedConfig(overrides?: Partial<ReturnType<typeof defaultConfig>>) {
+  return { ...defaultConfig(), ...overrides };
+}
+
+describe('useGameComputedState', () => {
+  it('computes activePlayerCount from config.players', () => {
+    const config = makeComputedConfig();
+    const { result } = renderHook(() =>
+      useGameComputedState({
+        config,
+        timerState: { currentLevelIndex: 0, remainingSeconds: 600, status: 'stopped' },
+        tournamentEvents: [],
+        t: stubT,
+        lastRebuyLevelIndex: -1,
+        addOnEndLevelIndex: null,
+        displaySeconds: 600,
+      }),
+    );
+    expect(result.current.activePlayerCount).toBe(config.players.filter(p => p.status === 'active').length);
+  });
+
+  it('detects tournamentFinished when only 1 active player', () => {
+    const config = makeComputedConfig();
+    // Default config has empty players — add 3 players, eliminate 2
+    const basePlayers = [
+      { id: '1', name: 'A', rebuys: 0, addOn: false, status: 'active' as const, placement: null, eliminatedBy: null, knockouts: 0 },
+      { id: '2', name: 'B', rebuys: 0, addOn: false, status: 'active' as const, placement: null, eliminatedBy: null, knockouts: 0 },
+      { id: '3', name: 'C', rebuys: 0, addOn: false, status: 'active' as const, placement: null, eliminatedBy: null, knockouts: 0 },
+    ];
+    const players = basePlayers.map((p, i) =>
+      i === 0 ? p : { ...p, status: 'eliminated' as const, placement: basePlayers.length - i },
+    );
+    const { result } = renderHook(() =>
+      useGameComputedState({
+        config: { ...config, players },
+        timerState: { currentLevelIndex: 0, remainingSeconds: 300, status: 'paused' },
+        tournamentEvents: [],
+        t: stubT,
+        lastRebuyLevelIndex: -1,
+        addOnEndLevelIndex: null,
+        displaySeconds: 300,
+      }),
+    );
+    expect(result.current.tournamentFinished).toBe(true);
+    expect(result.current.winner).not.toBeNull();
+    expect(result.current.winner?.id).toBe('1');
+  });
+
+  it('returns isBreak true for break levels', () => {
+    const config = makeComputedConfig();
+    const breakIndex = config.levels.findIndex(l => l.type === 'break');
+    if (breakIndex < 0) return; // No break in default config — skip
+    const { result } = renderHook(() =>
+      useGameComputedState({
+        config,
+        timerState: { currentLevelIndex: breakIndex, remainingSeconds: 300, status: 'running' },
+        tournamentEvents: [],
+        t: stubT,
+        lastRebuyLevelIndex: -1,
+        addOnEndLevelIndex: null,
+        displaySeconds: 300,
+      }),
+    );
+    expect(result.current.isBreak).toBe(true);
+  });
+
+  it('computes paidPlaces from payout entries', () => {
+    const config = makeComputedConfig();
+    const { result } = renderHook(() =>
+      useGameComputedState({
+        config,
+        timerState: { currentLevelIndex: 0, remainingSeconds: 600, status: 'stopped' },
+        tournamentEvents: [],
+        t: stubT,
+        lastRebuyLevelIndex: -1,
+        addOnEndLevelIndex: null,
+        displaySeconds: 600,
+      }),
+    );
+    expect(result.current.paidPlaces).toBe(config.payout.entries.length);
   });
 });
