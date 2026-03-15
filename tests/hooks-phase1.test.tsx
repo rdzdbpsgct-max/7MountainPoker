@@ -1,9 +1,12 @@
 import { renderHook, act } from '@testing-library/react';
+import { createRef } from 'react';
 import { useModalManager } from '../src/hooks/useModalManager';
 import { useGameComputedState } from '../src/hooks/useGameComputedState';
 import { useTournamentEventLog } from '../src/hooks/useTournamentEventLog';
 import { useCheckpointManager } from '../src/hooks/useCheckpointManager';
+import { useDisplayBridge } from '../src/hooks/useDisplayBridge';
 import { defaultConfig, defaultSettings, loadCheckpoint, clearCheckpoint } from '../src/domain/logic';
+import type { RemoteHost } from '../src/domain/remote';
 
 // Mock isWizardCompleted — default: wizard completed (showWizard = false)
 // Use partial mock to keep defaultConfig and other exports available
@@ -356,5 +359,58 @@ describe('useCheckpointManager', () => {
     expect(cp!.timer.currentLevelIndex).toBe(2);
     expect(cp!.timer.remainingSeconds).toBe(300);
     vi.useRealTimers();
+  });
+});
+
+// Mock BroadcastChannel for useDisplayBridge tests
+if (typeof globalThis.BroadcastChannel === 'undefined') {
+  (globalThis as Record<string, unknown>).BroadcastChannel = class {
+    close() { /* noop */ }
+    postMessage() { /* noop */ }
+  };
+}
+
+describe('useDisplayBridge', () => {
+  function makeDisplayBridgeProps() {
+    const config = defaultConfig();
+    const settings = defaultSettings();
+    const hostRef = createRef<RemoteHost>();
+    return {
+      mode: 'game' as const,
+      config,
+      settings,
+      timerState: { currentLevelIndex: 0, remainingSeconds: 600, status: 'stopped' as const },
+      computed: {
+        colorUpMap: new Map(),
+        activePlayerCount: 0,
+        bubbleActive: false,
+        averageStack: 0,
+        tournamentElapsed: 0,
+        leagueDisplayData: undefined,
+      },
+      lastHandActive: false,
+      handForHandActive: false,
+      showDealerBadges: true,
+      sidePotData: null,
+      showCallTheClock: false,
+      remoteHostRef: hostRef,
+      remoteHostStatus: null,
+    };
+  }
+
+  it('returns correct shape with tvWindowActive false by default', () => {
+    const { result } = renderHook(() => useDisplayBridge(makeDisplayBridgeProps()));
+    expect(result.current.tvWindowActive).toBe(false);
+    expect(typeof result.current.handleToggleTVWindow).toBe('function');
+    expect(typeof result.current.displayCount).toBe('number');
+    expect(result.current.displayCount).toBe(0);
+  });
+
+  it('handleToggleTVWindow is stable across re-renders with same props', () => {
+    const props = makeDisplayBridgeProps();
+    const { result, rerender } = renderHook(() => useDisplayBridge(props));
+    const firstRef = result.current.handleToggleTVWindow;
+    rerender();
+    expect(result.current.handleToggleTVWindow).toBe(firstRef);
   });
 });

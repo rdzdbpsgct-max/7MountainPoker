@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import type { TournamentConfig, Settings, TournamentCheckpoint, Table, TableMove, PotResult, PlayerPayout } from './domain/types';
-import { serializeColorUpMap } from './domain/displayChannel';
-import type { DisplayStatePayload } from './domain/displayChannel';
 import {
   defaultConfig,
   defaultSettings,
@@ -24,7 +22,7 @@ import { useGameEvents } from './hooks/useGameEvents';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTournamentActions } from './hooks/useTournamentActions';
 import { useTournamentModeTransitions } from './hooks/useTournamentModeTransitions';
-import { useTVDisplay } from './hooks/useTVDisplay';
+import { useDisplayBridge } from './hooks/useDisplayBridge';
 import { useWakeLock } from './hooks/useWakeLock';
 import { useConfirmDialog } from './hooks/useConfirmDialog';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
@@ -52,7 +50,6 @@ import { isTourCompleted } from './domain/configPersistence';
 import { useModalManager } from './hooks/useModalManager';
 import { ToastContainer } from './components/Toast';
 import { useRemoteHostBridge } from './hooks/useRemoteHostBridge';
-import { useDisplaySession } from './hooks/useDisplaySession';
 import { collectStartErrors } from './domain/startValidation';
 import { SectionErrorBoundary } from './components/ErrorBoundary';
 import { LoadingFallback } from './components/LoadingFallback';
@@ -421,58 +418,22 @@ function App() {
   // BroadcastChannel: send state to TV display window (placed after computed values)
   // ---------------------------------------------------------------------------
 
-  // Use ref for timerState in payload to avoid callback recreation every 250ms tick.
-  // TV display receives timer updates separately via timer-tick BroadcastChannel messages.
-  const timerStateForPayloadRef = useRef(timer.timerState);
-  timerStateForPayloadRef.current = timer.timerState;
-
-  const buildFullStatePayload = useCallback((): DisplayStatePayload => ({
-    timerState: timerStateForPayloadRef.current,
-    levels: config.levels,
-    chipConfig: config.chips,
-    colorUpSchedule: serializeColorUpMap(colorUpMap),
-    tournamentName: config.name,
-    activePlayerCount,
-    totalPlayerCount: config.players.length,
-    isBubble: bubbleActive,
-    isLastHand: lastHandActive,
-    isHandForHand: handForHandActive,
-    players: config.players,
-    dealerIndex: config.dealerIndex,
-    buyIn: config.buyIn,
-    payout: config.payout,
-    rebuy: config.rebuy,
-    addOn: config.addOn,
-    bounty: config.bounty,
-    averageStack,
-    tournamentElapsed,
-    tables: config.tables,
-    showDealerBadges,
-    leagueName: leagueDisplayData?.name,
-    leagueStandings: leagueDisplayData?.standings,
-    sidePotData: sidePotData ?? undefined,
-    displayScreens: settings.displayScreens,
-    displayRotationInterval: settings.displayRotationInterval,
-    displayLayout: settings.displayLayout,
-  }), [config, colorUpMap, activePlayerCount, bubbleActive, lastHandActive, handForHandActive, averageStack, tournamentElapsed, showDealerBadges, leagueDisplayData, sidePotData, settings.displayScreens, settings.displayRotationInterval, settings.displayLayout]);
-
-  // TV Display: BroadcastChannel sync + window management
-  const { tvWindowActive, openTVWindow, closeTVWindow } = useTVDisplay({
+  // Display bridge: payload construction + local TV + cross-device PeerJS display
+  const { tvWindowActive, handleToggleTVWindow, displayCount } = useDisplayBridge({
     mode,
-    buildFullStatePayload,
-    remainingSeconds: timer.timerState.remainingSeconds,
-    timerStatus: timer.timerState.status,
-    currentLevelIndex: timer.timerState.currentLevelIndex,
+    config,
+    settings,
+    timerState: timer.timerState,
+    computed: { colorUpMap, activePlayerCount, bubbleActive, averageStack, tournamentElapsed, leagueDisplayData },
+    lastHandActive,
+    handForHandActive,
+    showDealerBadges,
+    sidePotData,
     showCallTheClock: modals.showCallTheClock,
-    callTheClockSeconds: settings.callTheClockSeconds,
-    soundEnabled: settings.soundEnabled,
-    voiceEnabled: settings.voiceEnabled,
+    remoteHostRef,
+    remoteHostStatus,
   });
 
-  const handleToggleTVWindow = useCallback(() => {
-    if (tvWindowActive) closeTVWindow();
-    else openTVWindow();
-  }, [tvWindowActive, closeTVWindow, openTVWindow]);
   const {
     lockedFeature,
     openFeatureGate,
@@ -645,20 +606,6 @@ function App() {
       showToast(t('remote.sessionRestored'));
     }
   }, [remoteHostResumed, remoteHostStatus, t]);
-
-  // Display session: broadcast state to connected display peers (TV windows via PeerJS)
-  const { displayCount } = useDisplaySession({
-    hostRef: remoteHostRef,
-    enabled: mode === 'game' && remoteHostStatus !== null,
-    buildFullStatePayload,
-    remainingSeconds: timer.timerState.remainingSeconds,
-    timerStatus: timer.timerState.status,
-    currentLevelIndex: timer.timerState.currentLevelIndex,
-    showCallTheClock: modals.showCallTheClock,
-    callTheClockSeconds: settings.callTheClockSeconds,
-    soundEnabled: settings.soundEnabled,
-    voiceEnabled: settings.voiceEnabled,
-  });
 
   const {
     showSeatingOverlay,
