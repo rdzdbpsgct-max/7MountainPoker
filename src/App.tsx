@@ -35,16 +35,13 @@ import {
   getRequiredTier,
 } from './domain/entitlements';
 import {
-  setSpeechLanguage,
   announceLastHand,
   announceHandForHand,
   announceTableMove,
   announceFinalTable,
   announceLateRegistrationClosed,
-  setSpeechVolume,
 } from './domain/speech';
-import { setMasterVolume } from './domain/sounds';
-import { setAudioVolume } from './domain/audioPlayer';
+import { setAudioMasterVolume, setAudioLanguage } from './domain/audioService';
 // Setup-mode components (static imports — used immediately on load)
 import { isTourCompleted } from './domain/configPersistence';
 import { useModalManager } from './hooks/useModalManager';
@@ -98,7 +95,7 @@ function App() {
 
   // Sync speech language with app language
   useEffect(() => {
-    setSpeechLanguage(language);
+    setAudioLanguage(language);
   }, [language]);
 
   const [mode, setMode] = useState<Mode>('setup');
@@ -228,12 +225,9 @@ function App() {
     saveSettings(settings);
   }, [settings]);
 
-  // Sync master volume to all audio modules
+  // Sync master volume to all audio modules via centralized facade
   useEffect(() => {
-    const v = settings.volume / 100;
-    setMasterVolume(v);
-    setAudioVolume(v);
-    setSpeechVolume(v);
+    setAudioMasterVolume(settings.volume / 100);
   }, [settings.volume]);
 
   // Wake Lock: prevent screen from sleeping during active tournament

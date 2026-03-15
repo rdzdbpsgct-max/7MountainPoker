@@ -91,8 +91,8 @@ export function AppHeader({
           <button
             onClick={onShowShareHub}
             className="relative px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border border-gray-300 dark:border-gray-700/60 hover:border-gray-400 dark:hover:border-gray-600 bg-white/80 dark:bg-gray-800/60"
-            title={t('share.title' as Parameters<typeof t>[0])}
-            aria-label={t('share.title' as Parameters<typeof t>[0])}
+            title={t('shareHub.title')}
+            aria-label={t('shareHub.title')}
           >
             {String.fromCodePoint(0x1F4E1)}
             {((displayCount ?? 0) > 0 || remoteHostConnected || tvWindowActive) && (
