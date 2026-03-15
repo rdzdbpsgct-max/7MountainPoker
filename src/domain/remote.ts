@@ -17,8 +17,25 @@
  * One QR scan — no second scan or paste required.
  */
 
-import Peer from 'peerjs';
+import type PeerType from 'peerjs';
 import type { DataConnection } from 'peerjs';
+
+/** Instance type alias for the dynamically-loaded Peer class. */
+type Peer = InstanceType<typeof PeerType>;
+
+// ---------------------------------------------------------------------------
+// Lazy PeerJS import — PeerJS (~117 KB) is only loaded when needed
+// ---------------------------------------------------------------------------
+
+let PeerConstructor: typeof PeerType | null = null;
+
+async function getPeerConstructor(): Promise<typeof PeerType> {
+  if (!PeerConstructor) {
+    const mod = await import('peerjs');
+    PeerConstructor = mod.default;
+  }
+  return PeerConstructor;
+}
 
 // ---------------------------------------------------------------------------
 // Peer ID generation
@@ -424,6 +441,11 @@ export class RemoteHost {
     return this.displayConnections.size;
   }
 
+  /** Register a handler for when a display peer connects. */
+  setDisplayConnectedHandler(handler: (() => void) | undefined): void {
+    this.callbacks.onDisplayConnected = handler;
+  }
+
   private async initHmacKey(): Promise<void> {
     try {
       this.hmacKey = await importHmacKey(this._secret);
@@ -437,8 +459,9 @@ export class RemoteHost {
     this.callbacks.onStatusChange(status);
   }
 
-  private init(): void {
+  private async init(): Promise<void> {
     try {
+      const Peer = await getPeerConstructor();
       this.peer = new Peer(this._peerId);
 
       this.peer.on('open', () => {
@@ -795,10 +818,11 @@ export class RemoteController {
     this.callbacks.onStatusChange(status);
   }
 
-  private connect(): void {
+  private async connect(): Promise<void> {
     if (this.destroyed) return;
 
     try {
+      const Peer = await getPeerConstructor();
       this.peer = new Peer();
 
       // 10s timeout: if 'open' never fires → set error status

@@ -17,6 +17,7 @@ export function useDialogA11y(onClose: () => void) {
   // Store onClose in a ref so the keydown handler always uses the latest version
   // without re-running the effect (which would re-focus and scroll to top)
   const onCloseRef = useRef(onClose);
+  // eslint-disable-next-line react-hooks/refs -- updating ref to latest onClose without re-running effect
   onCloseRef.current = onClose;
 
   useEffect(() => {
@@ -69,7 +70,6 @@ export function useDialogA11y(onClose: () => void) {
       // Return focus to the previously focused element
       previousFocusRef.current?.focus();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- onClose stored in ref, effect runs once on mount
   }, []);
 
   return dialogRef;

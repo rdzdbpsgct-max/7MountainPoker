@@ -76,6 +76,12 @@ const DB_NAME = 'poker-timer-db';
 const DB_VERSION = 4;
 const MIGRATED_KEY = 'poker-timer-migrated';
 
+/** Maximum number of tournament history entries to retain. */
+export const MAX_HISTORY_ENTRIES = 100;
+
+/** Maximum number of tournament event log entries to retain. */
+export const MAX_EVENT_ENTRIES = 1000;
+
 /** localStorage keys that should be migrated to IndexedDB. */
 const MIGRATION_MAP: Record<string, StoreKey> = {
   'poker-timer-config': 'config',
@@ -160,6 +166,9 @@ export async function initStorage(): Promise<void> {
 
     // Load all data into cache
     await loadAllIntoCache();
+
+    // Enforce retention policies on collections
+    enforceRetentionPolicies();
 
     ready = true;
   } catch {
@@ -430,4 +439,42 @@ function loadAllFromLocalStorage(): void {
 /** Clears all events from cache and persists the empty array. */
 export function clearEvents(): void {
   setCached('events', []);
+}
+
+// ---------------------------------------------------------------------------
+// Retention Policies
+// ---------------------------------------------------------------------------
+
+/**
+ * Enforce retention limits on history and events collections.
+ * Keeps the newest entries, deletes the oldest when over the limit.
+ * Called once during initStorage() after cache is populated.
+ */
+function enforceRetentionPolicies(): void {
+  // History: keep newest MAX_HISTORY_ENTRIES by date
+  if (cache.history.length > MAX_HISTORY_ENTRIES) {
+    cache.history.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const removed = cache.history.splice(MAX_HISTORY_ENTRIES);
+    // Fire-and-forget: delete excess from IndexedDB
+    if (db && !useLocalStorageFallback) {
+      for (const item of removed) {
+        db.delete('history', item.id).catch(() => {});
+      }
+    }
+    // Also persist trimmed array to localStorage fallback if needed
+    if (useLocalStorageFallback) {
+      persistToLocalStorage('history');
+    }
+  }
+
+  // Events: keep newest MAX_EVENT_ENTRIES by timestamp
+  if (cache.events.length > MAX_EVENT_ENTRIES) {
+    cache.events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const removed = cache.events.splice(MAX_EVENT_ENTRIES);
+    if (db && !useLocalStorageFallback) {
+      for (const item of removed) {
+        db.delete('events', item.id).catch(() => {});
+      }
+    }
+  }
 }
