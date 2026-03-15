@@ -17,6 +17,7 @@ import {
   createEvent,
   computePrizePool,
 } from './domain/logic';
+import { UndoStack, createUndoSnapshot } from './domain/undoStack';
 import { useTimer } from './hooks/useTimer';
 import { useVoiceAnnouncements } from './hooks/useVoiceAnnouncements';
 import { useGameEvents } from './hooks/useGameEvents';
@@ -185,6 +186,54 @@ function App() {
     pendingCheckpoint: pendingCheckpoint !== null,
   });
 
+  // --- Undo/Redo stack ---
+  const [undoStack, setUndoStack] = useState(() => new UndoStack());
+
+  const pushUndoSnapshot = useCallback((actionKey: string) => {
+    setUndoStack(prev => prev.push(
+      createUndoSnapshot(actionKey, config.players, config.tables, tournamentEvents, config.dealerIndex)
+    ));
+  }, [config.players, config.tables, tournamentEvents, config.dealerIndex]);
+
+  const handleUndo = useCallback(() => {
+    const currentSnapshot = createUndoSnapshot('current', config.players, config.tables, tournamentEvents, config.dealerIndex);
+    const result = undoStack.undo(currentSnapshot);
+    if (!result) return;
+    const [newStack, entry] = result;
+    setUndoStack(newStack);
+    setConfig(prev => ({
+      ...prev,
+      players: entry.players,
+      tables: entry.tables,
+      dealerIndex: entry.dealerIndex,
+    }));
+    setTournamentEvents(entry.events);
+  }, [undoStack, config.players, config.tables, tournamentEvents, config.dealerIndex, setConfig, setTournamentEvents]);
+
+  const handleRedo = useCallback(() => {
+    const currentSnapshot = createUndoSnapshot('current', config.players, config.tables, tournamentEvents, config.dealerIndex);
+    const result = undoStack.redo(currentSnapshot);
+    if (!result) return;
+    const [newStack, entry] = result;
+    setUndoStack(newStack);
+    setConfig(prev => ({
+      ...prev,
+      players: entry.players,
+      tables: entry.tables,
+      dealerIndex: entry.dealerIndex,
+    }));
+    setTournamentEvents(entry.events);
+  }, [undoStack, config.players, config.tables, tournamentEvents, config.dealerIndex, setConfig, setTournamentEvents]);
+
+  // Clear undo stack when entering game mode (fresh start)
+  const prevModeForUndo = useRef(mode);
+  useEffect(() => {
+    if (prevModeForUndo.current !== 'game' && mode === 'game') {
+      setUndoStack(new UndoStack());
+    }
+    prevModeForUndo.current = mode;
+  }, [mode]);
+
   // Auto-save checkpoint in game mode (debounced + periodic)
   useCheckpointManager({
     mode,
@@ -291,6 +340,7 @@ function App() {
     setRecentTableMoves,
     currentLevelIndex: timer.timerState.currentLevelIndex,
     onAppendEvent: handleAppendEvent,
+    onPushUndo: pushUndoSnapshot,
   });
 
   // Keyboard shortcuts (only in game mode)
@@ -516,8 +566,8 @@ function App() {
     onToggleTVWindow: handleToggleTVWindowWithGate,
     onHandForHand: handleHandForHand,
     onCallTheClock: useCallback(() => modals.setShowCallTheClock((v) => !v), [modals]),
-    onUndo: useCallback(() => { /* wired in Phase 1 — undo stack not yet connected */ }, []),
-    onRedo: useCallback(() => { /* wired in Phase 1 — undo stack not yet connected */ }, []),
+    onUndo: handleUndo,
+    onRedo: handleRedo,
   });
 
   // Clear checkpoint and save result when tournament finishes
@@ -757,6 +807,14 @@ function App() {
             config={config}
             settings={settings}
             timer={timer}
+            undo={{
+              canUndo: undoStack.canUndo,
+              canRedo: undoStack.canRedo,
+              undoLabel: undoStack.undoLabel,
+              redoLabel: undoStack.redoLabel,
+              onUndo: handleUndo,
+              onRedo: handleRedo,
+            }}
             state={{
               rebuyActive,
               addOnWindowOpen,

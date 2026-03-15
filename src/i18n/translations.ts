@@ -1259,6 +1259,16 @@ const de = {
   'undo.redoAction': 'Wiederherstellen: {action}',
   'undo.noUndo': 'Nichts rückgängig zu machen',
   'undo.noRedo': 'Nichts wiederherzustellen',
+  'undo.actions.eliminate': 'Elimination',
+  'undo.actions.rebuy': 'Rebuy',
+  'undo.actions.addOn': 'Add-On',
+  'undo.actions.reinstate': 'Wiedereinsetzung',
+  'undo.actions.advanceDealer': 'Dealer weiter',
+  'undo.actions.lateRegistration': 'Nachmeldung',
+  'undo.actions.reEntry': 'Re-Entry',
+  'undo.actions.updateStack': 'Stack-Änderung',
+  'undo.actions.initStacks': 'Stacks initialisiert',
+  'undo.actions.clearStacks': 'Stacks gelöscht',
 
   // --- Cloud Export ---
   'cloudExport.title': 'Export',
@@ -2529,6 +2539,16 @@ const en: Record<TranslationKey, string> = {
   'undo.redoAction': 'Redo: {action}',
   'undo.noUndo': 'Nothing to undo',
   'undo.noRedo': 'Nothing to redo',
+  'undo.actions.eliminate': 'Elimination',
+  'undo.actions.rebuy': 'Rebuy',
+  'undo.actions.addOn': 'Add-On',
+  'undo.actions.reinstate': 'Reinstatement',
+  'undo.actions.advanceDealer': 'Advance Dealer',
+  'undo.actions.lateRegistration': 'Late Registration',
+  'undo.actions.reEntry': 'Re-Entry',
+  'undo.actions.updateStack': 'Stack Update',
+  'undo.actions.initStacks': 'Stacks Initialized',
+  'undo.actions.clearStacks': 'Stacks Cleared',
 
   // --- Cloud Export ---
   'cloudExport.title': 'Export',

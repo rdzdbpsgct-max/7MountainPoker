@@ -29,6 +29,16 @@ type TimerController = ReturnType<typeof useTimer>;
 
 // ─── Grouped Props Interfaces ──────────────────────────────────────────────
 
+/** Undo/Redo state for Controls */
+export interface GameModeUndoState {
+  canUndo: boolean;
+  canRedo: boolean;
+  undoLabel: string | null;
+  redoLabel: string | null;
+  onUndo: () => void;
+  onRedo: () => void;
+}
+
 /** Computed/derived tournament game state */
 export interface GameModeState {
   rebuyActive: boolean;
@@ -98,9 +108,10 @@ interface Props {
   state: GameModeState;
   ui: GameModeUiState;
   actions: GameModeActions;
+  undo?: GameModeUndoState;
 }
 
-export function GameModeContainer({ config, settings, timer, state, ui, actions }: Props) {
+export function GameModeContainer({ config, settings, timer, state, ui, actions, undo }: Props) {
   const { t } = useTranslation();
   const { onUpdateTables } = actions;
 
@@ -221,6 +232,12 @@ export function GameModeContainer({ config, settings, timer, state, ui, actions 
               showHandForHand={state.bubbleActive}
               callTheClockSeconds={settings.callTheClockSeconds}
               onCallTheClock={actions.onShowCallTheClock}
+              canUndo={undo?.canUndo}
+              canRedo={undo?.canRedo}
+              onUndo={undo?.onUndo}
+              onRedo={undo?.onRedo}
+              undoLabel={undo?.undoLabel}
+              redoLabel={undo?.redoLabel}
             />
           </div>
 
