@@ -159,6 +159,7 @@ import {
   CUSTOMIZABLE_ANNOUNCEMENTS,
   getLayoutConfig,
   DISPLAY_LAYOUTS,
+  PAYOUT_TEMPLATES,
 } from '../src/domain/logic';
 import {
   applyChipPreset,
@@ -7470,5 +7471,35 @@ describe('parseConfigObject — currency', () => {
     };
     const config = parseConfigObject(raw as Record<string, unknown>);
     expect(config?.currency).toBe('EUR');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Payout Templates
+// ---------------------------------------------------------------------------
+
+describe('payoutTemplates', () => {
+  it('PAYOUT_TEMPLATES should have at least 3 templates', () => {
+    expect(PAYOUT_TEMPLATES.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('each template entries should sum to 100%', () => {
+    for (const tpl of PAYOUT_TEMPLATES) {
+      const sum = tpl.entries.reduce((s, e) => s + e.value, 0);
+      expect(sum).toBe(100);
+    }
+  });
+
+  it('each template should have unique id', () => {
+    const ids = PAYOUT_TEMPLATES.map(t => t.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('each template entries should have sequential places starting at 1', () => {
+    for (const tpl of PAYOUT_TEMPLATES) {
+      tpl.entries.forEach((e, i) => {
+        expect(e.place).toBe(i + 1);
+      });
+    }
   });
 });

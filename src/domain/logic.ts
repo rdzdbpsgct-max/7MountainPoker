@@ -22,3 +22,4 @@ export * from './customAudio';
 export * from './displayLayouts';
 export * from './platform';
 export * from './presentationApi';
+export * from './payoutTemplates';
