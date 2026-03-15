@@ -2,7 +2,8 @@ import { renderHook, act } from '@testing-library/react';
 import { useModalManager } from '../src/hooks/useModalManager';
 import { useGameComputedState } from '../src/hooks/useGameComputedState';
 import { useTournamentEventLog } from '../src/hooks/useTournamentEventLog';
-import { defaultConfig } from '../src/domain/logic';
+import { useCheckpointManager } from '../src/hooks/useCheckpointManager';
+import { defaultConfig, defaultSettings, loadCheckpoint, clearCheckpoint } from '../src/domain/logic';
 
 // Mock isWizardCompleted — default: wizard completed (showWizard = false)
 // Use partial mock to keep defaultConfig and other exports available
@@ -297,5 +298,63 @@ describe('useTournamentEventLog', () => {
     });
 
     expect(result.current.tournamentEvents).toEqual([]);
+  });
+});
+
+describe('useCheckpointManager', () => {
+  beforeEach(() => {
+    clearCheckpoint();
+  });
+
+  it('does not save when mode is setup', () => {
+    vi.useFakeTimers();
+    const config = defaultConfig();
+    const settings = defaultSettings();
+
+    renderHook(() =>
+      useCheckpointManager({
+        mode: 'setup',
+        config,
+        settings,
+        currentLevelIndex: 0,
+        remainingSeconds: 600,
+        timerStatus: 'stopped',
+        tournamentEvents: [],
+      }),
+    );
+
+    // Advance past debounce
+    vi.advanceTimersByTime(1000);
+    expect(loadCheckpoint()).toBeNull();
+    vi.useRealTimers();
+  });
+
+  it('saves checkpoint after debounce in game mode', () => {
+    vi.useFakeTimers();
+    const config = defaultConfig();
+    const settings = defaultSettings();
+
+    renderHook(() =>
+      useCheckpointManager({
+        mode: 'game',
+        config,
+        settings,
+        currentLevelIndex: 2,
+        remainingSeconds: 300,
+        timerStatus: 'paused',
+        tournamentEvents: [],
+      }),
+    );
+
+    // Before debounce: no checkpoint saved yet
+    expect(loadCheckpoint()).toBeNull();
+
+    // After debounce (500ms)
+    vi.advanceTimersByTime(600);
+    const cp = loadCheckpoint();
+    expect(cp).not.toBeNull();
+    expect(cp!.timer.currentLevelIndex).toBe(2);
+    expect(cp!.timer.remainingSeconds).toBe(300);
+    vi.useRealTimers();
   });
 });

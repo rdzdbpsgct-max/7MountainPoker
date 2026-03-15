@@ -9,7 +9,6 @@ import {
   loadConfig,
   saveSettings,
   loadSettings,
-  saveCheckpoint,
   loadCheckpoint,
   clearCheckpoint,
   buildTournamentResult,
@@ -68,6 +67,7 @@ import { usePrintViewWarmup } from './hooks/usePrintViewWarmup';
 import { useSharedPayloads } from './hooks/useSharedPayloads';
 import { useGameComputedState } from './hooks/useGameComputedState';
 import { useTournamentEventLog } from './hooks/useTournamentEventLog';
+import { useCheckpointManager } from './hooks/useCheckpointManager';
 
 // Game-mode components (lazy — only needed after tournament starts)
 // DisplayMode is now rendered in a separate TV window via TVDisplayWindow
@@ -189,6 +189,17 @@ function App() {
     pendingCheckpoint: pendingCheckpoint !== null,
   });
 
+  // Auto-save checkpoint in game mode (debounced + periodic)
+  useCheckpointManager({
+    mode,
+    config,
+    settings,
+    currentLevelIndex: timer.timerState.currentLevelIndex,
+    remainingSeconds: timer.timerState.remainingSeconds,
+    timerStatus: timer.timerState.status,
+    tournamentEvents,
+  });
+
   // Track the level where rebuy ended (for one-level add-on window)
   const [addOnEndLevelIndex, setAddOnEndLevelIndex] = useState<number | null>(null);
 
@@ -227,47 +238,6 @@ function App() {
     setAudioVolume(v);
     setSpeechVolume(v);
   }, [settings.volume]);
-
-  // Auto-save tournament checkpoint in game mode
-  // Debounced on config/settings changes (500ms) to avoid blocking during rapid interactions.
-  // Level/status changes and periodic saves (running timer) remain immediate.
-  const checkpointIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const checkpointDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (mode !== 'game') return;
-    const doSave = () => {
-      saveCheckpoint({
-        version: 1,
-        config,
-        settings,
-        timer: {
-          currentLevelIndex: timer.timerState.currentLevelIndex,
-          remainingSeconds: timer.timerState.remainingSeconds,
-        },
-        savedAt: new Date().toISOString(),
-        events: tournamentEvents,
-      });
-    };
-    // Debounce save to avoid blocking during rapid config mutations (e.g. elimination cascade)
-    if (checkpointDebounceRef.current) clearTimeout(checkpointDebounceRef.current);
-    checkpointDebounceRef.current = setTimeout(doSave, 500);
-    // For running timer: periodic save every 5s (instead of every tick)
-    if (checkpointIntervalRef.current) clearInterval(checkpointIntervalRef.current);
-    if (timer.timerState.status === 'running') {
-      checkpointIntervalRef.current = setInterval(doSave, 5000);
-    }
-    return () => {
-      if (checkpointIntervalRef.current) {
-        clearInterval(checkpointIntervalRef.current);
-        checkpointIntervalRef.current = null;
-      }
-      if (checkpointDebounceRef.current) {
-        clearTimeout(checkpointDebounceRef.current);
-        checkpointDebounceRef.current = null;
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- remainingSeconds intentionally excluded: interval handles periodic saves
-  }, [mode, config, settings, timer.timerState.currentLevelIndex, timer.timerState.status, tournamentEvents]);
 
   // Wake Lock: prevent screen from sleeping during active tournament
   useWakeLock(mode === 'game' && timer.timerState.status === 'running');
