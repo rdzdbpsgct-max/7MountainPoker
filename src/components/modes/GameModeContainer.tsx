@@ -80,6 +80,7 @@ export interface GameModeActions {
   onNextHand: () => void;
   onShowCallTheClock: () => void;
   onShowPayoutOverlay: () => void;
+  onShowIcm: () => void;
   onUpdateTables: (tables: Table[]) => void;
   onTableMoves: (moves: TableMove[]) => void;
   onSettingsChange: Dispatch<SetStateAction<Settings>>;
@@ -279,6 +280,12 @@ export function GameModeContainer({ config, settings, timer, state, ui, actions 
               onToggleFullscreen={actions.onToggleFullscreen}
               onShowInstallGuide={actions.onShowInstallGuide}
             />
+            <button
+              onClick={actions.onShowIcm}
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm transition-colors"
+            >
+              {t('icm.title')}
+            </button>
             <button
               onClick={actions.onExitToSetup}
               className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm transition-colors"

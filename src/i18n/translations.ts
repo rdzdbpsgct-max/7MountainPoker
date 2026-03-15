@@ -1251,6 +1251,24 @@ const de = {
   'customAudio.announce.table-move': 'Tischwechsel',
   'customAudio.announce.table-dissolved': 'Tisch aufgelöst',
   'customAudio.announce.final-table': 'Final Table',
+
+  // --- Undo/Redo ---
+  'undo.undo': 'Rückgängig',
+  'undo.redo': 'Wiederherstellen',
+  'undo.undoAction': 'Rückgängig: {action}',
+  'undo.redoAction': 'Wiederherstellen: {action}',
+  'undo.noUndo': 'Nichts rückgängig zu machen',
+  'undo.noRedo': 'Nichts wiederherzustellen',
+
+  // --- Cloud Export ---
+  'cloudExport.title': 'Export',
+  'cloudExport.json': 'JSON',
+  'cloudExport.csv': 'CSV',
+  'cloudExport.text': 'Text',
+  'cloudExport.download': 'Herunterladen',
+  'cloudExport.share': 'Teilen',
+  'cloudExport.save': 'Speichern unter...',
+  'cloudExport.configBackup': 'Konfiguration sichern',
 } as const;
 
 export type TranslationKey = keyof typeof de;
@@ -2503,6 +2521,24 @@ const en: Record<TranslationKey, string> = {
   'customAudio.announce.table-move': 'Table Move',
   'customAudio.announce.table-dissolved': 'Table Dissolved',
   'customAudio.announce.final-table': 'Final Table',
+
+  // --- Undo/Redo ---
+  'undo.undo': 'Undo',
+  'undo.redo': 'Redo',
+  'undo.undoAction': 'Undo: {action}',
+  'undo.redoAction': 'Redo: {action}',
+  'undo.noUndo': 'Nothing to undo',
+  'undo.noRedo': 'Nothing to redo',
+
+  // --- Cloud Export ---
+  'cloudExport.title': 'Export',
+  'cloudExport.json': 'JSON',
+  'cloudExport.csv': 'CSV',
+  'cloudExport.text': 'Text',
+  'cloudExport.download': 'Download',
+  'cloudExport.share': 'Share',
+  'cloudExport.save': 'Save as...',
+  'cloudExport.configBackup': 'Backup Configuration',
 };
 
 export const translations: Record<Language, Record<TranslationKey, string>> = { de, en };

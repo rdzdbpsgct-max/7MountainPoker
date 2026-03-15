@@ -10,7 +10,7 @@ interface Props {
   sessionId: string | null;
   secret?: string;
   displayCount: number;
-  remoteConnected: boolean;
+  controllerCount: number;
   localTVActive: boolean;
   onOpenLocalTV: () => void;
   onToggleFullscreen: () => void;
@@ -34,7 +34,7 @@ function ShareHubInner({
   sessionId,
   secret,
   displayCount,
-  remoteConnected,
+  controllerCount,
   localTVActive,
   onOpenLocalTV,
   onToggleFullscreen,
@@ -230,11 +230,13 @@ function ShareHubInner({
               )}
 
               <StatusDot
-                connected={remoteConnected}
+                connected={controllerCount > 0}
                 label={
-                  remoteConnected
-                    ? t('shareHub.remoteConnected' as TKey)
-                    : t('shareHub.remoteNotConnected' as TKey)
+                  controllerCount > 1
+                    ? (t as (key: string, params?: Record<string, string | number>) => string)('remote.controllersConnected', { n: controllerCount })
+                    : controllerCount === 1
+                      ? t('shareHub.remoteConnected' as TKey)
+                      : t('shareHub.remoteNotConnected' as TKey)
                 }
               />
             </div>

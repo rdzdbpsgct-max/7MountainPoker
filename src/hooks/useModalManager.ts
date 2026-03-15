@@ -19,6 +19,7 @@ export function useModalManager() {
   const [showHelp, setShowHelp] = useState(false);
   const [showTournamentLog, setShowTournamentLog] = useState(false);
   const [showPayoutOverlay, setShowPayoutOverlay] = useState(false);
+  const [showIcm, setShowIcm] = useState(false);
   const [showTour, setShowTour] = useState(false);
 
   // Modals with initialization logic
@@ -83,6 +84,8 @@ export function useModalManager() {
     setShowTournamentLog,
     showPayoutOverlay,
     setShowPayoutOverlay,
+    showIcm,
+    setShowIcm,
     showTour,
     setShowTour,
     showWizard,

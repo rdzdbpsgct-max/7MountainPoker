@@ -15,6 +15,7 @@ import {
   createGameDayFromResult,
   loadPlayerDatabase,
   createEvent,
+  computePrizePool,
 } from './domain/logic';
 import { useTimer } from './hooks/useTimer';
 import { useVoiceAnnouncements } from './hooks/useVoiceAnnouncements';
@@ -83,6 +84,7 @@ const PayoutOverlay = lazy(() => import('./components/PayoutOverlay').then(m => 
 const SeriesManager = lazy(() => import('./components/SeriesManager').then(m => ({ default: m.SeriesManager })));
 const CustomAudioEditor = lazy(() => import('./components/CustomAudioEditor').then(m => ({ default: m.CustomAudioEditor })));
 const ShareHub = lazy(() => import('./components/ShareHub').then(m => ({ default: m.ShareHub })));
+const IcmCalculator = lazy(() => import('./components/IcmCalculator').then(m => ({ default: m.IcmCalculator })));
 
 type Mode = 'setup' | 'game' | 'league';
 
@@ -415,6 +417,7 @@ function App() {
   const {
     remoteHostRef,
     remoteHostStatus,
+    remoteControllerCount,
     showRemoteControl,
     setShowRemoteControl,
     isControllerMode,
@@ -513,6 +516,8 @@ function App() {
     onToggleTVWindow: handleToggleTVWindowWithGate,
     onHandForHand: handleHandForHand,
     onCallTheClock: useCallback(() => modals.setShowCallTheClock((v) => !v), [modals]),
+    onUndo: useCallback(() => { /* wired in Phase 1 — undo stack not yet connected */ }, []),
+    onRedo: useCallback(() => { /* wired in Phase 1 — undo stack not yet connected */ }, []),
   });
 
   // Clear checkpoint and save result when tournament finishes
@@ -798,6 +803,7 @@ function App() {
               onNextHand: handleNextHand,
               onShowCallTheClock: () => modals.setShowCallTheClock(true),
               onShowPayoutOverlay: () => modals.setShowPayoutOverlay(true),
+              onShowIcm: () => modals.setShowIcm(true),
               onUpdateTables: handleUpdateTables,
               onTableMoves: handleTableMoves,
               onSettingsChange: setSettings,
@@ -827,6 +833,7 @@ function App() {
             peerId={remoteHostRef.current?.peerId ?? ''}
             secret={remoteHostRef.current?.secret}
             status={remoteHostStatus}
+            controllerCount={remoteControllerCount}
             onClose={() => setShowRemoteControl(false)}
           />
         </Suspense></SectionErrorBoundary>
@@ -839,7 +846,7 @@ function App() {
             sessionId={remoteHostRef.current?.peerId ?? null}
             secret={remoteHostRef.current?.secret}
             displayCount={displayCount}
-            remoteConnected={remoteHostStatus === 'connected'}
+            controllerCount={remoteControllerCount}
             localTVActive={tvWindowActive}
             onOpenLocalTV={handleToggleTVWindow}
             onToggleFullscreen={toggleFullscreen}
@@ -944,6 +951,18 @@ function App() {
             config={config}
             players={config.players}
             onClose={() => modals.setShowPayoutOverlay(false)}
+          />
+        </Suspense></SectionErrorBoundary>
+      )}
+
+      {/* ICM Calculator */}
+      {modals.showIcm && mode === 'game' && (
+        <SectionErrorBoundary><Suspense fallback={null}>
+          <IcmCalculator
+            players={config.players}
+            payout={config.payout}
+            prizePool={computePrizePool(config.players, config.buyIn, config.rebuy.enabled ? config.rebuy.rebuyCost : undefined, config.addOn.enabled ? config.addOn.cost : 0, config.rebuy.separatePot)}
+            onClose={() => modals.setShowIcm(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}

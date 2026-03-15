@@ -109,6 +109,7 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
   return {
     hostRef,
     hostStatus,
+    controllerCount,
     showRemoteModal,
     setShowRemoteModal,
     isControllerMode,

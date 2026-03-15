@@ -24,3 +24,4 @@ export * from './platform';
 export * from './presentationApi';
 export * from './icm';
 export * from './undoStack';
+export * from './cloudExport';
