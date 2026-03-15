@@ -160,6 +160,8 @@ import {
   getLayoutConfig,
   DISPLAY_LAYOUTS,
   PAYOUT_TEMPLATES,
+  defaultPayoutForPlayerCount,
+  defaultConfig,
 } from '../src/domain/logic';
 import {
   applyChipPreset,
@@ -7523,5 +7525,43 @@ describe('payoutTemplates', () => {
         expect(e.place).toBe(i + 1);
       });
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Quick-Start config generation
+// ---------------------------------------------------------------------------
+
+describe('Quick-Start config generation', () => {
+  it('should create valid config from preset with player count', () => {
+    const presets = getBuiltInPresets();
+    const preset = presets[1]; // standard home game
+    const playerCount = 8;
+    const players = defaultPlayers(playerCount);
+    const config = {
+      ...defaultConfig(),
+      ...preset.config,
+      players,
+      dealerIndex: 0,
+      payout: defaultPayoutForPlayerCount(playerCount),
+      currency: 'EUR' as const,
+    };
+    expect(config.players.length).toBe(8);
+    expect(config.buyIn).toBe(preset.config.buyIn);
+    expect(config.payout.entries.length).toBe(3);
+    expect(config.levels.length).toBeGreaterThan(0);
+    expect(config.currency).toBe('EUR');
+  });
+
+  it('defaultPayoutForPlayerCount returns correct places', () => {
+    const payout2 = defaultPayoutForPlayerCount(2);
+    expect(payout2.entries.length).toBe(1);
+    expect(payout2.entries[0].place).toBe(1);
+
+    const payout4 = defaultPayoutForPlayerCount(4);
+    expect(payout4.entries.length).toBe(2);
+
+    const payout10 = defaultPayoutForPlayerCount(10);
+    expect(payout10.entries.length).toBe(3);
   });
 });
