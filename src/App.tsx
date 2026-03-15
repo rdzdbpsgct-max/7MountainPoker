@@ -415,11 +415,66 @@ function App() {
   }, [bubbleActive]);
 
   // ---------------------------------------------------------------------------
+  // Remote host bridge (PeerJS) — must be before useDisplayBridge which reads the ref
+  // ---------------------------------------------------------------------------
+
+  const {
+    remoteHostRef,
+    remoteHostStatus,
+    showRemoteControl,
+    setShowRemoteControl,
+    isControllerMode,
+    controllerPeerId,
+    controllerSecret,
+    startRemoteHost,
+    remoteHostResumed,
+  } = useRemoteHostBridge({
+    mode,
+    config,
+    settings,
+    timerState: timer.timerState,
+    timerControls: {
+      toggleStartPause: timer.toggleStartPause,
+      start: timer.start,
+      pause: timer.pause,
+      nextLevel: timer.nextLevel,
+      previousLevel: timer.previousLevel,
+      resetLevel: timer.resetLevel,
+      extendLevel: timer.extendLevel,
+    },
+    activePlayerCount,
+    bubbleActive,
+    rebuyActive,
+    addOnWindowOpen,
+    bountyEnabled: config.bounty.enabled,
+    averageStack,
+    tournamentElapsed,
+    isItm: inTheMoney,
+    onAdvanceDealer: handleAdvanceDealer,
+    onEliminatePlayer: eliminatePlayer,
+    onUpdatePlayerRebuys: updatePlayerRebuys,
+    onUpdatePlayerAddOn: updatePlayerAddOn,
+    setShowCallTheClock: modals.setShowCallTheClock,
+    setSettings,
+    onAppendEvent: handleAppendEvent,
+    t,
+  });
+
+  // Show toast when remote session is restored after page refresh
+  const remoteResumedToastShown = useRef(false);
+  useEffect(() => {
+    if (remoteHostResumed && remoteHostStatus === 'ready' && !remoteResumedToastShown.current) {
+      remoteResumedToastShown.current = true;
+      showToast(t('remote.sessionRestored'));
+    }
+  }, [remoteHostResumed, remoteHostStatus, t]);
+
+  // ---------------------------------------------------------------------------
   // BroadcastChannel: send state to TV display window (placed after computed values)
   // ---------------------------------------------------------------------------
 
   // Display bridge: payload construction + local TV + cross-device PeerJS display
-  const { tvWindowActive, handleToggleTVWindow, displayCount } = useDisplayBridge({
+  const { tvWindowActive, handleToggleTVWindow, closeTVWindow, displayCount } = useDisplayBridge({
     mode,
     config,
     settings,
@@ -555,57 +610,6 @@ function App() {
       announceTableMove(move.playerName, move.toTableName, move.toSeat, t);
     }
   }, [settings.voiceEnabled, t]);
-
-  const {
-    remoteHostRef,
-    remoteHostStatus,
-    showRemoteControl,
-    setShowRemoteControl,
-    isControllerMode,
-    controllerPeerId,
-    controllerSecret,
-    startRemoteHost,
-    remoteHostResumed,
-  } = useRemoteHostBridge({
-    mode,
-    config,
-    settings,
-    timerState: timer.timerState,
-    timerControls: {
-      toggleStartPause: timer.toggleStartPause,
-      start: timer.start,
-      pause: timer.pause,
-      nextLevel: timer.nextLevel,
-      previousLevel: timer.previousLevel,
-      resetLevel: timer.resetLevel,
-      extendLevel: timer.extendLevel,
-    },
-    activePlayerCount,
-    bubbleActive,
-    rebuyActive,
-    addOnWindowOpen,
-    bountyEnabled: config.bounty.enabled,
-    averageStack,
-    tournamentElapsed,
-    isItm: inTheMoney,
-    onAdvanceDealer: handleAdvanceDealer,
-    onEliminatePlayer: eliminatePlayer,
-    onUpdatePlayerRebuys: updatePlayerRebuys,
-    onUpdatePlayerAddOn: updatePlayerAddOn,
-    setShowCallTheClock: modals.setShowCallTheClock,
-    setSettings,
-    onAppendEvent: handleAppendEvent,
-    t,
-  });
-
-  // Show toast when remote session is restored after page refresh
-  const remoteResumedToastShown = useRef(false);
-  useEffect(() => {
-    if (remoteHostResumed && remoteHostStatus === 'ready' && !remoteResumedToastShown.current) {
-      remoteResumedToastShown.current = true;
-      showToast(t('remote.sessionRestored'));
-    }
-  }, [remoteHostResumed, remoteHostStatus, t]);
 
   const {
     showSeatingOverlay,

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import type { TournamentConfig, Settings, PotResult, PlayerPayout } from '../domain/types';
+import type { TournamentConfig, Settings, PotResult, PlayerPayout, TimerState } from '../domain/types';
 import type { DisplayStatePayload } from '../domain/displayChannel';
 import { serializeColorUpMap } from '../domain/displayChannel';
 import type { GameComputedState } from './useGameComputedState';
@@ -13,11 +13,7 @@ interface UseDisplayBridgeParams {
   mode: Mode;
   config: TournamentConfig;
   settings: Settings;
-  timerState: {
-    currentLevelIndex: number;
-    remainingSeconds: number;
-    status: 'stopped' | 'running' | 'paused';
-  };
+  timerState: TimerState;
   computed: Pick<
     GameComputedState,
     'colorUpMap' | 'activePlayerCount' | 'bubbleActive' | 'averageStack' | 'tournamentElapsed' | 'leagueDisplayData'
@@ -35,6 +31,7 @@ interface UseDisplayBridgeParams {
 interface UseDisplayBridgeReturn {
   tvWindowActive: boolean;
   handleToggleTVWindow: () => void;
+  closeTVWindow: () => void;
   displayCount: number;
 }
 
@@ -127,6 +124,7 @@ export function useDisplayBridge({
   return {
     tvWindowActive,
     handleToggleTVWindow,
+    closeTVWindow,
     displayCount,
   };
 }

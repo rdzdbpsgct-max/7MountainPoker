@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { TournamentConfig, TournamentEvent } from '../domain/types';
+import type { TournamentConfig, TournamentEvent, ChipDenomination } from '../domain/types';
 import type { TournamentResult } from '../domain/types';
 import {
   isRebuyActive,
@@ -43,7 +43,7 @@ export interface GameComputedState {
   lateRegOpen: boolean;
   currentPlayLevel: number;
   averageStack: number;
-  colorUpMap: Map<number, { removeColor: string; removeValue: number }>;
+  colorUpMap: Map<number, ChipDenomination[]>;
   activePlayerCount: number;
   paidPlaces: number;
   bubbleActive: boolean;
