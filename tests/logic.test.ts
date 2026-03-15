@@ -189,6 +189,7 @@ function makeConfig(partial: Partial<TournamentConfig> & { name: string; levels:
     bounty: defaultBountyConfig(),
     chips: defaultChipConfig(),
     buyIn: 10,
+    currency: 'EUR' as const,
     startingChips: 20000,
     ...partial,
   };
@@ -467,11 +468,16 @@ describe('import/export', () => {
       bounty: defaultBountyConfig(),
       chips: defaultChipConfig(),
       buyIn: 10,
+      currency: 'EUR' as const,
       startingChips: 20000,
     };
     const json = exportConfigJSON(config);
     const imported = importConfigJSON(json);
-    expect(imported).toEqual(config);
+    // parseConfigObject may add optional fields (tables: undefined) — check relevant fields
+    expect(imported?.currency).toBe(config.currency);
+    expect(imported?.buyIn).toBe(config.buyIn);
+    expect(imported?.levels).toEqual(config.levels);
+    expect(imported?.players).toEqual(config.players);
   });
 
   it('returns null for invalid JSON', () => {
@@ -7428,5 +7434,41 @@ describe('Presentation API', () => {
   it('buildPresentationUrl uses current origin', () => {
     const url = buildPresentationUrl('PKR-99999');
     expect(url).toMatch(/^https?:\/\//);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Currency parsing
+// ---------------------------------------------------------------------------
+
+describe('parseConfigObject — currency', () => {
+  it('should default currency to EUR when field is missing', () => {
+    const raw = {
+      levels: [{ id: '1', type: 'level', durationSeconds: 600, smallBlind: 25, bigBlind: 50 }],
+      buyIn: 10,
+      startingChips: 20000,
+    };
+    const config = parseConfigObject(raw as Record<string, unknown>);
+    expect(config?.currency).toBe('EUR');
+  });
+
+  it('should preserve currency when present', () => {
+    const raw = {
+      levels: [{ id: '1', type: 'level', durationSeconds: 600, smallBlind: 25, bigBlind: 50 }],
+      buyIn: 10,
+      startingChips: 20000,
+      currency: 'USD',
+    };
+    const config = parseConfigObject(raw as Record<string, unknown>);
+    expect(config?.currency).toBe('USD');
+  });
+
+  it('should fallback to EUR for invalid currency', () => {
+    const raw = {
+      levels: [{ id: '1', type: 'level', durationSeconds: 600, smallBlind: 25, bigBlind: 50 }],
+      currency: 'INVALID',
+    };
+    const config = parseConfigObject(raw as Record<string, unknown>);
+    expect(config?.currency).toBe('EUR');
   });
 });

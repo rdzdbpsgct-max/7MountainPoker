@@ -15,6 +15,7 @@ import type {
   MultiTableConfig,
   DisplayScreenConfig,
 } from './types';
+import { parseCurrency } from './types';
 import { generateBlindStructure } from './blinds';
 import { defaultChipConfig } from './chips';
 import { defaultPayoutConfig } from './tournament';
@@ -97,6 +98,7 @@ export function defaultConfig(): TournamentConfig {
     bounty: defaultBountyConfig(),
     chips: defaultChipConfig(),
     buyIn,
+    currency: 'EUR',
     startingChips,
   };
 }
@@ -125,6 +127,7 @@ export function getBuiltInPresets(): TournamentPreset[] {
       config: {
         name: '',
         buyIn: 5,
+        currency: 'EUR',
         startingChips: 10000,
         anteEnabled: false,
         anteMode: 'standard',
@@ -143,6 +146,7 @@ export function getBuiltInPresets(): TournamentPreset[] {
       config: {
         name: '',
         buyIn: 10,
+        currency: 'EUR',
         startingChips: 20000,
         anteEnabled: false,
         anteMode: 'standard',
@@ -161,6 +165,7 @@ export function getBuiltInPresets(): TournamentPreset[] {
       config: {
         name: '',
         buyIn: 20,
+        currency: 'EUR',
         startingChips: 40000,
         anteEnabled: true,
         anteMode: 'standard',
@@ -257,6 +262,7 @@ export function parseConfigObject(parsed: Record<string, unknown>): TournamentCo
         }
       : defaultChipConfig(),
     buyIn,
+    currency: parseCurrency(parsed.currency),
     startingChips,
     lateRegistration: parsed.lateRegistration
       ? { ...defaultLateRegistrationConfig(), ...(parsed.lateRegistration as Partial<LateRegistrationConfig>) }
