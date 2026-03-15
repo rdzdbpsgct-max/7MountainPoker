@@ -648,7 +648,10 @@ export function SetupPage({
           <PayoutEditor
             payout={config.payout}
             onChange={(payout) => setConfig((prev) => ({ ...prev, payout }))}
-            maxPlaces={config.players.length}
+            maxPlaces={Math.max(config.players.length, 20)}
+            prizePool={config.players.length > 0 ? config.players.length * config.buyIn : undefined}
+            currency={config.currency}
+            playerCount={config.players.length || undefined}
           />
         </CollapsibleSection>
 
