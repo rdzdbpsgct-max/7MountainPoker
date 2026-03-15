@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useModalManager } from '../src/hooks/useModalManager';
 import { useGameComputedState } from '../src/hooks/useGameComputedState';
+import { useTournamentEventLog } from '../src/hooks/useTournamentEventLog';
 import { defaultConfig } from '../src/domain/logic';
 
 // Mock isWizardCompleted — default: wizard completed (showWizard = false)
@@ -224,5 +225,77 @@ describe('useGameComputedState', () => {
       }),
     );
     expect(result.current.paidPlaces).toBe(config.payout.entries.length);
+  });
+});
+
+describe('useTournamentEventLog', () => {
+  it('starts with empty events and provides handleAppendEvent', () => {
+    const { result } = renderHook(() =>
+      useTournamentEventLog({
+        mode: 'setup',
+        currentLevelIndex: 0,
+        timerStatus: 'stopped',
+        tournamentFinished: false,
+        pendingCheckpoint: false,
+      }),
+    );
+    expect(result.current.tournamentEvents).toEqual([]);
+    expect(typeof result.current.handleAppendEvent).toBe('function');
+    expect(typeof result.current.setTournamentEvents).toBe('function');
+  });
+
+  it('logs tournament_started event on mode transition to game', () => {
+    const { result, rerender } = renderHook(
+      (props) => useTournamentEventLog(props),
+      {
+        initialProps: {
+          mode: 'setup' as const,
+          currentLevelIndex: 0,
+          timerStatus: 'stopped' as const,
+          tournamentFinished: false,
+          pendingCheckpoint: false,
+        },
+      },
+    );
+    expect(result.current.tournamentEvents).toEqual([]);
+
+    // Transition to game mode
+    rerender({
+      mode: 'game',
+      currentLevelIndex: 0,
+      timerStatus: 'stopped' as const,
+      tournamentFinished: false,
+      pendingCheckpoint: false,
+    });
+
+    // Should have tournament_started event
+    expect(result.current.tournamentEvents.length).toBeGreaterThanOrEqual(1);
+    expect(result.current.tournamentEvents[0].type).toBe('tournament_started');
+  });
+
+  it('clears events when returning to setup from game', () => {
+    const { result, rerender } = renderHook(
+      (props) => useTournamentEventLog(props),
+      {
+        initialProps: {
+          mode: 'game' as const,
+          currentLevelIndex: 0,
+          timerStatus: 'running' as const,
+          tournamentFinished: false,
+          pendingCheckpoint: false,
+        },
+      },
+    );
+
+    // Transition back to setup
+    rerender({
+      mode: 'setup',
+      currentLevelIndex: 0,
+      timerStatus: 'stopped' as const,
+      tournamentFinished: false,
+      pendingCheckpoint: false,
+    });
+
+    expect(result.current.tournamentEvents).toEqual([]);
   });
 });
