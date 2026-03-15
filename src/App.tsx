@@ -58,7 +58,8 @@ import {
 import { setMasterVolume } from './domain/sounds';
 import { setAudioVolume } from './domain/audioPlayer';
 // Setup-mode components (static imports — used immediately on load)
-import { isTourCompleted, isWizardCompleted } from './domain/configPersistence';
+import { isTourCompleted } from './domain/configPersistence';
+import { useModalManager } from './hooks/useModalManager';
 import { ToastContainer } from './components/Toast';
 import { useRemoteHostBridge } from './hooks/useRemoteHostBridge';
 import { useDisplaySession } from './hooks/useDisplaySession';
@@ -128,14 +129,7 @@ function App() {
       setMode('setup');
     }
   }, [mode, canUseLeagueMode]);
-  const [showPlayerPanel, setShowPlayerPanel] = useState(true);
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showSeries, setShowSeries] = useState(false);
-  const [showCustomAudio, setShowCustomAudio] = useState(false);
-  const [showWizard, setShowWizard] = useState(() => !isWizardCompleted());
-  const [showTour, setShowTour] = useState(false);
+  const modals = useModalManager();
   const printViewReady = usePrintViewWarmup();
   const {
     sharedResult,
@@ -143,10 +137,8 @@ function App() {
     sharedLeague,
     setSharedLeague,
   } = useSharedPayloads();
-  const [cleanView, setCleanView] = useState(false);
   const [lastHandActive, setLastHandActive] = useState(false);
   const [handForHandActive, setHandForHandActive] = useState(false);
-  const [showCallTheClock, setShowCallTheClock] = useState(false);
   const [showDealerBadges, setShowDealerBadges] = useState(true);
   const [sidePotData, setSidePotData] = useState<{ pots: PotResult[]; total: number; payouts?: PlayerPayout[] } | null>(null);
   const [recentTableMoves, setRecentTableMoves] = useState<TableMove[]>([]);
@@ -277,24 +269,6 @@ function App() {
 
   // PWA install prompt
   const { canPrompt: canInstallPrompt, isInstalled: isPWAInstalled, promptInstall } = useInstallPrompt();
-  const [showInstallGuide, setShowInstallGuide] = useState(() => {
-    if (window.location.hash === '#install') {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-      return true;
-    }
-    return false;
-  });
-  const [showHelp, setShowHelp] = useState(false);
-  const [showTournamentLog, setShowTournamentLog] = useState(false);
-  const [showPayoutOverlay, setShowPayoutOverlay] = useState(false);
-  const [showShareHub, setShowShareHub] = useState(() => {
-    if (window.location.hash === '#share') {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-      return true;
-    }
-    return false;
-  });
-
   // Online/Offline detection — show toast on status change
   const isOnline = useOnlineStatus();
   const prevOnlineRef = useRef(isOnline);
@@ -303,23 +277,6 @@ function App() {
     prevOnlineRef.current = isOnline;
     showToast(isOnline ? t('app.onlineNotice') : t('app.offlineNotice'));
   }, [isOnline, t]);
-
-  // Toggle clean view: also controls both sidebars
-  const toggleCleanView = useCallback(() => {
-    setCleanView((prev) => {
-      const next = !prev;
-      if (next) {
-        // Hiding details → also hide both sidebars
-        setShowPlayerPanel(false);
-        setShowSidebar(false);
-      } else {
-        // Showing details → also show both sidebars
-        setShowPlayerPanel(true);
-        setShowSidebar(true);
-      }
-      return next;
-    });
-  }, []);
 
   // Append a tournament event to the log
   const handleAppendEvent = useCallback((event: TournamentEvent) => {
@@ -613,7 +570,7 @@ function App() {
     remainingSeconds: timer.timerState.remainingSeconds,
     timerStatus: timer.timerState.status,
     currentLevelIndex: timer.timerState.currentLevelIndex,
-    showCallTheClock,
+    showCallTheClock: modals.showCallTheClock,
     callTheClockSeconds: settings.callTheClockSeconds,
     soundEnabled: settings.soundEnabled,
     voiceEnabled: settings.voiceEnabled,
@@ -648,11 +605,11 @@ function App() {
     onNextLevel: timer.nextLevel,
     onPreviousLevel: timer.previousLevel,
     onResetLevel: handleResetLevelShortcut,
-    onToggleCleanView: toggleCleanView,
+    onToggleCleanView: modals.toggleCleanView,
     onLastHand: handleLastHand,
     onToggleTVWindow: handleToggleTVWindowWithGate,
     onHandForHand: handleHandForHand,
-    onCallTheClock: useCallback(() => setShowCallTheClock((v) => !v), []),
+    onCallTheClock: useCallback(() => modals.setShowCallTheClock((v) => !v), [modals]),
   });
 
   const tournamentFinished = useMemo(() => {
@@ -824,7 +781,7 @@ function App() {
     onEliminatePlayer: eliminatePlayer,
     onUpdatePlayerRebuys: updatePlayerRebuys,
     onUpdatePlayerAddOn: updatePlayerAddOn,
-    setShowCallTheClock,
+    setShowCallTheClock: modals.setShowCallTheClock,
     setSettings,
     onAppendEvent: handleAppendEvent,
     t,
@@ -847,7 +804,7 @@ function App() {
     remainingSeconds: timer.timerState.remainingSeconds,
     timerStatus: timer.timerState.status,
     currentLevelIndex: timer.timerState.currentLevelIndex,
-    showCallTheClock,
+    showCallTheClock: modals.showCallTheClock,
     callTheClockSeconds: settings.callTheClockSeconds,
     soundEnabled: settings.soundEnabled,
     voiceEnabled: settings.voiceEnabled,
@@ -875,9 +832,9 @@ function App() {
     setPendingCheckpoint,
     setAddOnEndLevelIndex,
     setRecentTableMoves,
-    setCleanView,
-    setShowPlayerPanel,
-    setShowSidebar,
+    setCleanView: modals.setCleanView,
+    setShowPlayerPanel: modals.setShowPlayerPanel,
+    setShowSidebar: modals.setShowSidebar,
     setShowDealerBadges,
     setLastHandActive,
     setHandForHandActive,
@@ -958,18 +915,18 @@ function App() {
           else setMode('game');
         }}
         onExitToSetup={handleExitToSetup}
-        onShowTemplates={() => setShowTemplates(true)}
+        onShowTemplates={() => modals.setShowTemplates(true)}
         onToggleLeagueMode={() => setMode(mode === 'league' ? 'setup' : 'league')}
-        onShowHistory={() => setShowHistory(true)}
-        onShowInstallGuide={() => setShowInstallGuide(true)}
-        onShowHelp={() => setShowHelp(true)}
-        onShowLog={() => setShowTournamentLog(true)}
+        onShowHistory={() => modals.setShowHistory(true)}
+        onShowInstallGuide={() => modals.setShowInstallGuide(true)}
+        onShowHelp={() => modals.setShowHelp(true)}
+        onShowLog={() => modals.setShowTournamentLog(true)}
         showLogButton={mode === 'game' && !tournamentFinished}
         onOpenFeatureGate={openFeatureGate}
-        onShowSeries={() => setShowSeries(true)}
+        onShowSeries={() => modals.setShowSeries(true)}
         onShowShareHub={() => {
           if (!remoteHostRef.current) startRemoteHost();
-          setShowShareHub(true);
+          modals.setShowShareHub(true);
         }}
         displayCount={displayCount}
       />
@@ -1000,7 +957,7 @@ function App() {
             setConfig={setConfig}
             settings={settings}
             onSettingsChange={setSettings}
-            onShowCustomAudio={() => setShowCustomAudio(true)}
+            onShowCustomAudio={() => modals.setShowCustomAudio(true)}
             pendingCheckpoint={pendingCheckpoint}
             onRestoreCheckpoint={restoreFromCheckpoint}
             onDismissCheckpoint={dismissCheckpoint}
@@ -1043,14 +1000,14 @@ function App() {
               isBreak,
             }}
             ui={{
-              cleanView,
-              showPlayerPanel,
-              showSidebar,
+              cleanView: modals.cleanView,
+              showPlayerPanel: modals.showPlayerPanel,
+              showSidebar: modals.showSidebar,
               showDealerBadges,
             }}
             actions={{
-              onTogglePlayerPanel: () => setShowPlayerPanel((v) => !v),
-              onToggleSidebar: () => setShowSidebar((v) => !v),
+              onTogglePlayerPanel: () => modals.setShowPlayerPanel((v) => !v),
+              onToggleSidebar: () => modals.setShowSidebar((v) => !v),
               onUpdatePlayerRebuys: updatePlayerRebuys,
               onUpdatePlayerAddOn: updatePlayerAddOn,
               onEliminatePlayer: eliminatePlayer,
@@ -1067,17 +1024,17 @@ function App() {
               onExtendBreak: handleExtendBreak,
               onResetLevel: handleResetLevel,
               onRestartTournament: handleRestart,
-              onToggleCleanView: toggleCleanView,
+              onToggleCleanView: modals.toggleCleanView,
               onLastHand: handleLastHand,
               onHandForHand: handleHandForHand,
               onNextHand: handleNextHand,
-              onShowCallTheClock: () => setShowCallTheClock(true),
-              onShowPayoutOverlay: () => setShowPayoutOverlay(true),
+              onShowCallTheClock: () => modals.setShowCallTheClock(true),
+              onShowPayoutOverlay: () => modals.setShowPayoutOverlay(true),
               onUpdateTables: handleUpdateTables,
               onTableMoves: handleTableMoves,
               onSettingsChange: setSettings,
               onToggleFullscreen: toggleFullscreen,
-              onShowInstallGuide: () => setShowInstallGuide(true),
+              onShowInstallGuide: () => modals.setShowInstallGuide(true),
               onExitToSetup: handleExitToSetup,
             }}
           />
@@ -1108,7 +1065,7 @@ function App() {
       )}
 
       {/* Share Hub Modal */}
-      {showShareHub && (
+      {modals.showShareHub && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
           <ShareHub
             sessionId={remoteHostRef.current?.peerId ?? null}
@@ -1118,45 +1075,45 @@ function App() {
             localTVActive={tvWindowActive}
             onOpenLocalTV={handleToggleTVWindow}
             onToggleFullscreen={toggleFullscreen}
-            onClose={() => setShowShareHub(false)}
+            onClose={() => modals.setShowShareHub(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Call the Clock Modal */}
-      {showCallTheClock && mode === 'game' && (
+      {modals.showCallTheClock && mode === 'game' && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
           <CallTheClock
             durationSeconds={settings.callTheClockSeconds}
             soundEnabled={settings.soundEnabled}
             voiceEnabled={settings.voiceEnabled}
-            onClose={() => setShowCallTheClock(false)}
+            onClose={() => modals.setShowCallTheClock(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Templates Modal */}
-      {showTemplates && (
+      {modals.showTemplates && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
           <TemplateManager
             config={config}
             onLoad={setConfig}
-            onClose={() => setShowTemplates(false)}
+            onClose={() => modals.setShowTemplates(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
-      {showHistory && (
+      {modals.showHistory && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
-          <TournamentHistory onClose={() => setShowHistory(false)} />
+          <TournamentHistory onClose={() => modals.setShowHistory(false)} />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Series Modal */}
-      {showSeries && (
+      {modals.showSeries && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
           <SeriesManager
-            onClose={() => setShowSeries(false)}
+            onClose={() => modals.setShowSeries(false)}
             currentConfig={config}
             onLinkSeries={(seriesId) => setConfig(prev => ({ ...prev, seriesId }))}
           />
@@ -1164,70 +1121,70 @@ function App() {
       )}
 
       {/* Custom Audio Editor */}
-      {showCustomAudio && (
+      {modals.showCustomAudio && (
         <SectionErrorBoundary><Suspense fallback={null}>
-          <CustomAudioEditor onClose={() => setShowCustomAudio(false)} />
+          <CustomAudioEditor onClose={() => modals.setShowCustomAudio(false)} />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Setup Wizard (first-time users) */}
-      {showWizard && mode === 'setup' && !pendingCheckpoint && (
+      {modals.showWizard && mode === 'setup' && !pendingCheckpoint && (
         <SectionErrorBoundary><Suspense fallback={null}>
           <SetupWizard
             onComplete={(wizardConfig) => {
               setConfig(wizardConfig);
-              setShowWizard(false);
+              modals.setShowWizard(false);
               // Show onboarding tour after wizard if not already completed
               if (!isTourCompleted()) {
-                setTimeout(() => setShowTour(true), 500);
+                setTimeout(() => modals.setShowTour(true), 500);
               }
             }}
-            onSkip={() => setShowWizard(false)}
+            onSkip={() => modals.setShowWizard(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Onboarding Tour (after wizard completion) */}
-      {showTour && mode === 'setup' && (
+      {modals.showTour && mode === 'setup' && (
         <Suspense fallback={null}>
-          <OnboardingTour onComplete={() => setShowTour(false)} />
+          <OnboardingTour onComplete={() => modals.setShowTour(false)} />
         </Suspense>
       )}
 
       {/* Help Center */}
-      {showHelp && (
+      {modals.showHelp && (
         <SectionErrorBoundary><Suspense fallback={null}>
-          <HelpCenter onClose={() => setShowHelp(false)} />
+          <HelpCenter onClose={() => modals.setShowHelp(false)} />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Tournament Log */}
-      {showTournamentLog && mode === 'game' && (
+      {modals.showTournamentLog && mode === 'game' && (
         <SectionErrorBoundary><Suspense fallback={null}>
           <TournamentLog
             events={tournamentEvents}
             players={config.players}
-            onClose={() => setShowTournamentLog(false)}
+            onClose={() => modals.setShowTournamentLog(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Payout Overlay */}
-      {showPayoutOverlay && mode === 'game' && (
+      {modals.showPayoutOverlay && mode === 'game' && (
         <SectionErrorBoundary><Suspense fallback={null}>
           <PayoutOverlay
             config={config}
             players={config.players}
-            onClose={() => setShowPayoutOverlay(false)}
+            onClose={() => modals.setShowPayoutOverlay(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* PWA Install Guide */}
-      {showInstallGuide && (
+      {modals.showInstallGuide && (
         <SectionErrorBoundary><Suspense fallback={null}>
           <PWAInstallGuide
-            onClose={() => setShowInstallGuide(false)}
+            onClose={() => modals.setShowInstallGuide(false)}
             canPrompt={canInstallPrompt}
             isInstalled={isPWAInstalled}
             onPromptInstall={promptInstall}
