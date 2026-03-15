@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import type {
   AddOnConfig,
   BountyConfig,
+  Currency,
   PayoutConfig,
   Player,
   RebuyConfig,
@@ -24,6 +25,7 @@ interface Props {
   addOn: AddOnConfig;
   tournamentResult: TournamentResult | null;
   onBackToSetup: () => void;
+  currency?: Currency;
 }
 
 export function TournamentFinishedContainer({
@@ -36,6 +38,7 @@ export function TournamentFinishedContainer({
   addOn,
   tournamentResult,
   onBackToSetup,
+  currency,
 }: Props) {
   return (
     <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
@@ -49,6 +52,7 @@ export function TournamentFinishedContainer({
         addOn={addOn}
         tournamentResult={tournamentResult}
         onBackToSetup={onBackToSetup}
+        currency={currency}
       />
     </Suspense></SectionErrorBoundary>
   );

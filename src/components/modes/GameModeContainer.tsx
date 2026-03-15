@@ -175,6 +175,7 @@ export function GameModeContainer({
               tables={config.tables}
               onSidePotResultChange={onSidePotResultChange}
               onShowPayoutOverlay={onShowPayoutOverlay}
+              currency={config.currency}
             />
           </aside>
         )}

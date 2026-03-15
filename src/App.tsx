@@ -604,6 +604,7 @@ function App() {
     displayScreens: settings.displayScreens,
     displayRotationInterval: settings.displayRotationInterval,
     displayLayout: settings.displayLayout,
+    currency: config.currency,
   }), [config, colorUpMap, activePlayerCount, bubbleActive, lastHandActive, handForHandActive, averageStack, tournamentElapsed, showDealerBadges, leagueDisplayData, sidePotData, settings.displayScreens, settings.displayRotationInterval, settings.displayLayout]);
 
   // TV Display: BroadcastChannel sync + window management
@@ -1020,6 +1021,7 @@ function App() {
             addOn={config.addOn}
             tournamentResult={finishedResult}
             onBackToSetup={switchToSetup}
+            currency={config.currency}
           />
         ) : (
           /* Game Mode */

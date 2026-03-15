@@ -1,5 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, memo } from 'react';
-import type { TimerState, Level, ChipConfig, ChipDenomination, Player, PayoutConfig, RebuyConfig, AddOnConfig, BountyConfig, Table, ExtendedLeagueStanding, DisplayScreenConfig, DisplayLayout } from '../../domain/types';
+import type { TimerState, Level, ChipConfig, ChipDenomination, Player, PayoutConfig, RebuyConfig, AddOnConfig, BountyConfig, Table, ExtendedLeagueStanding, DisplayScreenConfig, DisplayLayout, Currency } from '../../domain/types';
+import { CURRENCY_SYMBOLS } from '../../domain/types';
 import { getLayoutConfig } from '../../domain/displayLayouts';
 import { DEFAULT_DISPLAY_SCREENS, DEFAULT_ROTATION_INTERVAL } from '../../domain/configPersistence';
 import { formatTime, getLevelLabel, getBlindsText, computePrizePool, computeAverageStackInBB, computeRebuyPot, isRebuyActive } from '../../domain/logic';
@@ -45,6 +46,7 @@ interface Props {
   displayScreens?: DisplayScreenConfig[];
   displayRotationInterval?: number;
   displayLayout?: DisplayLayout;
+  currency?: Currency;
 }
 
 // Removed static ROTATION_INTERVAL — now configurable via props
@@ -179,7 +181,9 @@ export function DisplayMode({
   displayScreens,
   displayRotationInterval,
   displayLayout,
+  currency,
 }: Props) {
+  const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const { t } = useTranslation();
   const layoutConfig = getLayoutConfig(displayLayout);
 
@@ -264,9 +268,9 @@ export function DisplayMode({
     const items: string[] = [];
     items.push(`${activePlayerCount}/${totalPlayerCount} ${t('display.playersRemaining')}`);
     const pool = computePrizePool(players, buyIn, rebuy.rebuyCost, addOn.enabled ? addOn.cost : 0, rebuy.separatePot);
-    items.push(`${t('stats.prizePool')}: ${pool} ${t('unit.eur')}`);
+    items.push(`${t('stats.prizePool')}: ${pool} ${sym}`);
     const rPot = rebuy.separatePot ? computeRebuyPot(players, rebuy.rebuyCost) : 0;
-    if (rPot > 0) items.push(`${t('rebuy.separatePotLabel')}: ${rPot} ${t('unit.eur')}`);
+    if (rPot > 0) items.push(`${t('rebuy.separatePotLabel')}: ${rPot} ${sym}`);
     const curLvl = levels[timerState.currentLevelIndex];
     const curBB = curLvl?.type === 'level' ? (curLvl.bigBlind ?? 0) : 0;
     if (curBB > 0) {
@@ -286,7 +290,7 @@ export function DisplayMode({
       items.push(t('display.rebuyActive'));
     }
     return items;
-  }, [activePlayerCount, totalPlayerCount, players, buyIn, rebuy, addOn, levels, timerState.currentLevelIndex, averageStack, tournamentElapsed, t]);
+  }, [activePlayerCount, totalPlayerCount, players, buyIn, rebuy, addOn, levels, timerState.currentLevelIndex, averageStack, tournamentElapsed, t, sym]);
 
   const currentLevel = levels[timerState.currentLevelIndex];
   if (!currentLevel) return null;
@@ -462,6 +466,7 @@ export function DisplayMode({
                 tournamentElapsed={tournamentElapsed}
                 activePlayerCount={activePlayerCount}
                 totalPlayerCount={totalPlayerCount}
+                currency={currency}
               />
             )}
             {activeSecondary === 'payout' && (
@@ -472,6 +477,7 @@ export function DisplayMode({
                 rebuy={rebuy}
                 addOn={addOn}
                 isBubble={isBubble}
+                currency={currency}
               />
             )}
             {activeSecondary === 'schedule' && (

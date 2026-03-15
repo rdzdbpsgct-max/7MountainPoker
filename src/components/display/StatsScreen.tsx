@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import type { Player, Level, RebuyConfig, AddOnConfig, BountyConfig, TournamentResult } from '../../domain/types';
+import type { Player, Level, RebuyConfig, AddOnConfig, BountyConfig, TournamentResult, Currency } from '../../domain/types';
+import { CURRENCY_SYMBOLS } from '../../domain/types';
 import {
   computePrizePool, computeTotalRebuys, computeTotalAddOns, computeRebuyPot,
   computeAverageStackInBB, formatElapsedTime, computeEstimatedRemainingSeconds,
@@ -20,6 +21,7 @@ interface Props {
   tournamentElapsed: number;
   activePlayerCount: number;
   totalPlayerCount: number;
+  currency?: Currency;
 }
 
 export function StatsScreen({
@@ -35,8 +37,10 @@ export function StatsScreen({
   tournamentElapsed,
   activePlayerCount,
   totalPlayerCount,
+  currency,
 }: Props) {
   const { t } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
 
   const prizePool = computePrizePool(
     players, buyIn,
@@ -61,7 +65,7 @@ export function StatsScreen({
   );
 
   const stats: { label: string; value: string }[] = [
-    { label: t('display.prizePool'), value: `${prizePool.toLocaleString()} ${t('unit.eur')}` },
+    { label: t('display.prizePool'), value: `${prizePool.toLocaleString()} ${sym}` },
     { label: t('display.activePlayers'), value: `${activePlayerCount} / ${totalPlayerCount}` },
   ];
   if (currentBB > 0) {
@@ -82,13 +86,13 @@ export function StatsScreen({
     stats.push({ label: t('display.totalRebuys'), value: String(totalRebuys) });
   }
   if (rebuy.enabled && rebuy.separatePot && totalRebuys > 0) {
-    stats.push({ label: t('rebuy.separatePotLabel'), value: `${computeRebuyPot(players, rebuy.rebuyCost).toLocaleString()} ${t('unit.eur')}` });
+    stats.push({ label: t('rebuy.separatePotLabel'), value: `${computeRebuyPot(players, rebuy.rebuyCost).toLocaleString()} ${sym}` });
   }
   if (addOn.enabled && totalAddOns > 0) {
     stats.push({ label: t('display.totalAddOns'), value: String(totalAddOns) });
   }
   if (bounty.enabled) {
-    stats.push({ label: t('display.bountyPool'), value: `${players.length * bounty.amount} ${t('unit.eur')}` });
+    stats.push({ label: t('display.bountyPool'), value: `${players.length * bounty.amount} ${sym}` });
   }
 
   return (

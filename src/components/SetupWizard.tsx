@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import type { TournamentConfig } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import type { BlindSpeed } from '../domain/logic';
 import {
   defaultConfig,
@@ -149,7 +150,7 @@ export function SetupWizard({ onComplete, onSkip }: Props) {
                     step={1}
                     inputClassName="w-20 text-center"
                   />
-                  <span className="text-gray-400 dark:text-gray-500 text-sm">{t('unit.eur')}</span>
+                  <span className="text-gray-400 dark:text-gray-500 text-sm">{CURRENCY_SYMBOLS['EUR']}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-gray-500 dark:text-gray-400 w-24 text-right">{t('app.startingChips')}</label>
@@ -237,7 +238,7 @@ export function SetupWizard({ onComplete, onSkip }: Props) {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500 dark:text-gray-400">{t('app.buyIn')}</span>
-                  <span className="text-gray-900 dark:text-white font-medium">{buyIn} {t('unit.eur')}</span>
+                  <span className="text-gray-900 dark:text-white font-medium">{buyIn} {CURRENCY_SYMBOLS['EUR']}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500 dark:text-gray-400">{t('app.startingChips')}</span>

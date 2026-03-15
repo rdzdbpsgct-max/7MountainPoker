@@ -142,6 +142,7 @@ export function TVDisplayWindow() {
         displayScreens={state.displayScreens}
         displayRotationInterval={state.displayRotationInterval}
         displayLayout={state.displayLayout}
+        currency={state.currency}
       />
       {ctcPayload && (
         <Suspense fallback={null}>

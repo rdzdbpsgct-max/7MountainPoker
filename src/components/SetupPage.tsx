@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState, lazy, Suspense } from 'react';
-import type { TournamentConfig, TournamentCheckpoint, League, Table, MultiTableConfig, Settings } from '../domain/types';
+import type { TournamentConfig, TournamentCheckpoint, League, Table, MultiTableConfig, Settings, Currency } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import {
   stripAnteFromLevels,
   applyDefaultAntes,
@@ -398,7 +399,16 @@ export function SetupPage({
                   min={1}
                   step={1}
                 />
-                <span className="text-gray-500 dark:text-gray-400 text-sm">{t('unit.eur')}</span>
+                <select
+                  value={config.currency}
+                  onChange={(e) => setConfig((prev) => ({ ...prev, currency: e.target.value as Currency }))}
+                  className="px-2 py-1 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--accent-500)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-all duration-200"
+                  aria-label={t('setup.currency')}
+                >
+                  {(Object.keys(CURRENCY_SYMBOLS) as Currency[]).map((c) => (
+                    <option key={c} value={c}>{CURRENCY_SYMBOLS[c]} {c}</option>
+                  ))}
+                </select>
               </div>
               <div className="flex items-center gap-2">
                 <label className="text-xs text-gray-400 dark:text-gray-500">{t('app.startingChips')}</label>
@@ -743,6 +753,7 @@ export function SetupPage({
                 }))}
                 buyIn={config.buyIn}
                 startingChips={config.startingChips}
+                currency={config.currency}
               />
             </div>
             {/* Add-On */}
@@ -762,6 +773,7 @@ export function SetupPage({
                     rebuy: { ...prev.rebuy, enabled: true },
                   }))
                 }
+                currency={config.currency}
               />
             </div>
             {/* Bounty */}
@@ -772,6 +784,7 @@ export function SetupPage({
               <BountyEditor
                 bounty={config.bounty}
                 onChange={(bounty) => setConfig((prev) => ({ ...prev, bounty }))}
+                currency={config.currency}
               />
             </div>
             {/* Late Registration */}
