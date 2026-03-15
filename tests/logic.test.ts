@@ -3085,6 +3085,28 @@ describe('formatResultAsText', () => {
     expect(text).toContain('Players');
     expect(text).not.toContain('Spieler');
   });
+
+  it('uses currency symbol from result', () => {
+    const result = {
+      id: 'test-id',
+      name: 'USD Game',
+      date: '2026-01-15T20:00:00.000Z',
+      playerCount: 2,
+      buyIn: 10,
+      prizePool: 20,
+      currency: 'USD' as const,
+      players: [
+        { name: 'Alice', place: 1, payout: 20, rebuys: 0, addOn: false, knockouts: 1, bountyEarned: 0, netBalance: 10 },
+      ],
+      bountyEnabled: false, bountyAmount: 0,
+      rebuyEnabled: false, totalRebuys: 0,
+      addOnEnabled: false, totalAddOns: 0,
+      elapsedSeconds: 600, levelsPlayed: 2,
+    };
+    const text = formatResultAsText(result);
+    expect(text).toContain('$');
+    expect(text).not.toContain('€');
+  });
 });
 
 describe('formatResultAsCSV', () => {
@@ -3107,7 +3129,7 @@ describe('formatResultAsCSV', () => {
     };
     const csv = formatResultAsCSV(result);
     const lines = csv.split('\n');
-    expect(lines[0]).toBe('Place,Name,Payout,Rebuys,AddOn,Knockouts,NetBalance');
+    expect(lines[0]).toBe('Place,Name,Payout (€),Rebuys,AddOn,Knockouts,NetBalance (€)');
     expect(lines[1]).toContain('"Alice"');
     expect(lines[2]).toContain('"Bob"');
     expect(lines).toHaveLength(3);

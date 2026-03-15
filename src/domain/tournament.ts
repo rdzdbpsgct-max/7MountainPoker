@@ -16,6 +16,7 @@ import type {
   PlayerPayout,
   SidePotPayoutResult,
 } from './types';
+import { CURRENCY_SYMBOLS } from './types';
 import { t as moduleT } from '../i18n/translations';
 
 // ---------------------------------------------------------------------------
@@ -452,6 +453,7 @@ export function buildTournamentResult(
     totalAddOns: computeTotalAddOns(config.players),
     elapsedSeconds,
     levelsPlayed,
+    currency: config.currency,
     leagueId: config.leagueId,
     rebuyCost: config.rebuy.enabled ? config.rebuy.rebuyCost : config.buyIn,
     addOnCost: config.addOn.enabled ? config.addOn.cost : config.buyIn,
@@ -471,20 +473,21 @@ const PLACE_EMOJI = ['\u{1F3C6}', '\u{1F948}', '\u{1F949}'];
 /** Format a tournament result as a WhatsApp-friendly text string with emoji placements. */
 export function formatResultAsText(result: TournamentResult, locale: string = 'de-DE'): string {
   const isEn = locale.startsWith('en');
+  const sym = CURRENCY_SYMBOLS[result.currency ?? 'EUR'];
   const lines: string[] = [];
   lines.push(`\u2660\u2665 ${result.name || 'Poker Tournament'} \u2666\u2663`);
   lines.push(new Date(result.date).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }));
   lines.push('');
   for (const p of result.players) {
     const emoji = PLACE_EMOJI[p.place - 1] ?? `${p.place}.`;
-    const payoutStr = p.payout > 0 ? ` \u2192 ${p.payout.toFixed(2)} \u20AC` : '';
+    const payoutStr = p.payout > 0 ? ` \u2192 ${p.payout.toFixed(2)} ${sym}` : '';
     lines.push(`${emoji} ${p.name}${payoutStr}`);
   }
   lines.push('');
   const playersLabel = isEn ? 'Players' : 'Spieler';
-  lines.push(`Prizepool: ${result.prizePool.toFixed(2)} \u20AC | ${result.playerCount} ${playersLabel}`);
+  lines.push(`Prizepool: ${result.prizePool.toFixed(2)} ${sym} | ${result.playerCount} ${playersLabel}`);
   if (result.rebuyPot && result.rebuyPot > 0) {
-    lines.push(`Rebuy-Topf: ${result.rebuyPot.toFixed(2)} \u20AC`);
+    lines.push(`Rebuy-Topf: ${result.rebuyPot.toFixed(2)} ${sym}`);
   }
   if (result.totalRebuys > 0) lines.push(`Rebuys: ${result.totalRebuys}`);
   return lines.join('\n');
@@ -502,7 +505,8 @@ export function csvSafe(value: string): string {
 }
 
 export function formatResultAsCSV(result: TournamentResult): string {
-  const header = 'Place,Name,Payout,Rebuys,AddOn,Knockouts,NetBalance';
+  const sym = CURRENCY_SYMBOLS[result.currency ?? 'EUR'];
+  const header = `Place,Name,Payout (${sym}),Rebuys,AddOn,Knockouts,NetBalance (${sym})`;
   const rows = result.players.map((p) =>
     [p.place, csvSafe(p.name), p.payout.toFixed(2), p.rebuys, p.addOn ? 1 : 0, p.knockouts, p.netBalance.toFixed(2)].join(','),
   );
