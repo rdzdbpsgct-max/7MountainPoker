@@ -98,7 +98,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
-    // Keep Playwright specs out of Vitest to avoid cross-runner collisions.
-    exclude: ['tests/e2e/**', 'node_modules/**', 'dist/**'],
+    // Keep Playwright specs and worktrees out of Vitest to avoid cross-runner collisions.
+    exclude: ['tests/e2e/**', 'node_modules/**', 'dist/**', '.worktrees/**'],
   },
 })
