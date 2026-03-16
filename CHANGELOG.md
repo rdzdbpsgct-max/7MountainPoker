@@ -5,6 +5,18 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.9.2] – 2026-03-16
+
+### Premium-Readiness: Gate-Infrastruktur vervollständigt
+
+- **Gate-Checks für multiTable und sidePot**: `canUseMultiTable` und `canUseSidePot` in App.tsx, durchgereicht an SetupPage und PlayerPanel/GameModeContainer. Safety-Guard für MultiTablePanel im Spielmodus.
+- **Feature-Discovery verdrahtet**: `markFeatureDiscovered()` an allen 5 Premium-Feature-Einstiegspunkten (TV, Remote, Liga, Multi-Table, Side-Pot).
+- **Telemetrie aktiviert**: `trackFeatureUsed()` bei Nutzung aller 5 Premium-Features, `trackSessionStarted()` beim App-Start.
+- **Keine sichtbare Änderung**: Default-Tier bleibt `'premium'`, alle Features weiterhin für alle Nutzer verfügbar.
+- **4 neue Tests** — **1199 Tests gesamt** (17 Testdateien)
+
+---
+
 ## [6.9.1] – 2026-03-16
 
 ### Currency Propagation, PeerJS Hardening & CSP

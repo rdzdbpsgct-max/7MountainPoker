@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.9.1
+**Version**: 6.9.2
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1195 tests, single run)
+npm run test         # Vitest run (1199 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -367,8 +367,8 @@ public/
 
 ## Testing
 
-- **1195 tests** across 17 test files + 1 setup file
-- Core files: `logic.test.ts` (665), `components.test.tsx` (98), `edge-cases.test.ts` (88), `sound-speech.test.ts` (56), `integration.test.ts` (36), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (26), `display-channel.test.ts` (14), `entitlements.test.ts` (8), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service, event log, break controls
+- **1199 tests** across 17 test files + 1 setup file
+- Core files: `logic.test.ts` (665), `components.test.tsx` (98), `edge-cases.test.ts` (88), `sound-speech.test.ts` (56), `integration.test.ts` (36), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (26), `display-channel.test.ts` (14), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service, event log, break controls
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -405,6 +405,14 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.9.2 — Premium-Readiness: Gate-Infrastruktur vervollständigt
+
+- **Gate-Checks für multiTable und sidePot**: `canUseMultiTable` und `canUseSidePot` in App.tsx, durchgereicht an SetupPage und PlayerPanel/GameModeContainer. Safety-Guard für MultiTablePanel.
+- **Feature-Discovery verdrahtet**: `markFeatureDiscovered()` an allen 5 Premium-Feature-Einstiegspunkten (TV, Remote, Liga, Multi-Table, Side-Pot).
+- **Telemetrie aktiviert**: `trackFeatureUsed()` bei Nutzung aller 5 Premium-Features, `trackSessionStarted()` beim App-Start.
+- **Keine sichtbare Änderung**: Default-Tier bleibt `'premium'`, alle Features weiterhin für alle Nutzer verfügbar.
+- **4 neue Tests** — **1199 Tests gesamt**
 
 ### v6.9.1 — Currency Propagation, PeerJS Hardening & CSP
 
