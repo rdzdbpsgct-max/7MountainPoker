@@ -10,9 +10,10 @@ interface Props {
   onRefresh: () => void;
   onManualEntry?: () => void;
   onEditGameDay?: (gameDay: GameDay) => void;
+  currencySymbol: string;
 }
 
-export function LeagueGameDays({ gameDays, onStartGameDay, onRefresh, onManualEntry, onEditGameDay }: Props) {
+export function LeagueGameDays({ gameDays, onStartGameDay, onRefresh, onManualEntry, onEditGameDay, currencySymbol }: Props) {
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -104,7 +105,7 @@ export function LeagueGameDays({ gameDays, onStartGameDay, onRefresh, onManualEn
                         <span>{gd.participants.length} {t('league.gameDays.participants')}</span>
                         {winner && <span>🏆 {winner.name}</span>}
                         {gd.venue && <span>📍 {gd.venue}</span>}
-                        <span>{gd.totalPrizePool.toFixed(0)} € {t('league.gameDays.prizePool')}</span>
+                        <span>{gd.totalPrizePool.toFixed(0)} {currencySymbol} {t('league.gameDays.prizePool')}</span>
                       </div>
                     </div>
                   </div>
@@ -115,7 +116,7 @@ export function LeagueGameDays({ gameDays, onStartGameDay, onRefresh, onManualEn
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                           : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                       }`}>
-                        {gd.cashBalance > 0 ? '+' : ''}{gd.cashBalance.toFixed(0)} €
+                        {gd.cashBalance > 0 ? '+' : ''}{gd.cashBalance.toFixed(0)} {currencySymbol}
                       </span>
                     )}
                   </div>
@@ -146,9 +147,9 @@ export function LeagueGameDays({ gameDays, onStartGameDay, onRefresh, onManualEn
                                 {p.isGuest && <span className="ml-1 text-xs text-gray-400">(G)</span>}
                               </td>
                               <td className="px-3 py-1.5" style={{ color: 'var(--accent-text)' }}>{p.points}</td>
-                              <td className="px-3 py-1.5 text-gray-600 dark:text-gray-300">{p.payout.toFixed(0)} €</td>
+                              <td className="px-3 py-1.5 text-gray-600 dark:text-gray-300">{p.payout.toFixed(0)} {currencySymbol}</td>
                               <td className={`px-3 py-1.5 font-medium ${p.netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                {p.netBalance >= 0 ? '+' : ''}{p.netBalance.toFixed(0)} €
+                                {p.netBalance >= 0 ? '+' : ''}{p.netBalance.toFixed(0)} {currencySymbol}
                               </td>
                             </tr>
                           ))}

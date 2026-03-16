@@ -19,9 +19,10 @@ interface Props {
   gameDays: GameDay[];
   onUpdatePointSystem: (leagueId: string, place: number, points: number) => void;
   onAddCorrection?: () => void;
+  currencySymbol: string;
 }
 
-export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePointSystem, onAddCorrection }: Props) {
+export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePointSystem, onAddCorrection, currencySymbol }: Props) {
   const { t } = useTranslation();
   const { resolved: theme } = useTheme();
   const [sortKey, setSortKey] = useState<SortKey>('rank');
@@ -277,10 +278,10 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
                       <td className="px-2 py-2 text-gray-600 dark:text-gray-300">{s.wins}</td>
                       <td className="px-2 py-2 text-gray-600 dark:text-gray-300">{s.cashes}</td>
                       <td className="px-2 py-2 text-gray-600 dark:text-gray-300">{s.avgPlace}</td>
-                      <td className="px-2 py-2 text-gray-600 dark:text-gray-300">{s.totalCost.toFixed(0)} €</td>
-                      <td className="px-2 py-2 text-gray-600 dark:text-gray-300">{s.totalPayout.toFixed(0)} €</td>
+                      <td className="px-2 py-2 text-gray-600 dark:text-gray-300">{s.totalCost.toFixed(0)} {currencySymbol}</td>
+                      <td className="px-2 py-2 text-gray-600 dark:text-gray-300">{s.totalPayout.toFixed(0)} {currencySymbol}</td>
                       <td className={`px-2 py-2 font-medium ${s.netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {s.netBalance >= 0 ? '+' : ''}{s.netBalance.toFixed(0)} €
+                        {s.netBalance >= 0 ? '+' : ''}{s.netBalance.toFixed(0)} {currencySymbol}
                       </td>
                       <td className="px-2 py-2 text-gray-600 dark:text-gray-300">
                         {(s.participationRate * 100).toFixed(0)}%

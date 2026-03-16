@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, lazy, Suspense } from 'react';
-import type { League, ExtendedLeagueStanding, LeagueCorrection, GameDay } from '../domain/types';
+import type { League, ExtendedLeagueStanding, LeagueCorrection, GameDay, Currency } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import {
   loadLeagues,
   saveLeague,
@@ -70,6 +71,12 @@ export function LeagueView({ onStartTournament }: Props) {
     if (!selectedLeague) return [];
     return computeExtendedStandings(selectedLeague, gameDays);
   }, [selectedLeague, gameDays]);
+
+  const currencySymbol = useMemo(() => {
+    const currencies = gameDays.map(gd => gd.currency).filter(Boolean) as Currency[];
+    if (currencies.length === 0) return '€';
+    return CURRENCY_SYMBOLS[currencies[0]] ?? '€';
+  }, [gameDays]);
 
   const activeSeason = useMemo(
     () => selectedLeague ? getActiveSeason(selectedLeague) : undefined,
@@ -358,6 +365,7 @@ export function LeagueView({ onStartTournament }: Props) {
                 gameDays={gameDays}
                 onUpdatePointSystem={handleUpdatePointSystem}
                 onAddCorrection={() => setShowCorrectionModal(true)}
+                currencySymbol={currencySymbol}
               />
             )}
             {activeTab === 'gameDays' && (
@@ -373,12 +381,14 @@ export function LeagueView({ onStartTournament }: Props) {
                   setEditingGameDay(gameDay);
                   setShowGameDayEditor(true);
                 }}
+                currencySymbol={currencySymbol}
               />
             )}
             {activeTab === 'finances' && (
               <LeagueFinances
                 gameDays={gameDays}
                 standings={standings}
+                currencySymbol={currencySymbol}
               />
             )}
             {activeTab === 'h2h' && (
@@ -403,6 +413,7 @@ export function LeagueView({ onStartTournament }: Props) {
               setEditingGameDay(undefined);
               refreshData();
             }}
+            currencySymbol={currencySymbol}
           />
         </Suspense></SectionErrorBoundary>
       )}

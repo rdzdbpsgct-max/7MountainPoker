@@ -5308,6 +5308,44 @@ describe('League Module', () => {
       // Alice: buyIn=10 + 1*10=10 = 20 total cost (uses buyIn as fallback), net = 20 - 20 = 0
       expect(gd.participants[0].netBalance).toBe(0);
     });
+
+    it('propagates currency from TournamentResult to GameDay', () => {
+      const result: TournamentResult = {
+        id: 'tr1', name: 'Test', date: new Date().toISOString(),
+        playerCount: 2, buyIn: 10, prizePool: 20, bountyEnabled: false, bountyAmount: 0,
+        rebuyEnabled: false, totalRebuys: 0, addOnEnabled: false, totalAddOns: 0,
+        elapsedSeconds: 3600, levelsPlayed: 5, currency: 'USD',
+        players: [
+          { name: 'A', place: 1, payout: 15, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0 },
+          { name: 'B', place: 2, payout: 5, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0 },
+        ],
+      };
+      const league: League = {
+        id: 'l1', name: 'Test League', createdAt: new Date().toISOString(),
+        pointSystem: { entries: [{ place: 1, points: 10 }, { place: 2, points: 7 }] },
+      };
+      const gd = createGameDayFromResult(result, league);
+      expect(gd.currency).toBe('USD');
+    });
+
+    it('defaults GameDay currency to undefined when result has no currency', () => {
+      const result: TournamentResult = {
+        id: 'tr2', name: 'Test', date: new Date().toISOString(),
+        playerCount: 2, buyIn: 10, prizePool: 20, bountyEnabled: false, bountyAmount: 0,
+        rebuyEnabled: false, totalRebuys: 0, addOnEnabled: false, totalAddOns: 0,
+        elapsedSeconds: 3600, levelsPlayed: 5,
+        players: [
+          { name: 'A', place: 1, payout: 15, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0 },
+          { name: 'B', place: 2, payout: 5, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0 },
+        ],
+      };
+      const league: League = {
+        id: 'l1', name: 'Test League', createdAt: new Date().toISOString(),
+        pointSystem: { entries: [{ place: 1, points: 10 }, { place: 2, points: 7 }] },
+      };
+      const gd = createGameDayFromResult(result, league);
+      expect(gd.currency).toBeUndefined();
+    });
   });
 
   // --- computeExtendedStandings ---

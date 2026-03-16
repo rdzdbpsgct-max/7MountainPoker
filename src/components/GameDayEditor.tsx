@@ -9,6 +9,7 @@ interface Props {
   editingGameDay?: GameDay;
   onClose: () => void;
   onSaved: () => void;
+  currencySymbol: string;
 }
 
 interface EditableParticipant {
@@ -22,7 +23,7 @@ interface EditableParticipant {
   isGuest: boolean;
 }
 
-export function GameDayEditor({ league, editingGameDay, onClose, onSaved }: Props) {
+export function GameDayEditor({ league, editingGameDay, onClose, onSaved, currencySymbol }: Props) {
   const { t } = useTranslation();
   const dialogRef = useDialogA11y(onClose);
 
@@ -245,7 +246,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved }: Prop
               className="w-20 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-2 py-1 text-sm text-center focus:ring-2 focus:outline-none"
               min={0}
             />
-            <span className="text-xs text-gray-400">€</span>
+            <span className="text-xs text-gray-400">{currencySymbol}</span>
           </div>
 
           {/* Add Player */}
@@ -304,7 +305,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved }: Prop
                               <span className="text-[10px] px-1 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">G</span>
                             )}
                             <span className={`text-xs ml-1 ${netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                              {netBalance >= 0 ? '+' : ''}{netBalance} €
+                              {netBalance >= 0 ? '+' : ''}{netBalance} {currencySymbol}
                             </span>
                           </div>
                         </td>
@@ -391,10 +392,10 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved }: Prop
           {/* Summary */}
           <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700/40">
             <span>{participants.length} {t('league.editor.players')}</span>
-            <span>{t('league.editor.totalBuyIns')}: {totalBuyIns} €</span>
-            <span>{t('league.editor.totalPayouts')}: {totalPayouts} €</span>
+            <span>{t('league.editor.totalBuyIns')}: {totalBuyIns} {currencySymbol}</span>
+            <span>{t('league.editor.totalPayouts')}: {totalPayouts} {currencySymbol}</span>
             <span className={totalBuyIns - totalPayouts >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
-              {t('league.finances.saldo')}: {totalBuyIns - totalPayouts >= 0 ? '+' : ''}{totalBuyIns - totalPayouts} €
+              {t('league.finances.saldo')}: {totalBuyIns - totalPayouts >= 0 ? '+' : ''}{totalBuyIns - totalPayouts} {currencySymbol}
             </span>
           </div>
 

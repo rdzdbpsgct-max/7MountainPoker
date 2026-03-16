@@ -127,6 +127,7 @@ export function createGameDayFromResult(
     totalPrizePool,
     totalBuyIns,
     cashBalance: totalBuyIns - totalPrizePool,
+    ...(result.currency ? { currency: result.currency } : {}),
   };
 
   saveGameDay(gameDay);

@@ -414,6 +414,7 @@ export interface GameDay {
   totalBuyIns: number;
   /** totalBuyIns - totalPrizePool (cash balance for this game day) */
   cashBalance: number;
+  currency?: Currency;
   notes?: string;
   venue?: string;
 }

@@ -6,9 +6,10 @@ import { useTranslation } from '../i18n';
 interface Props {
   gameDays: GameDay[];
   standings: ExtendedLeagueStanding[];
+  currencySymbol: string;
 }
 
-export function LeagueFinances({ gameDays, standings }: Props) {
+export function LeagueFinances({ gameDays, standings, currencySymbol }: Props) {
   const { t } = useTranslation();
 
   const finances = useMemo(() => computeLeagueFinances(gameDays), [gameDays]);
@@ -47,16 +48,16 @@ export function LeagueFinances({ gameDays, standings }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-white/80 dark:bg-gray-800/40 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700/40 shadow-sm p-4 text-center">
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('league.finances.totalBuyIns')}</div>
-          <div className="text-xl font-bold text-gray-900 dark:text-white">{finances.totalBuyIns.toFixed(0)} €</div>
+          <div className="text-xl font-bold text-gray-900 dark:text-white">{finances.totalBuyIns.toFixed(0)} {currencySymbol}</div>
         </div>
         <div className="bg-white/80 dark:bg-gray-800/40 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700/40 shadow-sm p-4 text-center">
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('league.finances.totalPayouts')}</div>
-          <div className="text-xl font-bold text-gray-900 dark:text-white">{finances.totalPayouts.toFixed(0)} €</div>
+          <div className="text-xl font-bold text-gray-900 dark:text-white">{finances.totalPayouts.toFixed(0)} {currencySymbol}</div>
         </div>
         <div className="bg-white/80 dark:bg-gray-800/40 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700/40 shadow-sm p-4 text-center">
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('league.finances.cashBalance')}</div>
           <div className={`text-xl font-bold ${finances.totalCashBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-            {finances.totalCashBalance >= 0 ? '+' : ''}{finances.totalCashBalance.toFixed(0)} €
+            {finances.totalCashBalance >= 0 ? '+' : ''}{finances.totalCashBalance.toFixed(0)} {currencySymbol}
           </div>
         </div>
       </div>
@@ -97,13 +98,13 @@ export function LeagueFinances({ gameDays, standings }: Props) {
                     <tr key={gd.id} className="border-b border-gray-100 dark:border-gray-700/20 hover:bg-gray-50 dark:hover:bg-gray-700/20">
                       <td className="px-3 py-2 text-gray-600 dark:text-gray-300">{formatDate(gd.date)}</td>
                       <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">{gd.label}</td>
-                      <td className="px-3 py-2 text-right text-gray-600 dark:text-gray-300">{fullGD?.totalBuyIns.toFixed(0) ?? '—'} €</td>
-                      <td className="px-3 py-2 text-right text-gray-600 dark:text-gray-300">{fullGD?.totalPrizePool.toFixed(0) ?? '—'} €</td>
+                      <td className="px-3 py-2 text-right text-gray-600 dark:text-gray-300">{fullGD?.totalBuyIns.toFixed(0) ?? '—'} {currencySymbol}</td>
+                      <td className="px-3 py-2 text-right text-gray-600 dark:text-gray-300">{fullGD?.totalPrizePool.toFixed(0) ?? '—'} {currencySymbol}</td>
                       <td className={`px-3 py-2 text-right font-medium ${gd.cashBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {gd.cashBalance >= 0 ? '+' : ''}{gd.cashBalance.toFixed(0)} €
+                        {gd.cashBalance >= 0 ? '+' : ''}{gd.cashBalance.toFixed(0)} {currencySymbol}
                       </td>
                       <td className={`px-3 py-2 text-right font-medium ${gd.cumulative >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {gd.cumulative >= 0 ? '+' : ''}{gd.cumulative.toFixed(0)} €
+                        {gd.cumulative >= 0 ? '+' : ''}{gd.cumulative.toFixed(0)} {currencySymbol}
                       </td>
                     </tr>
                   );
@@ -134,10 +135,10 @@ export function LeagueFinances({ gameDays, standings }: Props) {
                 {playerBalances.map((s) => (
                   <tr key={s.name} className="border-b border-gray-100 dark:border-gray-700/20">
                     <td className="px-3 py-1.5 font-medium text-gray-900 dark:text-white">{s.name}</td>
-                    <td className="px-3 py-1.5 text-right text-gray-600 dark:text-gray-300">{s.totalCost.toFixed(0)} €</td>
-                    <td className="px-3 py-1.5 text-right text-gray-600 dark:text-gray-300">{s.totalPayout.toFixed(0)} €</td>
+                    <td className="px-3 py-1.5 text-right text-gray-600 dark:text-gray-300">{s.totalCost.toFixed(0)} {currencySymbol}</td>
+                    <td className="px-3 py-1.5 text-right text-gray-600 dark:text-gray-300">{s.totalPayout.toFixed(0)} {currencySymbol}</td>
                     <td className={`px-3 py-1.5 text-right font-medium ${s.netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                      {s.netBalance >= 0 ? '+' : ''}{s.netBalance.toFixed(0)} €
+                      {s.netBalance >= 0 ? '+' : ''}{s.netBalance.toFixed(0)} {currencySymbol}
                     </td>
                   </tr>
                 ))}
