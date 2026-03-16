@@ -37,6 +37,14 @@ export function useDisplaySession({
   // Counter that increments when a new display connects — triggers full-state push
   const [displayConnectTrigger, setDisplayConnectTrigger] = useState(0);
 
+  // Refs for values that change every tick — excluded from interval deps to avoid teardown
+  const remainingRef = useRef(remainingSeconds);
+  const statusRef = useRef(timerStatus);
+  const levelIndexRef = useRef(currentLevelIndex);
+  useEffect(() => { remainingRef.current = remainingSeconds; });
+  useEffect(() => { statusRef.current = timerStatus; });
+  useEffect(() => { levelIndexRef.current = currentLevelIndex; });
+
   // Callback for RemoteHost.onDisplayConnected — push full state immediately
   const onDisplayConnected = useCallback(() => {
     setDisplayConnectTrigger((c) => c + 1);
@@ -78,7 +86,7 @@ export function useDisplaySession({
     host.sendDisplayState(withDisplayContract({ type: 'full-state', payload }));
   }, [enabled, hostRef, buildFullStatePayload, displayConnectTrigger]);
 
-  // Timer ticks every 500ms
+  // Timer ticks every 500ms — uses refs to avoid interval teardown on every tick
   useEffect(() => {
     if (!enabled) return;
     const interval = setInterval(() => {
@@ -86,11 +94,11 @@ export function useDisplaySession({
       if (!host || host.displayCount === 0) return;
       host.sendDisplayState(withDisplayContract({
         type: 'timer-tick',
-        payload: { remainingSeconds, status: timerStatus, currentLevelIndex },
+        payload: { remainingSeconds: remainingRef.current, status: statusRef.current, currentLevelIndex: levelIndexRef.current },
       }));
     }, 500);
     return () => clearInterval(interval);
-  }, [enabled, hostRef, remainingSeconds, timerStatus, currentLevelIndex]);
+  }, [enabled, hostRef]);
 
   // Call-the-clock state
   useEffect(() => {

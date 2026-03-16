@@ -5,7 +5,6 @@ import { ThemeProvider } from './theme'
 import { LanguageProvider } from './i18n'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import App from './App.tsx'
-import { TVDisplayWindow, CrossDeviceDisplay } from './components/display'
 import { initStorage } from './domain/storage'
 import { trackSessionStarted } from './domain/monetizationTelemetry'
 
@@ -41,6 +40,12 @@ if (sentryDsn && import.meta.env.PROD && !isLocalDisplayWindow && !isRemoteDispl
 function renderApp() {
   // Lazy-loaded inside renderApp to avoid top-level component declarations
   // in the entry-point file (react-refresh/only-export-components).
+  const TVDisplayWindow = lazy(() =>
+    import('./components/display').then(m => ({ default: m.TVDisplayWindow }))
+  );
+  const CrossDeviceDisplay = lazy(() =>
+    import('./components/display').then(m => ({ default: m.CrossDeviceDisplay }))
+  );
   const Analytics = lazy(() => import('@vercel/analytics/react').then((m) => ({ default: m.Analytics })));
   const SpeedInsights = lazy(() => import('@vercel/speed-insights/react').then((m) => ({ default: m.SpeedInsights })));
 
@@ -70,16 +75,18 @@ function renderApp() {
       <ErrorBoundary>
         <ThemeProvider>
           <LanguageProvider>
-            {isLocalDisplayWindow ? (
-              <TVDisplayWindow />
-            ) : isRemoteDisplayWindow && remoteDisplayPeerId ? (
-              <CrossDeviceDisplay hostPeerId={remoteDisplayPeerId} />
-            ) : (
-              <>
-                <App />
-                <DeferredMonitoring />
-              </>
-            )}
+            <Suspense fallback={<div style={{ background: '#0a0a0f', width: '100vw', height: '100vh' }} />}>
+              {isLocalDisplayWindow ? (
+                <TVDisplayWindow />
+              ) : isRemoteDisplayWindow && remoteDisplayPeerId ? (
+                <CrossDeviceDisplay hostPeerId={remoteDisplayPeerId} />
+              ) : (
+                <>
+                  <App />
+                  <DeferredMonitoring />
+                </>
+              )}
+            </Suspense>
           </LanguageProvider>
         </ThemeProvider>
       </ErrorBoundary>

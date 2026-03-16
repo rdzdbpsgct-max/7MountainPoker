@@ -347,6 +347,10 @@ async function migrateFromLocalStorage(): Promise<void> {
   }
 
   try {
+    // Set migration flag BEFORE deleting keys — if we crash mid-migration,
+    // the data is still in localStorage and won't be re-migrated (safe).
+    localStorage.setItem(MIGRATED_KEY, 'true');
+
     for (const [lsKey, store] of Object.entries(MIGRATION_MAP)) {
       const raw = localStorage.getItem(lsKey);
       if (!raw) continue;
@@ -378,8 +382,6 @@ async function migrateFromLocalStorage(): Promise<void> {
         console.warn(`[storage] Failed to migrate "${lsKey}", skipping`);
       }
     }
-
-    localStorage.setItem(MIGRATED_KEY, 'true');
   } catch {
     console.warn('[storage] Migration from localStorage failed');
   }

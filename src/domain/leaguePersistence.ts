@@ -117,18 +117,26 @@ export function importLeague(data: LeagueExport): League {
   };
   saveLeague(league);
 
-  // Import linked tournament results with updated leagueId
+  // Import linked tournament results with updated leagueId and new IDs
   for (const result of data.results) {
-    saveTournamentResult({ ...result, leagueId: newLeagueId });
+    saveTournamentResult({
+      ...result,
+      id: `result_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      leagueId: newLeagueId,
+    });
   }
 
-  // v2: Import game days with updated leagueId
+  // v2: Import game days with updated leagueId and cleared orphaned registeredPlayerId
   if (data.gameDays && data.gameDays.length > 0) {
     for (const gd of data.gameDays) {
       saveGameDay({
         ...gd,
         id: `gd_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         leagueId: newLeagueId,
+        participants: gd.participants?.map(p => ({
+          ...p,
+          registeredPlayerId: undefined,
+        })),
       });
     }
   }

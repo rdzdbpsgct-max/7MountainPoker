@@ -126,7 +126,7 @@ export function createUndoSnapshot(
     // Deep-clone arrays to capture current state
     players: JSON.parse(JSON.stringify(players)),
     tables: tables ? JSON.parse(JSON.stringify(tables)) : undefined,
-    events: [...events],
+    events: events.map(e => ({ ...e })),
     dealerIndex,
     timestamp: Date.now(),
   };

@@ -404,6 +404,7 @@ export class RemoteHost {
   private _secret: string;
   private _resumed: boolean;
   private hmacKey: CryptoKey | null = null;
+  private hmacKeyReady: Promise<void>;
   private rateLimiter = new RateLimiter();
   /** Most recently built state message for immediate snapshot on reconnect */
   private lastBuiltState: RemoteState | null = null;
@@ -418,7 +419,7 @@ export class RemoteHost {
     this._secret = options?.secret || generateSecret();
     this._resumed = !!(options?.peerId && options?.secret);
     persistHostSession(this._peerId, this._secret);
-    this.initHmacKey();
+    this.hmacKeyReady = this.initHmacKey();
     this.init();
   }
 
@@ -716,6 +717,9 @@ export class RemoteHost {
   }
 
   private async verifyAndDispatch(msg: RemoteCommand): Promise<void> {
+    // Ensure HMAC key is ready before verifying
+    await this.hmacKeyReady;
+
     // If HMAC key is available, require valid signature
     if (this.hmacKey) {
       if (!msg.hmac || msg.ts == null) {
@@ -848,16 +852,13 @@ export class RemoteController {
   private destroyed = false;
   private secret: string | null;
   private hmacKey: CryptoKey | null = null;
+  private hmacKeyReady: Promise<void>;
 
   constructor(hostPeerId: string, callbacks: RemoteControllerCallbacks, secret?: string | null) {
     this.callbacks = callbacks;
     this.hostPeerId = hostPeerId;
     this.secret = secret ?? null;
-    if (this.secret) {
-      importHmacKey(this.secret)
-        .then((key) => { this.hmacKey = key; })
-        .catch(() => { console.warn('[remote] Failed to init controller HMAC key'); });
-    }
+    this.hmacKeyReady = this.initHmacKey();
     this.connect();
   }
 
@@ -872,6 +873,16 @@ export class RemoteController {
   private setStatus(status: ControllerStatus): void {
     this._status = status;
     this.callbacks.onStatusChange(status);
+  }
+
+  private async initHmacKey(): Promise<void> {
+    if (this.secret) {
+      try {
+        this.hmacKey = await importHmacKey(this.secret);
+      } catch {
+        console.warn('[remote] Failed to init controller HMAC key');
+      }
+    }
   }
 
   private async connect(): Promise<void> {
@@ -1012,6 +1023,8 @@ export class RemoteController {
   /** Send command to host (signed with HMAC if secret is configured) */
   async sendCommand(action: RemoteCommand['action'], payload?: Record<string, unknown>): Promise<void> {
     if (!this.conn?.open) return;
+    // Ensure HMAC key is ready before signing
+    await this.hmacKeyReady;
     try {
       const msg: RemoteCommand = { type: 'command', action, payload };
 

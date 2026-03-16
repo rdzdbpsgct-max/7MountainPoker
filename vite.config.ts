@@ -11,6 +11,7 @@ export default defineConfig({
   build: {
     // Support older iPads (iPadOS 15+) — Vite 7 defaults to safari16
     target: ['es2020', 'safari14'],
+    sourcemap: 'hidden',
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -21,7 +22,7 @@ export default defineConfig({
             return 'vendor-react';
           }
 
-          if (id.includes('/node_modules/@sentry/browser/')) return 'vendor-sentry-browser';
+          if (id.includes('/node_modules/@sentry/browser/') || id.includes('/node_modules/@sentry/react/')) return 'vendor-sentry-browser';
           if (id.includes('/node_modules/@sentry/core/')) return 'vendor-sentry-core';
           if (id.includes('/node_modules/@sentry/utils/')) return 'vendor-sentry-utils';
           if (id.includes('/node_modules/@sentry-internal/')) return 'vendor-sentry-internal';

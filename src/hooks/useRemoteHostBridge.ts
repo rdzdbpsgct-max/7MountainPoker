@@ -183,7 +183,8 @@ export function useRemoteHostBridge({
         appendEventRef.current(createEvent('break_skipped', currentLevelIndexRef.current, {}));
         break;
       case 'extendBreak': {
-        const seconds = cmd.payload?.seconds as number | undefined;
+        const rawSeconds = cmd.payload?.seconds as number | undefined;
+        const seconds = typeof rawSeconds === 'number' ? Math.min(rawSeconds, 600) : undefined;
         if (seconds && seconds > 0) {
           timerControls.extendLevel(seconds);
           appendEventRef.current(createEvent('break_extended', currentLevelIndexRef.current, { seconds }));

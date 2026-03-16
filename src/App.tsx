@@ -272,9 +272,14 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
-  // Persist config & settings
+  // Persist config & settings (debounced to avoid excessive writes during rapid changes)
+  const saveConfigTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    saveConfig(config);
+    if (saveConfigTimeoutRef.current) clearTimeout(saveConfigTimeoutRef.current);
+    saveConfigTimeoutRef.current = setTimeout(() => saveConfig(config), 400);
+    return () => {
+      if (saveConfigTimeoutRef.current) clearTimeout(saveConfigTimeoutRef.current);
+    };
   }, [config]);
 
   useEffect(() => {
@@ -447,16 +452,18 @@ function App() {
   // Break detection for skip/extend buttons (also in computed, but needed for local callbacks)
 
   const handleSkipBreak = useCallback(() => {
+    const levelIndex = timer.timerState.currentLevelIndex;
     timer.nextLevel();
-    handleAppendEvent(createEvent('break_skipped', timer.timerState.currentLevelIndex, {}));
+    handleAppendEvent(createEvent('break_skipped', levelIndex, {}));
     if (settings.voiceEnabled) {
       announceBreakSkipped(t);
     }
   }, [timer, handleAppendEvent, settings.voiceEnabled, t]);
 
   const handleExtendBreak = useCallback((seconds: number) => {
+    const levelIndex = timer.timerState.currentLevelIndex;
     timer.extendLevel(seconds);
-    handleAppendEvent(createEvent('break_extended', timer.timerState.currentLevelIndex, { seconds }));
+    handleAppendEvent(createEvent('break_extended', levelIndex, { seconds }));
     if (settings.voiceEnabled) {
       announceBreakExtended(Math.round(seconds / 60), t);
     }

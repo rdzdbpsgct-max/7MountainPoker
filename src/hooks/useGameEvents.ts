@@ -61,38 +61,38 @@ export function useGameEvents({
   const prevBubbleRef = useRef(false);
   const itmFlashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (mode !== 'game') return;
+    if (mode === 'game') {
+      // Bubble just started
+      if (bubbleActive && !prevBubbleRef.current) {
+        const play = async () => {
+          if (settings.soundEnabled) await playBubbleSound();
+          if (settings.voiceEnabled) announceBubble(t);
+        };
+        play();
+      }
 
-    // Bubble just started
-    if (bubbleActive && !prevBubbleRef.current) {
-      const play = async () => {
-        if (settings.soundEnabled) await playBubbleSound();
-        if (settings.voiceEnabled) announceBubble(t);
-      };
-      play();
-    }
+      // Bubble just ended (burst) → show ITM flash
+      if (!bubbleActive && prevBubbleRef.current && inTheMoney) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: transient ITM flash triggered by external state transition
+        setShowItmFlash(true);
+        const play = async () => {
+          if (settings.soundEnabled) await playInTheMoneySound();
+          if (settings.voiceEnabled) announceInTheMoney(t);
+        };
+        play();
+        if (itmFlashTimeoutRef.current) clearTimeout(itmFlashTimeoutRef.current);
+        itmFlashTimeoutRef.current = setTimeout(() => setShowItmFlash(false), 5000);
+      }
 
-    // Bubble just ended (burst) → show ITM flash
-    if (!bubbleActive && prevBubbleRef.current && inTheMoney) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: transient ITM flash triggered by external state transition
-      setShowItmFlash(true);
-      const play = async () => {
-        if (settings.soundEnabled) await playInTheMoneySound();
-        if (settings.voiceEnabled) announceInTheMoney(t);
-      };
-      play();
-      if (itmFlashTimeoutRef.current) clearTimeout(itmFlashTimeoutRef.current);
-      itmFlashTimeoutRef.current = setTimeout(() => setShowItmFlash(false), 5000);
       prevBubbleRef.current = bubbleActive;
-      return () => {
-        if (itmFlashTimeoutRef.current) {
-          clearTimeout(itmFlashTimeoutRef.current);
-          itmFlashTimeoutRef.current = null;
-        }
-      };
     }
 
-    prevBubbleRef.current = bubbleActive;
+    return () => {
+      if (itmFlashTimeoutRef.current) {
+        clearTimeout(itmFlashTimeoutRef.current);
+        itmFlashTimeoutRef.current = null;
+      }
+    };
   }, [mode, bubbleActive, inTheMoney, settings.soundEnabled, settings.voiceEnabled, t]);
 
   // Reset function for switchToSetup

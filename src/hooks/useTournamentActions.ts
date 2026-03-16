@@ -257,11 +257,16 @@ export function useTournamentActions({
     pushUndo('undo.actions.eliminate');
     pendingTableMovesRef.current = [];
     pendingDissolutionRef.current = null;
+    // Compute placement eagerly from current config so the event log gets the correct value
+    // (avoids stale ref when onAppendEvent runs after startTransition)
+    const placement = computeNextPlacement(config.players);
+    lastPlacementRef.current = placement;
+    onAppendEvent(createEvent('player_eliminated', currentLevelIndex, { playerId, eliminatorId: eliminatedBy, placement }));
     // Mark as non-urgent transition — complex multi-table mutations don't need to block INP
     startTransition(() => {
     setConfig((prev) => {
-      const placement = computeNextPlacement(prev.players);
-      lastPlacementRef.current = placement;
+      const actualPlacement = computeNextPlacement(prev.players);
+      lastPlacementRef.current = actualPlacement;
 
       // Mystery bounty: draw from pool if applicable
       let updatedBounty = prev.bounty;
@@ -273,7 +278,7 @@ export function useTournamentActions({
 
       const updatedPlayers = prev.players.map((p) => {
         if (p.id === playerId) {
-          return { ...p, status: 'eliminated' as const, placement, eliminatedBy, eliminatedAt: Date.now(), chips: p.chips !== undefined ? 0 : undefined };
+          return { ...p, status: 'eliminated' as const, placement: actualPlacement, eliminatedBy, eliminatedAt: Date.now(), chips: p.chips !== undefined ? 0 : undefined };
         }
         if (eliminatedBy && p.id === eliminatedBy) {
           return { ...p, knockouts: p.knockouts + 1 };
@@ -328,8 +333,7 @@ export function useTournamentActions({
       };
     });
     }); // end startTransition
-    onAppendEvent(createEvent('player_eliminated', currentLevelIndex, { playerId, eliminatorId: eliminatedBy, placement: lastPlacementRef.current }));
-  }, [setConfig, pushUndo, currentLevelIndex, onAppendEvent]);
+  }, [setConfig, pushUndo, currentLevelIndex, onAppendEvent, config.players]);
 
   // Voice: Mystery bounty draw
   useEffect(() => {

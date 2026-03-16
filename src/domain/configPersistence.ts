@@ -234,7 +234,9 @@ export function parseConfigObject(parsed: Record<string, unknown>): TournamentCo
     anteEnabled: (parsed.anteEnabled as boolean) ?? false,
     anteMode: (parsed.anteMode === 'bigBlindAnte' ? 'bigBlindAnte' : 'standard'),
     players: Array.isArray(parsed.players)
-      ? ((parsed.players as Record<string, unknown>[]).map((p) => ({
+      ? ((parsed.players as Record<string, unknown>[])
+          .filter((p) => p && typeof p === 'object' && typeof p.id === 'string' && (p.id as string).length > 0 && typeof p.name === 'string')
+          .map((p) => ({
           ...p,
           rebuys: typeof p.rebuys === 'number' ? p.rebuys : 0,
           addOn: typeof p.addOn === 'boolean' ? p.addOn : false,
@@ -246,7 +248,13 @@ export function parseConfigObject(parsed: Record<string, unknown>): TournamentCo
         })) as Player[])
       : ([] as Player[]),
     dealerIndex: typeof parsed.dealerIndex === 'number' ? parsed.dealerIndex : 0,
-    payout: (parsed.payout as PayoutConfig) ?? defaultPayoutConfig(),
+    payout: (
+      parsed.payout &&
+      typeof parsed.payout === 'object' &&
+      Array.isArray((parsed.payout as Record<string, unknown>).entries)
+    )
+      ? { ...defaultPayoutConfig(), ...(parsed.payout as PayoutConfig) }
+      : defaultPayoutConfig(),
     rebuy,
     addOn,
     bounty: parsed.bounty
@@ -382,7 +390,7 @@ export function loadCheckpoint(): TournamentCheckpoint | null {
     if (!config) return null;
     // Guard: empty levels array would cause downstream crashes (index -1)
     if (config.levels.length === 0) return null;
-    const timer = raw.timer as Record<string, unknown> | undefined;
+    const timer = raw.timer ? { ...(raw.timer as Record<string, unknown>) } : undefined;
     if (!timer || typeof timer.currentLevelIndex !== 'number' || typeof timer.remainingSeconds !== 'number') return null;
     // Clamp to valid ranges
     timer.currentLevelIndex = Math.max(0, Math.min(
