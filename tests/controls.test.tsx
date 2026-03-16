@@ -35,6 +35,9 @@ vi.mock('../src/i18n', () => ({
         'controls.nextHandTooltip': 'Next hand',
         'game.cleanViewOn': 'Clean View',
         'game.cleanViewOff': 'Normal View',
+        'controls.skipBreak': 'Skip Break',
+        'controls.extendBreak2': '+2 min',
+        'controls.extendBreak5': '+5 min',
       };
       return map[key] ?? key;
     },
@@ -243,5 +246,53 @@ describe('Controls', () => {
     );
     const startBtn = screen.getByText('Start');
     expect(startBtn.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  // --- Break controls ---
+  it('renders skip and extend buttons when isBreak is true', () => {
+    renderControls({
+      timerState: runningTimer(),
+      isBreak: true,
+      onSkipBreak: noop,
+      onExtendBreak: noop,
+    });
+    expect(screen.getByTitle('Skip Break')).toBeTruthy();
+    expect(screen.getByTitle('+2 min')).toBeTruthy();
+    expect(screen.getByTitle('+5 min')).toBeTruthy();
+  });
+
+  it('does not render break buttons when isBreak is false', () => {
+    renderControls({
+      timerState: runningTimer(),
+      isBreak: false,
+      onSkipBreak: noop,
+      onExtendBreak: noop,
+    });
+    expect(screen.queryByTitle('Skip Break')).toBeFalsy();
+    expect(screen.queryByTitle('+2 min')).toBeFalsy();
+  });
+
+  it('calls onExtendBreak with correct seconds', () => {
+    const extend = vi.fn();
+    renderControls({
+      timerState: runningTimer(),
+      isBreak: true,
+      onExtendBreak: extend,
+    });
+    fireEvent.click(screen.getByTitle('+2 min'));
+    expect(extend).toHaveBeenCalledWith(120);
+    fireEvent.click(screen.getByTitle('+5 min'));
+    expect(extend).toHaveBeenCalledWith(300);
+  });
+
+  it('calls onSkipBreak when skip button clicked', () => {
+    const skip = vi.fn();
+    renderControls({
+      timerState: runningTimer(),
+      isBreak: true,
+      onSkipBreak: skip,
+    });
+    fireEvent.click(screen.getByTitle('Skip Break'));
+    expect(skip).toHaveBeenCalledOnce();
   });
 });

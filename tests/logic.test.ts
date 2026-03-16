@@ -142,6 +142,7 @@ import {
   resetStorage,
   isStorageReady,
   createEvent,
+  filterEventsByType,
   formatEventAsText,
   computeHistoricalDurationEstimate,
   createSeries,
@@ -7817,5 +7818,54 @@ describe('formatEventAsText with i18n', () => {
     const result = formatEventAsText(event, { p1: 'Alice' });
     expect(result).toContain('Alice');
     expect(result).toContain('❌');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tournament Event Log integration
+// ---------------------------------------------------------------------------
+
+describe('Tournament Event Log integration', () => {
+  it('createEvent generates unique IDs', () => {
+    const e1 = createEvent('tournament_started', 0, {});
+    const e2 = createEvent('level_start', 1, {});
+    expect(e1.id).not.toBe(e2.id);
+  });
+
+  it('createEvent sets timestamp and levelIndex', () => {
+    const before = Date.now();
+    const event = createEvent('rebuy_taken', 3, { playerId: 'p1' });
+    const after = Date.now();
+    expect(event.timestamp).toBeGreaterThanOrEqual(before);
+    expect(event.timestamp).toBeLessThanOrEqual(after);
+    expect(event.levelIndex).toBe(3);
+    expect(event.type).toBe('rebuy_taken');
+    expect(event.data.playerId).toBe('p1');
+  });
+
+  it('filterEventsByType returns matching events', () => {
+    const events = [
+      createEvent('tournament_started', 0, {}),
+      createEvent('player_eliminated', 2, { playerId: 'p1' }),
+      createEvent('rebuy_taken', 3, { playerId: 'p2' }),
+      createEvent('player_eliminated', 4, { playerId: 'p3' }),
+    ];
+    const eliminations = filterEventsByType(events, 'player_eliminated');
+    expect(eliminations).toHaveLength(2);
+    expect(eliminations.every(e => e.type === 'player_eliminated')).toBe(true);
+  });
+
+  it('filterEventsByType returns empty for no matches', () => {
+    const events = [
+      createEvent('tournament_started', 0, {}),
+      createEvent('level_start', 1, {}),
+    ];
+    expect(filterEventsByType(events, 'player_eliminated')).toHaveLength(0);
+  });
+
+  it('formatEventAsText handles break_skipped event', () => {
+    const event = createEvent('break_skipped', 5, {});
+    const text = formatEventAsText(event, {});
+    expect(text).toContain('⏭');
   });
 });
