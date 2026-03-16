@@ -114,18 +114,18 @@ export const Controls = memo(function Controls({
           {onExtendBreak && (
             <>
               <button
+                onClick={() => onExtendBreak(120)}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15"
+                title={t('controls.extendBreak2')}
+              >
+                {t('controls.extendBreak2')}
+              </button>
+              <button
                 onClick={() => onExtendBreak(300)}
                 className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15"
                 title={t('controls.extendBreak5')}
               >
                 {t('controls.extendBreak5')}
-              </button>
-              <button
-                onClick={() => onExtendBreak(600)}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15"
-                title={t('controls.extendBreak10')}
-              >
-                {t('controls.extendBreak10')}
               </button>
             </>
           )}

@@ -447,18 +447,18 @@ export function RemoteControllerView({ hostPeerId, secret, onClose }: Controller
                 {String.fromCodePoint(0x23ED)} {t('controls.skipBreak')}
               </button>
               <button
+                onClick={() => sendCmd('extendBreak', { seconds: 120 })}
+                className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
+                title={t('controls.extendBreak2')}
+              >
+                {t('controls.extendBreak2')}
+              </button>
+              <button
                 onClick={() => sendCmd('extendBreak', { seconds: 300 })}
                 className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
                 title={t('controls.extendBreak5')}
               >
                 {t('controls.extendBreak5')}
-              </button>
-              <button
-                onClick={() => sendCmd('extendBreak', { seconds: 600 })}
-                className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
-                title={t('controls.extendBreak10')}
-              >
-                {t('controls.extendBreak10')}
               </button>
             </div>
           )}
