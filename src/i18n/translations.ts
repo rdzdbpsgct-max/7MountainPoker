@@ -686,21 +686,6 @@ const de = {
   'event.levelSkipForward': '⏩ Level vorgesprungen',
   'event.levelSkipBackward': '⏪ Level zurückgesprungen',
 
-  // --- Event Log Modal ---
-  'eventLog.title': 'Turnier-Protokoll',
-  'eventLog.close': 'Schließen',
-  'eventLog.all': 'Alle',
-  'eventLog.players': 'Spieler',
-  'eventLog.timer': 'Timer',
-  'eventLog.empty': 'Noch keine Events',
-  'eventLog.copyText': 'Text kopieren',
-  'eventLog.copied': 'Protokoll kopiert',
-  'eventLog.agoMinutes': '+{n} Min',
-  'eventLog.agoSeconds': '+{n} Sek',
-  'eventLog.summary': '{eliminations} Eliminations, {rebuys} Rebuys, {duration}',
-  'finished.tabStandings': 'Ergebnis',
-  'finished.tabLog': 'Verlauf',
-
   // --- Leagues ---
   'app.leagues': 'Ligen',
   'league.title': 'Liga-Verwaltung',
@@ -2018,21 +2003,6 @@ const en: Record<TranslationKey, string> = {
   'event.callTheClockExpired': '⏱ Call the Clock expired',
   'event.levelSkipForward': '⏩ Level skipped forward',
   'event.levelSkipBackward': '⏪ Level skipped backward',
-
-  // --- Event Log Modal ---
-  'eventLog.title': 'Tournament Log',
-  'eventLog.close': 'Close',
-  'eventLog.all': 'All',
-  'eventLog.players': 'Players',
-  'eventLog.timer': 'Timer',
-  'eventLog.empty': 'No events yet',
-  'eventLog.copyText': 'Copy text',
-  'eventLog.copied': 'Log copied',
-  'eventLog.agoMinutes': '+{n} min',
-  'eventLog.agoSeconds': '+{n} sec',
-  'eventLog.summary': '{eliminations} eliminations, {rebuys} rebuys, {duration}',
-  'finished.tabStandings': 'Results',
-  'finished.tabLog': 'Log',
 
   // --- Leagues ---
   'app.leagues': 'Leagues',

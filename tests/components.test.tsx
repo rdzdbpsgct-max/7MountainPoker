@@ -1328,37 +1328,37 @@ describe('PayoutEditor', () => {
 });
 
 // ---------------------------------------------------------------------------
-// EventLog
+// TournamentLog
 // ---------------------------------------------------------------------------
 
-import { EventLog } from '../src/components/EventLog';
+import { TournamentLog } from '../src/components/TournamentLog';
 
-describe('EventLog', () => {
+describe('TournamentLog', () => {
   it('renders empty state when no events', () => {
-    renderWithProviders(<EventLog events={[]} players={[]} onClose={() => {}} />);
-    expect(screen.getByText(/keine Events|no events/i)).toBeTruthy();
+    renderWithProviders(<TournamentLog events={[]} players={[]} onClose={() => {}} />);
+    expect(screen.getByText(/keine Ereignisse|no events/i)).toBeTruthy();
   });
 
-  it('renders event list', () => {
+  it('renders event list with i18n formatting', () => {
     const events: TournamentEvent[] = [
       { id: 'e1', type: 'tournament_started', timestamp: Date.now(), levelIndex: 0, data: {} },
       { id: 'e2', type: 'player_eliminated', timestamp: Date.now(), levelIndex: 2, data: { playerId: 'p1', placement: 3 } },
     ];
     const players: Player[] = [{ id: 'p1', name: 'Alice', status: 'eliminated', placement: 3, rebuys: 0, addOn: false, knockouts: 0, eliminatedBy: null }];
-    renderWithProviders(<EventLog events={events} players={players} onClose={() => {}} />);
+    renderWithProviders(<TournamentLog events={events} players={players} onClose={() => {}} />);
     expect(screen.getByText(/Alice/)).toBeTruthy();
   });
 
-  it('filters by player events', () => {
+  it('filters by elimination events', () => {
     const events: TournamentEvent[] = [
       { id: 'e1', type: 'tournament_started', timestamp: Date.now(), levelIndex: 0, data: {} },
       { id: 'e2', type: 'player_eliminated', timestamp: Date.now(), levelIndex: 2, data: { playerId: 'p1', placement: 3 } },
     ];
     const players: Player[] = [{ id: 'p1', name: 'Alice', status: 'eliminated', placement: 3, rebuys: 0, addOn: false, knockouts: 0, eliminatedBy: null }];
-    renderWithProviders(<EventLog events={events} players={players} onClose={() => {}} />);
-    // Click player filter
-    const playerFilter = screen.getByText(/spieler|players/i);
-    fireEvent.click(playerFilter);
+    renderWithProviders(<TournamentLog events={events} players={players} onClose={() => {}} />);
+    // Click eliminations filter
+    const elimFilter = screen.getByText(/eliminierungen|eliminations/i);
+    fireEvent.click(elimFilter);
     // Tournament started should be filtered out
     expect(screen.queryByText(/gestartet|started/i)).toBeFalsy();
   });
