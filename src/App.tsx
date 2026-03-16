@@ -97,6 +97,8 @@ function App() {
   const canUseTVDisplay = useMemo(() => isFeatureAvailable('tvDisplay', entitlements), [entitlements]);
   const canUseRemoteControl = useMemo(() => isFeatureAvailable('remoteControl', entitlements), [entitlements]);
   const canUseLeagueMode = useMemo(() => isFeatureAvailable('league', entitlements), [entitlements]);
+  const canUseMultiTable = useMemo(() => isFeatureAvailable('multiTable', entitlements), [entitlements]);
+  const canUseSidePot = useMemo(() => isFeatureAvailable('sidePot', entitlements), [entitlements]);
 
   // Sync speech language with app language
   useEffect(() => {
@@ -795,6 +797,8 @@ function App() {
             onSwitchToGame={switchToGame}
             onConfirm={confirmBeforeAction}
             startErrors={startErrors}
+            canUseMultiTable={canUseMultiTable}
+            onOpenFeatureGate={openFeatureGate}
           />
         ) : tournamentFinished && winner ? (
           /* Tournament Finished */
@@ -879,6 +883,9 @@ function App() {
               onShowInstallGuide: () => modals.setShowInstallGuide(true),
               onExitToSetup: handleExitToSetup,
             }}
+            canUseSidePot={canUseSidePot}
+            canUseMultiTable={canUseMultiTable}
+            onOpenFeatureGate={openFeatureGate}
           />
         )}
       </main>

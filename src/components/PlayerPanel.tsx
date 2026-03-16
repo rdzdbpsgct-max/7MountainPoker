@@ -1,6 +1,7 @@
 import { useState, useMemo, lazy, Suspense, memo } from 'react';
 import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, Table, PotResult, PlayerPayout, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
+import type { AppFeature } from '../domain/entitlements';
 import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, findChipLeader, canPlayerRebuy, canReEntry, findPlayerSeat } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { LoadingFallback } from './LoadingFallback';
@@ -37,6 +38,8 @@ interface Props {
   onSidePotResultChange?: (data: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] } | null) => void;
   onShowPayoutOverlay?: () => void;
   currency?: Currency;
+  canUseSidePot?: boolean;
+  onOpenFeatureGate?: (feature: AppFeature) => void;
 }
 
 export const PlayerPanel = memo(function PlayerPanel({
@@ -67,6 +70,8 @@ export const PlayerPanel = memo(function PlayerPanel({
   onSidePotResultChange,
   onShowPayoutOverlay,
   currency,
+  canUseSidePot,
+  onOpenFeatureGate,
 }: Props) {
   const { t } = useTranslation();
   const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
@@ -262,7 +267,13 @@ export const PlayerPanel = memo(function PlayerPanel({
               </button>
             )}
             <button
-              onClick={() => setShowSidePot(true)}
+              onClick={() => {
+                if (canUseSidePot === false && onOpenFeatureGate) {
+                  onOpenFeatureGate('sidePot');
+                  return;
+                }
+                setShowSidePot(true);
+              }}
               className="px-2 py-1 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
               title={t('sidePot.title')}
             >

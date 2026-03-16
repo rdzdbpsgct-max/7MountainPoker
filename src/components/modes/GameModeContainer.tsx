@@ -11,6 +11,7 @@ import type {
 } from '../../domain/types';
 import type { useTimer } from '../../hooks/useTimer';
 import { advanceTableDealer } from '../../domain/logic';
+import type { AppFeature } from '../../domain/entitlements';
 import { useTranslation } from '../../i18n';
 import { SectionErrorBoundary } from '../ErrorBoundary';
 import { LoadingFallback } from '../LoadingFallback';
@@ -109,9 +110,12 @@ interface Props {
   ui: GameModeUiState;
   actions: GameModeActions;
   undo?: GameModeUndoState;
+  canUseSidePot?: boolean;
+  canUseMultiTable?: boolean;
+  onOpenFeatureGate?: (feature: AppFeature) => void;
 }
 
-export function GameModeContainer({ config, settings, timer, state, ui, actions, undo }: Props) {
+export function GameModeContainer({ config, settings, timer, state, ui, actions, undo, canUseSidePot, canUseMultiTable, onOpenFeatureGate }: Props) {
   const { t } = useTranslation();
   const { onUpdateTables } = actions;
 
@@ -157,6 +161,8 @@ export function GameModeContainer({ config, settings, timer, state, ui, actions,
               onSidePotResultChange={actions.onSidePotResultChange}
               onShowPayoutOverlay={actions.onShowPayoutOverlay}
               currency={config.currency}
+              canUseSidePot={canUseSidePot}
+              onOpenFeatureGate={onOpenFeatureGate}
             />
           </aside>
         )}
@@ -283,7 +289,7 @@ export function GameModeContainer({ config, settings, timer, state, ui, actions,
                 levels={config.levels}
               />
             )}
-            {config.tables && config.tables.length > 0 && (
+            {config.tables && config.tables.length > 0 && canUseMultiTable !== false && (
               <MultiTablePanel
                 config={config}
                 recentMoves={state.recentTableMoves}

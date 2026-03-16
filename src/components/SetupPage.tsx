@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState, lazy, Suspense } from 'react';
 import type { TournamentConfig, TournamentCheckpoint, League, Table, MultiTableConfig, Settings, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
+import type { AppFeature } from '../domain/entitlements';
 import {
   stripAnteFromLevels,
   applyDefaultAntes,
@@ -47,6 +48,8 @@ interface Props {
   onSwitchToGame: () => void;
   onConfirm: (title: string, message: string, confirmLabel: string, onConfirm: () => void) => void;
   startErrors: string[];
+  canUseMultiTable?: boolean;
+  onOpenFeatureGate?: (feature: AppFeature) => void;
 }
 
 export function SetupPage({
@@ -61,6 +64,8 @@ export function SetupPage({
   onSwitchToGame,
   onConfirm,
   startErrors,
+  canUseMultiTable,
+  onOpenFeatureGate,
 }: Props) {
   const { t } = useTranslation();
 
@@ -557,7 +562,13 @@ export function SetupPage({
             <CollapsibleSubSection title={t('multiTable.title')} summary={multiTableSummary} defaultOpen={config.tables != null && config.tables.length > 0}>
               <div className="space-y-3">
                 <button
-                  onClick={handleToggleMultiTable}
+                  onClick={() => {
+                    if (canUseMultiTable === false && onOpenFeatureGate) {
+                      onOpenFeatureGate('multiTable');
+                      return;
+                    }
+                    handleToggleMultiTable();
+                  }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     config.tables && config.tables.length > 0
                       ? 'text-white'
