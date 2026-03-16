@@ -44,6 +44,30 @@ import { useTimer } from '../src/hooks/useTimer';
 import type { TournamentConfig, TournamentCheckpoint, Player, TimerState, Level } from '../src/domain/types';
 
 // ---------------------------------------------------------------------------
+// Module-level mocks (must be at top level for Vitest hoisting)
+// ---------------------------------------------------------------------------
+
+vi.mock('../src/domain/sounds', () => ({
+  initAudio: vi.fn(),
+  playBeep: vi.fn(),
+  setMasterVolume: vi.fn(),
+}));
+vi.mock('../src/domain/audioPlayer', () => ({
+  initAudioContext: vi.fn(),
+  playAudioSequence: vi.fn(() => Promise.resolve()),
+  cancelAudioPlayback: vi.fn(),
+  setAudioLanguage: vi.fn(),
+  setAudioVolume: vi.fn(),
+}));
+vi.mock('../src/domain/speech', () => ({
+  initSpeech: vi.fn(),
+  announceCountdown: vi.fn(() => false),
+  setSpeechLanguage: vi.fn(),
+  setSpeechVolume: vi.fn(),
+  cancelSpeech: vi.fn(),
+}));
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -257,27 +281,6 @@ describe('parseConfigObject backward compatibility', () => {
 describe('useTimer hook lifecycle', () => {
   const levels = makeLevels(5, 600);
   const settings = defaultSettings();
-
-  // Mock audio/speech to prevent actual playback
-  vi.mock('../src/domain/sounds', () => ({
-    initAudio: vi.fn(),
-    playBeep: vi.fn(),
-    setMasterVolume: vi.fn(),
-  }));
-  vi.mock('../src/domain/audioPlayer', () => ({
-    initAudioContext: vi.fn(),
-    playAudioSequence: vi.fn(() => Promise.resolve()),
-    cancelAudioPlayback: vi.fn(),
-    setAudioLanguage: vi.fn(),
-    setAudioVolume: vi.fn(),
-  }));
-  vi.mock('../src/domain/speech', () => ({
-    initSpeech: vi.fn(),
-    announceCountdown: vi.fn(() => false),
-    setSpeechLanguage: vi.fn(),
-    setSpeechVolume: vi.fn(),
-    cancelSpeech: vi.fn(),
-  }));
 
   it('initializes at level 0 with stopped status', () => {
     const { result } = renderHook(() => useTimer(levels, settings));
