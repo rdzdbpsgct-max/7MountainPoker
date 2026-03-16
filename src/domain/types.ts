@@ -233,6 +233,8 @@ export interface TournamentResult {
   players: PlayerResult[];
   bountyEnabled: boolean;
   bountyAmount: number;
+  /** Tournament currency for display. Defaults to EUR for old results. */
+  currency?: Currency;
   rebuyEnabled: boolean;
   totalRebuys: number;
   addOnEnabled: boolean;
