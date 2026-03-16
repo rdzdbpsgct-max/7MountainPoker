@@ -7,6 +7,16 @@ All notable changes to the 7Mountain Poker app.
 
 ## [6.8.0] – 2026-03-16
 
+### Help Center: Game Mode + Content-Update
+
+- **Help-Button im Spielmodus**: ?-Button jetzt in allen Modi verfügbar (Setup, Spielmodus, Liga) — nicht mehr nur Setup + Liga.
+- **2 neue Sektionen**: „Export & Teilen" (📤) mit Ergebnis-Sharing, CSV, PDF, Historie; „Liga & Serien" (🏆) mit Liga-Modus, Ranking-Algorithmen, Spieltag-Editor, Serien.
+- **1 neue Sektion**: „Einstellungen & Anpassung" (⚙️) mit Dark/Light, Akzentfarbe, Hintergründe, Sprache, PWA.
+- **Bestehende Sektionen erweitert**: +7 neue Items (Undo/Redo, ICM-Rechner, Side-Pot-Rechner, Stack Tracking, Re-Entry, Späte Anmeldung, Cross-Device Display, Display-Layouts, Kabellose Verbindungen, Multi-Controller, Eigene Audio-Dateien, Turnier-Statistiken, Druckbare Blindstruktur, Checkpoint).
+- **8 neue FAQ-Einträge** (22 gesamt): Undo/Redo, ICM-Rechner, PDF-Export, Cross-Device Display, Turnier-Serien, Re-Entry, Display-Layouts, Multi-Controller.
+- **2 neue Keyboard Shortcuts**: ⌘Z (Undo), ⌘⇧Z (Redo) — 13 Shortcuts gesamt.
+- **helpContent.ts**: ~600 Zeilen (vorher ~487). 10 Sektionen (vorher 8), 22 FAQ (vorher 15), 13 Shortcuts (vorher 11).
+
 ### Phase 1: Stability, Undo/Redo & Audit-Umsetzung (20 Maßnahmen)
 
 **10 Technische Maßnahmen:**

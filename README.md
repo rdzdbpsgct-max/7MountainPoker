@@ -94,7 +94,7 @@ Eine vollständig clientseitige Web-App zur Verwaltung von Poker-Heimturnieren. 
 | Re-Entry | Spieler können sich nach Elimination neu einkaufen (neuer Stack, separate Statistik) |
 | Seat-Locking | Bestimmte Sitzplätze an Tischen sperren (Multi-Table) |
 | Liga-Modus | Homegame-Liga mit Spieltagen, Punktesystem, Tiebreaker, Saisons, Finanzen, Gastspieler, Spieler-Detailansicht, QR-Teilen, TV-Display, Druckansicht |
-| Hilfe-Center | Durchsuchbares bilinguales Hilfesystem mit Anleitung (8 Sektionen), FAQ (15 Einträge), Tastenkürzel (11 Einträge) — erreichbar über ?-Button im Header |
+| Hilfe-Center | Durchsuchbares bilinguales Hilfesystem mit Anleitung (10 Sektionen), FAQ (22 Einträge), Tastenkürzel (13 Einträge) — erreichbar über ?-Button im Header (Setup, Spielmodus & Liga) |
 | Fernsteuerung | Turnier vom Smartphone steuern via PeerJS (Play/Pause/Next/Dealer/Sound/Call the Clock + Spieler-Management: Elimination, Rebuy, Add-On + Turnier-Infos: Prizepool, Avg Stack, Spielzeit) — Ein-QR-Verbindung |
 | Turnier-Serien | Serien-Management mit 3 Ranking-Modi (Punkte, Best-N, Durchschnitt), Standings, JSON Import/Export |
 | Erweitertes Liga-System | 3 Ranking-Algorithmen (Punkte, ELO, Gewichtete Punkte), Head-to-Head-Matrix, Minimum-Teilnahme |
@@ -206,7 +206,7 @@ A fully client-side web app for managing home poker tournaments. No server, no a
 | Re-Entry | Players can re-enter after elimination (fresh stack, separate stats) |
 | Seat Locking | Lock specific seats at tables (multi-table) |
 | League Mode | Home game league with game days, point system, tiebreaker, seasons, finances, guest players, player detail modal, QR sharing, TV display, print view |
-| Help Center | Searchable bilingual help system with guide (8 sections), FAQ (15 entries), keyboard shortcuts (11 entries) — accessible via ? button in header |
+| Help Center | Searchable bilingual help system with guide (10 sections), FAQ (22 entries), keyboard shortcuts (13 entries) — accessible via ? button in header (setup, game mode & league) |
 | Remote Control | Control tournament from smartphone via PeerJS (Play/Pause/Next/Dealer/Sound/Call the Clock + player management: elimination, rebuy, add-on + tournament info: prize pool, avg stack, elapsed time) — single QR scan |
 | Tournament Series | Series management with 3 ranking modes (points, best-N, average), standings, JSON import/export |
 | Extended League System | 3 ranking algorithms (points, ELO, weighted points), head-to-head matrix, minimum participation |

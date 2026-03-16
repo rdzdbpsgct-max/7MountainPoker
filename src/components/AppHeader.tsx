@@ -236,21 +236,21 @@ export function AppHeader({
                 </svg>
               </button>
             )}
-
-            <button
-              onClick={onShowHelp}
-              className="p-1.5 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg transition-all duration-200 border border-gray-300 dark:border-gray-700/30"
-              title={t('help.title' as Parameters<typeof t>[0])}
-              aria-label={t('help.title' as Parameters<typeof t>[0])}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" strokeLinecap="round" />
-                <circle cx="12" cy="17" r="0.5" fill="currentColor" />
-              </svg>
-            </button>
           </>
         )}
+
+        <button
+          onClick={onShowHelp}
+          className="p-1.5 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg transition-all duration-200 border border-gray-300 dark:border-gray-700/30"
+          title={t('help.title' as Parameters<typeof t>[0])}
+          aria-label={t('help.title' as Parameters<typeof t>[0])}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" strokeLinecap="round" />
+            <circle cx="12" cy="17" r="0.5" fill="currentColor" />
+          </svg>
+        </button>
       </div>
     </header>
   );
