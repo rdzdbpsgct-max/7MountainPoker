@@ -1,6 +1,7 @@
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import type { TournamentConfig, Table, TableMove, TableMoveReason } from '../domain/types';
 import { balanceTables, getActivePlayersPerTable, getTablePlayerIds } from '../domain/logic';
+import { trackFeatureUsed } from '../domain/monetizationTelemetry';
 import { useTranslation } from '../i18n';
 
 interface Props {
@@ -26,6 +27,10 @@ interface BalancePreview {
 
 export function MultiTablePanel({ config, recentMoves, onUpdateTables, onTableMoves, onAdvanceTableDealer }: Props) {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    trackFeatureUsed('multiTable', 'game');
+  }, []);
 
   const tables = useMemo(() => config.tables ?? [], [config.tables]);
 

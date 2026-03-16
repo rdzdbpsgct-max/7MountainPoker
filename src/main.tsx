@@ -7,6 +7,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import App from './App.tsx'
 import { TVDisplayWindow, CrossDeviceDisplay } from './components/display'
 import { initStorage } from './domain/storage'
+import { trackSessionStarted } from './domain/monetizationTelemetry'
 
 const hash = window.location.hash;
 const isLocalDisplayWindow = hash === '#display';
@@ -61,6 +62,8 @@ function renderApp() {
       </Suspense>
     );
   }
+
+  trackSessionStarted();
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

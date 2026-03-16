@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { calculateSidePots, resolvePotWinners, generateId } from '../domain/logic';
+import { trackFeatureUsed } from '../domain/monetizationTelemetry';
 import type { Player, PlayerPotInput, PlayerPotStatus, PotResult, PotWinnerAssignment, PlayerPayout, SidePotPayoutResult } from '../domain/types';
 import { useTranslation } from '../i18n';
 import { showToast } from '../domain/toast';
@@ -40,6 +41,10 @@ const EXAMPLE_DATA: PlayerPotInput[] = [
 export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }: Props) {
   const { t } = useTranslation();
   const dialogRef = useDialogA11y(onClose);
+
+  useEffect(() => {
+    trackFeatureUsed('sidePot', 'game');
+  }, []);
 
   // Quick Mode: active tournament players with tracked stacks
   const playersWithStacks = useMemo(

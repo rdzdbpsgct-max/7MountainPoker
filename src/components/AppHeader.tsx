@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type { AppFeature } from '../domain/entitlements';
+import { markFeatureDiscovered } from '../domain/entitlements';
 import type { Settings } from '../domain/types';
 import { useTranslation } from '../i18n';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -107,7 +108,7 @@ export function AppHeader({
         {mode === 'game' && !tournamentFinished && (
           <>
             <button
-              onClick={canUseRemoteControl ? onStartRemoteHost : () => onOpenFeatureGate('remoteControl')}
+              onClick={() => { markFeatureDiscovered('remoteControl'); if (canUseRemoteControl) { onStartRemoteHost(); } else { onOpenFeatureGate('remoteControl'); } }}
               className={`relative px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border ${
                 canUseRemoteControl
                   ? 'bg-gray-200 dark:bg-gray-700/80 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-600/30'
@@ -125,7 +126,7 @@ export function AppHeader({
             </button>
 
             <button
-              onClick={canUseTVDisplay ? onToggleTVWindow : () => onOpenFeatureGate('tvDisplay')}
+              onClick={() => { markFeatureDiscovered('tvDisplay'); if (canUseTVDisplay) { onToggleTVWindow(); } else { onOpenFeatureGate('tvDisplay'); } }}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border ${
                 canUseTVDisplay
                   ? (tvWindowActive
@@ -191,7 +192,7 @@ export function AppHeader({
             )}
 
             <button
-              onClick={canUseLeagueMode ? onToggleLeagueMode : () => onOpenFeatureGate('league')}
+              onClick={() => { markFeatureDiscovered('league'); if (canUseLeagueMode) { onToggleLeagueMode(); } else { onOpenFeatureGate('league'); } }}
               className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 border ${
                 canUseLeagueMode
                   ? (mode === 'league'

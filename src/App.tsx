@@ -36,6 +36,7 @@ import {
   isFeatureAvailable,
   getRequiredTier,
 } from './domain/entitlements';
+import { trackFeatureUsed } from './domain/monetizationTelemetry';
 import {
   announceLastHand,
   announceHandForHand,
@@ -562,6 +563,7 @@ function App() {
       openFeatureGate('tvDisplay');
       return;
     }
+    trackFeatureUsed('tvDisplay', 'game');
     handleToggleTVWindow();
   }, [canUseTVDisplay, openFeatureGate, handleToggleTVWindow]);
 
@@ -741,7 +743,7 @@ function App() {
         canUseLeagueMode={canUseLeagueMode}
         remoteHostConnected={remoteHostStatus === 'connected'}
         tvWindowActive={tvWindowActive}
-        onStartRemoteHost={startRemoteHost}
+        onStartRemoteHost={() => { trackFeatureUsed('remoteControl', 'game'); startRemoteHost(); }}
         onToggleTVWindow={handleToggleTVWindow}
         onToggleSetupGame={() => {
           if (mode === 'league') setMode('setup');
@@ -749,7 +751,7 @@ function App() {
         }}
         onExitToSetup={handleExitToSetup}
         onShowTemplates={() => modals.setShowTemplates(true)}
-        onToggleLeagueMode={() => setMode(mode === 'league' ? 'setup' : 'league')}
+        onToggleLeagueMode={() => { if (mode !== 'league') trackFeatureUsed('league', 'league'); setMode(mode === 'league' ? 'setup' : 'league'); }}
         onShowHistory={() => modals.setShowHistory(true)}
         onShowInstallGuide={() => modals.setShowInstallGuide(true)}
         onShowHelp={() => modals.setShowHelp(true)}

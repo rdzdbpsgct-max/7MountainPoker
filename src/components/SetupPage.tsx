@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState, lazy, Suspense } from 'react';
 import type { TournamentConfig, TournamentCheckpoint, League, Table, MultiTableConfig, Settings, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
 import type { AppFeature } from '../domain/entitlements';
+import { markFeatureDiscovered } from '../domain/entitlements';
 import {
   stripAnteFromLevels,
   applyDefaultAntes,
@@ -563,6 +564,7 @@ export function SetupPage({
               <div className="space-y-3">
                 <button
                   onClick={() => {
+                    markFeatureDiscovered('multiTable');
                     if (canUseMultiTable === false && onOpenFeatureGate) {
                       onOpenFeatureGate('multiTable');
                       return;

@@ -2,6 +2,7 @@ import { useState, useMemo, lazy, Suspense, memo } from 'react';
 import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, Table, PotResult, PlayerPayout, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
 import type { AppFeature } from '../domain/entitlements';
+import { markFeatureDiscovered } from '../domain/entitlements';
 import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, findChipLeader, canPlayerRebuy, canReEntry, findPlayerSeat } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { LoadingFallback } from './LoadingFallback';
@@ -268,6 +269,7 @@ export const PlayerPanel = memo(function PlayerPanel({
             )}
             <button
               onClick={() => {
+                markFeatureDiscovered('sidePot');
                 if (canUseSidePot === false && onOpenFeatureGate) {
                   onOpenFeatureGate('sidePot');
                   return;
