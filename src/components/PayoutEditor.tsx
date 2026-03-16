@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import type { PayoutConfig, PayoutMode } from '../domain/types';
-import { validatePayoutConfig } from '../domain/logic';
+import type { PayoutConfig, PayoutMode, Currency } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
+import { validatePayoutConfig, defaultPayoutForPlayerCount } from '../domain/logic';
+import { PAYOUT_TEMPLATES } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { NumberStepper } from './NumberStepper';
 
@@ -8,11 +10,16 @@ interface Props {
   payout: PayoutConfig;
   onChange: (payout: PayoutConfig) => void;
   maxPlaces?: number;
+  prizePool?: number;
+  currency?: Currency;
+  playerCount?: number;
 }
 
-export function PayoutEditor({ payout, onChange, maxPlaces = 10 }: Props) {
+export function PayoutEditor({ payout, onChange, maxPlaces = 20, prizePool, currency, playerCount }: Props) {
   const { t } = useTranslation();
   const [errors, setErrors] = useState<string[]>([]);
+
+  const currencySymbol = currency ? CURRENCY_SYMBOLS[currency] : '€';
 
   const validate = (p: PayoutConfig) => validatePayoutConfig(p, maxPlaces);
 
@@ -67,10 +74,25 @@ export function PayoutEditor({ payout, onChange, maxPlaces = 10 }: Props) {
     setErrors(validate(updated));
   };
 
+  const applyAutoSplit = () => {
+    if (!playerCount) return;
+    const autoConfig = defaultPayoutForPlayerCount(playerCount);
+    onChange(autoConfig);
+    setErrors(validate(autoConfig));
+  };
+
+  const applyTemplate = (templateId: string) => {
+    const tpl = PAYOUT_TEMPLATES.find(t => t.id === templateId);
+    if (!tpl) return;
+    const updated: PayoutConfig = { mode: 'percent', entries: [...tpl.entries] };
+    onChange(updated);
+    setErrors(validate(updated));
+  };
+
   return (
     <div className="space-y-3">
-      {/* Mode toggle */}
-      <div className="flex items-center gap-2">
+      {/* Mode toggle + Auto + Template */}
+      <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={() => setMode('percent')}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -89,8 +111,31 @@ export function PayoutEditor({ payout, onChange, maxPlaces = 10 }: Props) {
               : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
           }`}
         >
-          {t('payoutEditor.euro')}
+          {currencySymbol}
         </button>
+
+        {/* Auto-split button */}
+        {playerCount != null && playerCount > 0 && (
+          <button
+            onClick={applyAutoSplit}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            Auto
+          </button>
+        )}
+
+        {/* Template dropdown */}
+        <select
+          data-testid="payout-template"
+          value=""
+          onChange={(e) => applyTemplate(e.target.value)}
+          className="px-2 py-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--accent-500)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-all duration-200"
+        >
+          <option value="">{t('payout.template')}</option>
+          {PAYOUT_TEMPLATES.map((tpl) => (
+            <option key={tpl.id} value={tpl.id}>{t(tpl.label as Parameters<typeof t>[0])}</option>
+          ))}
+        </select>
       </div>
 
       {/* Place count */}
@@ -109,7 +154,7 @@ export function PayoutEditor({ payout, onChange, maxPlaces = 10 }: Props) {
       {/* Entries */}
       <div className="space-y-2">
         {payout.entries.map((entry, i) => (
-          <div key={entry.place} className="flex items-center gap-2">
+          <div key={entry.place} data-testid="payout-entry" className="flex items-center gap-2">
             <span className="text-gray-500 dark:text-gray-400 text-sm w-16">{t('payoutEditor.placeN', { n: entry.place })}</span>
             <NumberStepper
               value={entry.value}
@@ -119,8 +164,14 @@ export function PayoutEditor({ payout, onChange, maxPlaces = 10 }: Props) {
               inputClassName="w-24"
             />
             <span className="text-gray-400 dark:text-gray-500 text-sm">
-              {payout.mode === 'percent' ? '%' : '€'}
+              {payout.mode === 'percent' ? '%' : currencySymbol}
             </span>
+            {/* Live preview for percent mode */}
+            {payout.mode === 'percent' && prizePool != null && prizePool > 0 && (
+              <span className="text-gray-400 dark:text-gray-500 text-xs ml-1">
+                → {(entry.value / 100 * prizePool).toFixed(0)} {currencySymbol}
+              </span>
+            )}
           </div>
         ))}
       </div>
@@ -152,10 +203,13 @@ export function PayoutEditor({ payout, onChange, maxPlaces = 10 }: Props) {
         </div>
       )}
 
-      {/* Sum display for percent */}
+      {/* Sum display for percent + live total */}
       {payout.mode === 'percent' && (
         <p className="text-xs text-gray-400 dark:text-gray-500">
           {t('payoutEditor.sum')} {payout.entries.reduce((s, e) => s + e.value, 0)}%
+          {prizePool != null && prizePool > 0 && (
+            <span className="ml-3">{t('payout.total')}: {prizePool.toFixed(0)} {currencySymbol}</span>
+          )}
         </p>
       )}
     </div>

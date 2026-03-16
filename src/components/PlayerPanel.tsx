@@ -1,5 +1,6 @@
 import { useState, useMemo, lazy, Suspense, memo } from 'react';
-import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, Table, PotResult, PlayerPayout } from '../domain/types';
+import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, Table, PotResult, PlayerPayout, Currency } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, findChipLeader, canPlayerRebuy, canReEntry, findPlayerSeat } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { LoadingFallback } from './LoadingFallback';
@@ -35,6 +36,7 @@ interface Props {
   tables?: Table[];
   onSidePotResultChange?: (data: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] } | null) => void;
   onShowPayoutOverlay?: () => void;
+  currency?: Currency;
 }
 
 export const PlayerPanel = memo(function PlayerPanel({
@@ -64,8 +66,10 @@ export const PlayerPanel = memo(function PlayerPanel({
   tables,
   onSidePotResultChange,
   onShowPayoutOverlay,
+  currency,
 }: Props) {
   const { t } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const [eliminatingId, setEliminatingId] = useState<string | null>(null);
   const [selectedKiller, setSelectedKiller] = useState<string>('');
   const [showSidePot, setShowSidePot] = useState(false);
@@ -122,31 +126,31 @@ export const PlayerPanel = memo(function PlayerPanel({
         <h3 className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t('playerPanel.prizePool')}</h3>
         <div className="mt-1 px-3 py-2 rounded-xl shadow-md" style={{ backgroundColor: 'color-mix(in srgb, var(--accent-500) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--accent-500) 30%, transparent)', border: '1px solid color-mix(in srgb, var(--accent-500) 30%, transparent)' }}>
           <p className="text-lg font-bold" style={{ color: 'var(--accent-text)' }}>
-            {prizePool.toFixed(2)} {t('unit.eur')}
+            {prizePool.toFixed(2)} {sym}
           </p>
           <p className="text-xs" style={{ color: 'var(--accent-text)' }}>
-            {players.length} &times; {buyIn} {t('unit.eur')}
+            {players.length} &times; {buyIn} {sym}
             {totalRebuys > 0 && !rebuyConfig.separatePot && (
-              <> + {totalRebuys} Rebuy{totalRebuys > 1 ? 's' : ''} &times; {rebuyConfig.rebuyCost} {t('unit.eur')}</>
+              <> + {totalRebuys} Rebuy{totalRebuys > 1 ? 's' : ''} &times; {rebuyConfig.rebuyCost} {sym}</>
             )}
             {totalAddOns > 0 && (
-              <> + {totalAddOns} Add-On{totalAddOns > 1 ? 's' : ''} &times; {addOnConfig.cost} {t('unit.eur')}</>
+              <> + {totalAddOns} Add-On{totalAddOns > 1 ? 's' : ''} &times; {addOnConfig.cost} {sym}</>
             )}
           </p>
           {bountyConfig.enabled && (
             <p className="text-amber-600 dark:text-amber-500/70 text-xs mt-0.5">
-              + Bounty-Pool: {(players.length * bountyConfig.amount).toFixed(2)} {t('unit.eur')}
-              ({players.length} &times; {bountyConfig.amount} {t('unit.eur')})
+              + Bounty-Pool: {(players.length * bountyConfig.amount).toFixed(2)} {sym}
+              ({players.length} &times; {bountyConfig.amount} {sym})
             </p>
           )}
         </div>
         {rebuyConfig.separatePot && totalRebuys > 0 && (
           <div className="mt-2 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/50 rounded-xl shadow-md shadow-amber-200/30 dark:shadow-amber-900/10">
             <p className="text-amber-700 dark:text-amber-300 text-lg font-bold">
-              {computeRebuyPot(players, rebuyConfig.rebuyCost).toFixed(2)} {t('unit.eur')}
+              {computeRebuyPot(players, rebuyConfig.rebuyCost).toFixed(2)} {sym}
             </p>
             <p className="text-amber-600 dark:text-amber-500/70 text-xs">
-              {t('rebuy.separatePotLabel')} — {totalRebuys} &times; {rebuyConfig.rebuyCost} {t('unit.eur')}
+              {t('rebuy.separatePotLabel')} — {totalRebuys} &times; {rebuyConfig.rebuyCost} {sym}
             </p>
           </div>
         )}
@@ -164,7 +168,7 @@ export const PlayerPanel = memo(function PlayerPanel({
               <span className="text-gray-500 dark:text-gray-400">
                 {p.place}. {t('playerPanel.place')}
               </span>
-              <span className="text-gray-900 dark:text-white font-medium">{p.amount.toFixed(2)} {t('unit.eur')}</span>
+              <span className="text-gray-900 dark:text-white font-medium">{p.amount.toFixed(2)} {sym}</span>
             </div>
           ))}
         </div>
@@ -187,7 +191,7 @@ export const PlayerPanel = memo(function PlayerPanel({
             {t('playerPanel.addOnAvailable')}
           </p>
           <p className="text-amber-600 dark:text-amber-500/70 text-xs mt-0.5">
-            {addOnConfig.cost} {t('unit.eur')} → +{addOnConfig.chips.toLocaleString()} {t('unit.chips')}
+            {addOnConfig.cost} {sym} → +{addOnConfig.chips.toLocaleString()} {t('unit.chips')}
           </p>
         </div>
       )}

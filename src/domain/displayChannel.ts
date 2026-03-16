@@ -14,6 +14,7 @@ import type {
   PlayerPayout,
   DisplayScreenConfig,
   DisplayLayout,
+  Currency,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -53,6 +54,8 @@ export interface DisplayStatePayload {
   displayRotationInterval?: number;
   /** Display layout variant. undefined = 'standard'. */
   displayLayout?: DisplayLayout;
+  /** Currency code for display. undefined = 'EUR'. */
+  currency?: Currency;
 }
 
 // ---------------------------------------------------------------------------

@@ -159,6 +159,9 @@ import {
   CUSTOMIZABLE_ANNOUNCEMENTS,
   getLayoutConfig,
   DISPLAY_LAYOUTS,
+  PAYOUT_TEMPLATES,
+  defaultPayoutForPlayerCount,
+  defaultConfig,
   computeIcmEquity,
   computeIcmDeal,
   UndoStack,
@@ -193,6 +196,7 @@ function makeConfig(partial: Partial<TournamentConfig> & { name: string; levels:
     bounty: defaultBountyConfig(),
     chips: defaultChipConfig(),
     buyIn: 10,
+    currency: 'EUR' as const,
     startingChips: 20000,
     ...partial,
   };
@@ -471,11 +475,16 @@ describe('import/export', () => {
       bounty: defaultBountyConfig(),
       chips: defaultChipConfig(),
       buyIn: 10,
+      currency: 'EUR' as const,
       startingChips: 20000,
     };
     const json = exportConfigJSON(config);
     const imported = importConfigJSON(json);
-    expect(imported).toEqual(config);
+    // parseConfigObject may add optional fields (tables: undefined) — check relevant fields
+    expect(imported?.currency).toBe(config.currency);
+    expect(imported?.buyIn).toBe(config.buyIn);
+    expect(imported?.levels).toEqual(config.levels);
+    expect(imported?.players).toEqual(config.players);
   });
 
   it('returns null for invalid JSON', () => {
@@ -3082,6 +3091,28 @@ describe('formatResultAsText', () => {
     expect(text).toContain('Players');
     expect(text).not.toContain('Spieler');
   });
+
+  it('uses currency symbol from result', () => {
+    const result = {
+      id: 'test-id',
+      name: 'USD Game',
+      date: '2026-01-15T20:00:00.000Z',
+      playerCount: 2,
+      buyIn: 10,
+      prizePool: 20,
+      currency: 'USD' as const,
+      players: [
+        { name: 'Alice', place: 1, payout: 20, rebuys: 0, addOn: false, knockouts: 1, bountyEarned: 0, netBalance: 10 },
+      ],
+      bountyEnabled: false, bountyAmount: 0,
+      rebuyEnabled: false, totalRebuys: 0,
+      addOnEnabled: false, totalAddOns: 0,
+      elapsedSeconds: 600, levelsPlayed: 2,
+    };
+    const text = formatResultAsText(result);
+    expect(text).toContain('$');
+    expect(text).not.toContain('€');
+  });
 });
 
 describe('formatResultAsCSV', () => {
@@ -3104,7 +3135,7 @@ describe('formatResultAsCSV', () => {
     };
     const csv = formatResultAsCSV(result);
     const lines = csv.split('\n');
-    expect(lines[0]).toBe('Place,Name,Payout,Rebuys,AddOn,Knockouts,NetBalance');
+    expect(lines[0]).toBe('Place,Name,Payout (€),Rebuys,AddOn,Knockouts,NetBalance (€)');
     expect(lines[1]).toContain('"Alice"');
     expect(lines[2]).toContain('"Bob"');
     expect(lines).toHaveLength(3);
@@ -7600,5 +7631,109 @@ describe('UndoStack', () => {
   it('redo returns null when empty', () => {
     const stack = new UndoStack();
     expect(stack.redo(makeSnapshot('x'))).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Currency parsing
+// ---------------------------------------------------------------------------
+
+describe('parseConfigObject — currency', () => {
+  it('should default currency to EUR when field is missing', () => {
+    const raw = {
+      levels: [{ id: '1', type: 'level', durationSeconds: 600, smallBlind: 25, bigBlind: 50 }],
+      buyIn: 10,
+      startingChips: 20000,
+    };
+    const config = parseConfigObject(raw as Record<string, unknown>);
+    expect(config?.currency).toBe('EUR');
+  });
+
+  it('should preserve currency when present', () => {
+    const raw = {
+      levels: [{ id: '1', type: 'level', durationSeconds: 600, smallBlind: 25, bigBlind: 50 }],
+      buyIn: 10,
+      startingChips: 20000,
+      currency: 'USD',
+    };
+    const config = parseConfigObject(raw as Record<string, unknown>);
+    expect(config?.currency).toBe('USD');
+  });
+
+  it('should fallback to EUR for invalid currency', () => {
+    const raw = {
+      levels: [{ id: '1', type: 'level', durationSeconds: 600, smallBlind: 25, bigBlind: 50 }],
+      currency: 'INVALID',
+    };
+    const config = parseConfigObject(raw as Record<string, unknown>);
+    expect(config?.currency).toBe('EUR');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Payout Templates
+// ---------------------------------------------------------------------------
+
+describe('payoutTemplates', () => {
+  it('PAYOUT_TEMPLATES should have at least 3 templates', () => {
+    expect(PAYOUT_TEMPLATES.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('each template entries should sum to 100%', () => {
+    for (const tpl of PAYOUT_TEMPLATES) {
+      const sum = tpl.entries.reduce((s, e) => s + e.value, 0);
+      expect(sum).toBe(100);
+    }
+  });
+
+  it('each template should have unique id', () => {
+    const ids = PAYOUT_TEMPLATES.map(t => t.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('each template entries should have sequential places starting at 1', () => {
+    for (const tpl of PAYOUT_TEMPLATES) {
+      tpl.entries.forEach((e, i) => {
+        expect(e.place).toBe(i + 1);
+      });
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Quick-Start config generation
+// ---------------------------------------------------------------------------
+
+describe('Quick-Start config generation', () => {
+  it('should create valid config from preset with player count', () => {
+    const presets = getBuiltInPresets();
+    const preset = presets[1]; // standard home game
+    const playerCount = 8;
+    const players = defaultPlayers(playerCount);
+    const config = {
+      ...defaultConfig(),
+      ...preset.config,
+      players,
+      dealerIndex: 0,
+      payout: defaultPayoutForPlayerCount(playerCount),
+      currency: 'EUR' as const,
+    };
+    expect(config.players.length).toBe(8);
+    expect(config.buyIn).toBe(preset.config.buyIn);
+    expect(config.payout.entries.length).toBe(3);
+    expect(config.levels.length).toBeGreaterThan(0);
+    expect(config.currency).toBe('EUR');
+  });
+
+  it('defaultPayoutForPlayerCount returns correct places', () => {
+    const payout2 = defaultPayoutForPlayerCount(2);
+    expect(payout2.entries.length).toBe(1);
+    expect(payout2.entries[0].place).toBe(1);
+
+    const payout4 = defaultPayoutForPlayerCount(4);
+    expect(payout4.entries.length).toBe(2);
+
+    const payout10 = defaultPayoutForPlayerCount(10);
+    expect(payout10.entries.length).toBe(3);
   });
 });

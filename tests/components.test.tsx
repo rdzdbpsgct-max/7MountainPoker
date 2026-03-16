@@ -1276,3 +1276,53 @@ describe('useVoiceAnnouncements', () => {
     expect(() => result.current.reset()).not.toThrow();
   });
 });
+
+// ---------------------------------------------------------------------------
+// PayoutEditor
+// ---------------------------------------------------------------------------
+
+import { PayoutEditor } from '../src/components/PayoutEditor';
+
+describe('PayoutEditor', () => {
+  it('should render up to 20 places', () => {
+    const payout = { mode: 'percent' as const, entries: Array.from({ length: 20 }, (_, i) => ({ place: i + 1, value: 5 })) };
+    const { container } = renderWithProviders(<PayoutEditor payout={payout} onChange={() => {}} />);
+    const placeLabels = container.querySelectorAll('[data-testid="payout-entry"]');
+    expect(placeLabels.length).toBe(20);
+  });
+
+  it('should show live preview when prizePool is provided in percent mode', () => {
+    const payout = { mode: 'percent' as const, entries: [{ place: 1, value: 50 }, { place: 2, value: 30 }, { place: 3, value: 20 }] };
+    const { container } = renderWithProviders(
+      <PayoutEditor payout={payout} onChange={() => {}} prizePool={200} currency="EUR" />
+    );
+    // 50% of 200 = 100 €
+    expect(container.textContent).toContain('100');
+    expect(container.textContent).toContain('€');
+  });
+
+  it('should show auto-split button when playerCount is provided', () => {
+    const payout = { mode: 'percent' as const, entries: [{ place: 1, value: 100 }] };
+    const { container } = renderWithProviders(
+      <PayoutEditor payout={payout} onChange={() => {}} playerCount={8} />
+    );
+    expect(container.textContent).toContain('Auto');
+  });
+
+  it('should show template dropdown', () => {
+    const payout = { mode: 'percent' as const, entries: [{ place: 1, value: 100 }] };
+    const { container } = renderWithProviders(
+      <PayoutEditor payout={payout} onChange={() => {}} />
+    );
+    const select = container.querySelector('select[data-testid="payout-template"]');
+    expect(select).toBeTruthy();
+  });
+
+  it('should use currency symbol from prop', () => {
+    const payout = { mode: 'euro' as const, entries: [{ place: 1, value: 50 }] };
+    const { container } = renderWithProviders(
+      <PayoutEditor payout={payout} onChange={() => {}} currency="USD" />
+    );
+    expect(container.textContent).toContain('$');
+  });
+});

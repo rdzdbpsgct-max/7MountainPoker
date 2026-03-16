@@ -87,6 +87,7 @@ export function useDisplayBridge({
     displayScreens: settings.displayScreens,
     displayRotationInterval: settings.displayRotationInterval,
     displayLayout: settings.displayLayout,
+    currency: config.currency,
   }), [config, computed.colorUpMap, computed.activePlayerCount, computed.bubbleActive, lastHandActive, handForHandActive, computed.averageStack, computed.tournamentElapsed, showDealerBadges, computed.leagueDisplayData, sidePotData, settings.displayScreens, settings.displayRotationInterval, settings.displayLayout]);
 
   // Local TV window via BroadcastChannel

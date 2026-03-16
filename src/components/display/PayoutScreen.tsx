@@ -1,4 +1,5 @@
-import type { Player, PayoutConfig, RebuyConfig, AddOnConfig } from '../../domain/types';
+import type { Player, PayoutConfig, RebuyConfig, AddOnConfig, Currency } from '../../domain/types';
+import { CURRENCY_SYMBOLS } from '../../domain/types';
 import { computePrizePool, computePayouts, computeTotalRebuys, computeRebuyPot } from '../../domain/logic';
 import { useTranslation } from '../../i18n';
 
@@ -9,6 +10,7 @@ interface Props {
   rebuy: RebuyConfig;
   addOn: AddOnConfig;
   isBubble: boolean;
+  currency?: Currency;
 }
 
 export function PayoutScreen({
@@ -18,8 +20,10 @@ export function PayoutScreen({
   rebuy,
   addOn,
   isBubble,
+  currency,
 }: Props) {
   const { t } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
 
   const prizePool = computePrizePool(
     players, buyIn,
@@ -35,10 +39,10 @@ export function PayoutScreen({
   return (
     <div className="w-full max-w-2xl mx-auto h-full flex flex-col">
       <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 text-center">
-        {t('display.payout')} — {prizePool.toLocaleString()} {t('unit.eur')}
+        {t('display.payout')} — {prizePool.toLocaleString()} {sym}
         {rebuyPotAmount > 0 && (
           <span className="text-amber-400 ml-2 text-xs font-normal">
-            + {rebuyPotAmount.toLocaleString()} {t('unit.eur')} {t('rebuy.separatePotLabel')}
+            + {rebuyPotAmount.toLocaleString()} {sym} {t('rebuy.separatePotLabel')}
           </span>
         )}
       </h2>
@@ -70,7 +74,7 @@ export function PayoutScreen({
                 )}
               </span>
               <span className="font-mono font-bold tabular-nums">
-                {p.amount.toLocaleString()} {t('unit.eur')}
+                {p.amount.toLocaleString()} {sym}
               </span>
             </div>
           );

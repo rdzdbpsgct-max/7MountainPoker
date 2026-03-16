@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { AddOnConfig } from '../domain/types';
+import type { AddOnConfig, Currency } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import { snapSpinnerValue } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { NumberStepper } from './NumberStepper';
@@ -11,10 +12,12 @@ interface Props {
   startingChips: number;
   rebuyEnabled: boolean;
   onEnableRebuy: () => void;
+  currency?: Currency;
 }
 
-export function AddOnEditor({ addOn, onChange, buyIn, startingChips, rebuyEnabled, onEnableRebuy }: Props) {
+export function AddOnEditor({ addOn, onChange, buyIn, startingChips, rebuyEnabled, onEnableRebuy, currency }: Props) {
   const { t } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const [showRebuyHint, setShowRebuyHint] = useState(false);
 
   const toggle = () => {
@@ -94,7 +97,7 @@ export function AddOnEditor({ addOn, onChange, buyIn, startingChips, rebuyEnable
                 min={1}
                 step={1}
               />
-              <span className="text-gray-400 dark:text-gray-500 text-xs">{t('unit.eur')}</span>
+              <span className="text-gray-400 dark:text-gray-500 text-xs">{sym}</span>
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-gray-700 dark:text-gray-300">{t('addOnEditor.chips')}</label>

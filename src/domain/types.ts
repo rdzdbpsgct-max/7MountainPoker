@@ -30,6 +30,19 @@ export interface Player {
 
 export type PayoutMode = 'percent' | 'euro';
 
+export type Currency = 'EUR' | 'USD' | 'GBP' | 'CHF' | 'SEK';
+
+export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  EUR: '€', USD: '$', GBP: '£', CHF: 'CHF', SEK: 'kr',
+};
+
+const VALID_CURRENCIES: readonly string[] = ['EUR', 'USD', 'GBP', 'CHF', 'SEK'];
+
+export function parseCurrency(value: unknown): Currency {
+  if (typeof value === 'string' && VALID_CURRENCIES.includes(value)) return value as Currency;
+  return 'EUR';
+}
+
 export interface PayoutEntry {
   place: number;
   value: number;
@@ -128,6 +141,7 @@ export interface TournamentConfig {
   bounty: BountyConfig;
   chips: ChipConfig;
   buyIn: number;
+  currency: Currency;
   startingChips: number;
   lateRegistration?: LateRegistrationConfig;
   leagueId?: string;
@@ -221,6 +235,8 @@ export interface TournamentResult {
   players: PlayerResult[];
   bountyEnabled: boolean;
   bountyAmount: number;
+  /** Tournament currency for display. Defaults to EUR for old results. */
+  currency?: Currency;
   rebuyEnabled: boolean;
   totalRebuys: number;
   addOnEnabled: boolean;

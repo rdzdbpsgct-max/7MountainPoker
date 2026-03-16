@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
-import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, TournamentResult } from '../domain/types';
+import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, TournamentResult, Currency } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, exportTournamentResultAsPdf } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
@@ -17,6 +18,7 @@ interface Props {
   addOn: AddOnConfig;
   tournamentResult: TournamentResult | null;
   onBackToSetup: () => void;
+  currency?: Currency;
 }
 
 export function TournamentFinished({
@@ -29,8 +31,10 @@ export function TournamentFinished({
   addOn,
   tournamentResult,
   onBackToSetup,
+  currency,
 }: Props) {
   const { t, language } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const { resolved: theme } = useTheme();
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [capturing, setCapturing] = useState(false);
@@ -224,7 +228,7 @@ export function TournamentFinished({
                       </div>
                       {isPaid && amount != null && (
                         <span className="text-sm font-bold shrink-0 ml-3" style={{ color: 'var(--accent-400)' }}>
-                          {amount.toFixed(2)} {t('unit.eur')}
+                          {amount.toFixed(2)} {sym}
                         </span>
                       )}
                     </div>
@@ -234,34 +238,34 @@ export function TournamentFinished({
                         {/* Buy-In */}
                         <div className="flex justify-between text-xs">
                           <span className="text-gray-400 dark:text-gray-500">{t('finished.buyIn')}</span>
-                          <span className="text-gray-500 dark:text-gray-400">{buyIn.toFixed(2)} {t('unit.eur')}</span>
+                          <span className="text-gray-500 dark:text-gray-400">{buyIn.toFixed(2)} {sym}</span>
                         </div>
                         {/* Rebuys */}
                         {player.rebuys > 0 && (
                           <div className="flex justify-between text-xs">
                             <span className="text-gray-400 dark:text-gray-500">{t('finished.rebuys')} ({player.rebuys}×)</span>
-                            <span className="text-gray-500 dark:text-gray-400">{(player.rebuys * rebuyCost).toFixed(2)} {t('unit.eur')}</span>
+                            <span className="text-gray-500 dark:text-gray-400">{(player.rebuys * rebuyCost).toFixed(2)} {sym}</span>
                           </div>
                         )}
                         {/* Add-On */}
                         {addOn.enabled && player.addOn && (
                           <div className="flex justify-between text-xs">
                             <span className="text-gray-400 dark:text-gray-500">{t('finished.addOn')}</span>
-                            <span className="text-gray-500 dark:text-gray-400">{addOn.cost.toFixed(2)} {t('unit.eur')}</span>
+                            <span className="text-gray-500 dark:text-gray-400">{addOn.cost.toFixed(2)} {sym}</span>
                           </div>
                         )}
                         {/* Bounty paid */}
                         {bounty.enabled && (
                           <div className="flex justify-between text-xs">
                             <span className="text-gray-400 dark:text-gray-500">{t('finished.bountyPaid')}</span>
-                            <span className="text-gray-500 dark:text-gray-400">{bounty.amount.toFixed(2)} {t('unit.eur')}</span>
+                            <span className="text-gray-500 dark:text-gray-400">{bounty.amount.toFixed(2)} {sym}</span>
                           </div>
                         )}
                         {/* Bounty earned */}
                         {bounty.enabled && bountyEarnings > 0 && (
                           <div className="flex justify-between text-xs">
                             <span className="text-amber-500/70">{t('finished.bountyEarned')} ({player.knockouts} KO)</span>
-                            <span className="text-amber-500/70">+{bountyEarnings.toFixed(2)} {t('unit.eur')}</span>
+                            <span className="text-amber-500/70">+{bountyEarnings.toFixed(2)} {sym}</span>
                           </div>
                         )}
                         {/* Divider + Balance */}
@@ -271,7 +275,7 @@ export function TournamentFinished({
                               {t('finished.balance')}
                             </span>
                             <span className={netBalance < 0 ? 'text-red-400' : netBalance === 0 ? 'text-gray-400 dark:text-gray-500' : ''} style={netBalance > 0 ? { color: 'var(--accent-400)' } : undefined}>
-                              {netBalance >= 0 ? '+' : ''}{netBalance.toFixed(2)} {t('unit.eur')}
+                              {netBalance >= 0 ? '+' : ''}{netBalance.toFixed(2)} {sym}
                             </span>
                           </div>
                         </div>
@@ -307,14 +311,14 @@ export function TournamentFinished({
                     </span>
                   </div>
                   <span className="text-amber-400 text-sm font-bold shrink-0 ml-3">
-                    {player.bountyEarned.toFixed(2)} {t('unit.eur')}
+                    {player.bountyEarned.toFixed(2)} {sym}
                   </span>
                 </div>
               ))}
               <div className="border-t border-gray-200 dark:border-gray-700/40 px-4 py-2 flex justify-between">
                 <span className="text-xs text-gray-400 dark:text-gray-500">{t('finished.bountyPoolTotal')}</span>
                 <span className="text-xs text-amber-400/70 font-medium">
-                  {(players.length * bounty.amount).toFixed(2)} {t('unit.eur')}
+                  {(players.length * bounty.amount).toFixed(2)} {sym}
                 </span>
               </div>
             </div>
@@ -329,13 +333,13 @@ export function TournamentFinished({
           <div className="bg-gray-50/90 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700/40 rounded-xl px-4 py-3 space-y-1 shadow-lg shadow-gray-300/30 dark:shadow-black/20">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">{t('finished.prizePool')}</span>
-              <span className="text-gray-900 dark:text-white font-medium">{prizePool.toFixed(2)} {t('unit.eur')}</span>
+              <span className="text-gray-900 dark:text-white font-medium">{prizePool.toFixed(2)} {sym}</span>
             </div>
             {rebuy.separatePot && totalRebuys > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{t('rebuy.separatePotLabel')}</span>
                 <span className="text-amber-600 dark:text-amber-400 font-medium">
-                  {computeRebuyPot(players, rebuy.rebuyCost).toFixed(2)} {t('unit.eur')}
+                  {computeRebuyPot(players, rebuy.rebuyCost).toFixed(2)} {sym}
                 </span>
               </div>
             )}
@@ -347,7 +351,7 @@ export function TournamentFinished({
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{t('finished.rebuys')}</span>
                 <span className="text-gray-900 dark:text-white">
-                  {totalRebuys} &times; {rebuy.rebuyCost} {t('unit.eur')}
+                  {totalRebuys} &times; {rebuy.rebuyCost} {sym}
                 </span>
               </div>
             )}
@@ -355,18 +359,18 @@ export function TournamentFinished({
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{t('finished.addOns')}</span>
                 <span className="text-gray-900 dark:text-white">
-                  {totalAddOns} &times; {addOn.cost} {t('unit.eur')}
+                  {totalAddOns} &times; {addOn.cost} {sym}
                 </span>
               </div>
             )}
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">{t('finished.buyIn')}</span>
-              <span className="text-gray-900 dark:text-white">{buyIn} {t('unit.eur')}</span>
+              <span className="text-gray-900 dark:text-white">{buyIn} {sym}</span>
             </div>
             {bounty.enabled && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{t('finished.bountyLabel')}</span>
-                <span className="text-gray-900 dark:text-white">{bounty.amount} {t('unit.eur')} / KO</span>
+                <span className="text-gray-900 dark:text-white">{bounty.amount} {sym} / KO</span>
               </div>
             )}
             {maxPaidPlace > 0 && (

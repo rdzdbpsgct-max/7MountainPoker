@@ -800,6 +800,7 @@ function App() {
             addOn={config.addOn}
             tournamentResult={finishedResult}
             onBackToSetup={switchToSetup}
+            currency={config.currency}
           />
         ) : (
           /* Game Mode */

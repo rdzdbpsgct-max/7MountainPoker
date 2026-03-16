@@ -156,6 +156,7 @@ export function GameModeContainer({ config, settings, timer, state, ui, actions,
               tables={config.tables}
               onSidePotResultChange={actions.onSidePotResultChange}
               onShowPayoutOverlay={actions.onShowPayoutOverlay}
+              currency={config.currency}
             />
           </aside>
         )}

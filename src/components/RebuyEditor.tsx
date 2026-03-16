@@ -1,4 +1,5 @@
-import type { RebuyConfig, RebuyLimitType } from '../domain/types';
+import type { RebuyConfig, RebuyLimitType, Currency } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import { snapSpinnerValue } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { NumberStepper } from './NumberStepper';
@@ -8,10 +9,12 @@ interface Props {
   onChange: (rebuy: RebuyConfig) => void;
   buyIn: number;
   startingChips: number;
+  currency?: Currency;
 }
 
-export function RebuyEditor({ rebuy, onChange, buyIn, startingChips }: Props) {
+export function RebuyEditor({ rebuy, onChange, buyIn, startingChips, currency }: Props) {
   const { t } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
 
   const toggle = () => {
     onChange({
@@ -65,7 +68,7 @@ export function RebuyEditor({ rebuy, onChange, buyIn, startingChips }: Props) {
                 min={1}
                 step={1}
               />
-              <span className="text-gray-400 dark:text-gray-500 text-xs">{t('unit.eur')}</span>
+              <span className="text-gray-400 dark:text-gray-500 text-xs">{sym}</span>
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-gray-700 dark:text-gray-300">{t('rebuyEditor.chips')}</label>

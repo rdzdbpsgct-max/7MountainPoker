@@ -1,10 +1,12 @@
-import type { BountyConfig } from '../domain/types';
+import type { BountyConfig, Currency } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import { useTranslation } from '../i18n';
 import { NumberStepper } from './NumberStepper';
 
 interface Props {
   bounty: BountyConfig;
   onChange: (bounty: BountyConfig) => void;
+  currency?: Currency;
 }
 
 const MYSTERY_PRESETS: number[][] = [
@@ -13,8 +15,9 @@ const MYSTERY_PRESETS: number[][] = [
   [5, 5, 10, 10, 25, 50],
 ];
 
-export function BountyEditor({ bounty, onChange }: Props) {
+export function BountyEditor({ bounty, onChange, currency }: Props) {
   const { t } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
 
   const toggle = () => {
     onChange({ ...bounty, enabled: !bounty.enabled });
@@ -104,7 +107,7 @@ export function BountyEditor({ bounty, onChange }: Props) {
                 min={1}
                 step={1}
               />
-              <span className="text-gray-400 dark:text-gray-500 text-xs">{t('unit.eur')}</span>
+              <span className="text-gray-400 dark:text-gray-500 text-xs">{sym}</span>
             </div>
           )}
 
@@ -123,7 +126,7 @@ export function BountyEditor({ bounty, onChange }: Props) {
                       min={1}
                       step={1}
                     />
-                    <span className="text-gray-400 dark:text-gray-500 text-xs">{t('unit.eur')}</span>
+                    <span className="text-gray-400 dark:text-gray-500 text-xs">{sym}</span>
                     <button
                       onClick={() => removePoolEntry(i)}
                       className="ml-1 px-2 py-1 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs font-medium transition-colors"
