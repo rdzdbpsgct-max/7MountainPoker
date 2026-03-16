@@ -731,6 +731,13 @@ export const faqEntries: FaqEntry[] = [
       en: '4 layouts for TV mode: Standard (classic split), Compact (more info area), Timer-Only (maximum timer without secondary screens), Ultra Large (oversized timer). Choose the layout in settings (gear menu).',
     },
   },
+  {
+    question: { de: 'Sind alle Features kostenlos verfügbar?', en: 'Are all features available for free?' },
+    answer: {
+      de: 'Ja! Aktuell sind alle Features (TV-Modus, Fernsteuerung, Liga, Multi-Table, Side-Pot-Rechner) vollständig und ohne Einschränkungen nutzbar. Die App enthält eine Gate-Infrastruktur für zukünftige Tier-Modelle, aber der Standard-Tier ist „Premium" — alle Features sind freigeschaltet.',
+      en: 'Yes! Currently all features (TV mode, remote control, league, multi-table, side pot calculator) are fully available without restrictions. The app includes gate infrastructure for future tier models, but the default tier is "premium" — all features are unlocked.',
+    },
+  },
 ];
 
 export const shortcutEntries: ShortcutEntry[] = [

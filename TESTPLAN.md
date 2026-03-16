@@ -1,9 +1,9 @@
 # Testplan — 7Mountain Poker Timer
 
-**Version**: 3.0
+**Version**: 3.1
 **Erstellt**: 2026-03-09
-**Aktualisiert**: 2026-03-09
-**Basis**: v6.0.0, 943 Tests (503 Logic + 95 Component + 35 Integration + 310 weitere in 8 Dateien)
+**Aktualisiert**: 2026-03-16
+**Basis**: v6.9.2, 1199 Tests (17 Testdateien)
 **App-Typ**: Client-side React/TypeScript SPA, kein Server
 
 ---
@@ -1063,6 +1063,45 @@ Tests die aufgrund von Browser-APIs nicht automatisiert werden koennen:
 
 ---
 
-*Ende des Testplans v3.0. Stand: 943 Tests, 12 Dateien, 0 Lint-Errors.*
-*Automatisierte Abdeckung: Domain-Logik 100%, Hooks 5/7, Komponenten 17/30+, Cross-Module-Flows neu.*
+---
+
+## Abschnitt J — Entitlements & Feature-Gate-Tests (v3.1)
+
+### J.1 Bestehende Tests (entitlements.test.ts — 12 Tests)
+
+| Test | Beschreibung |
+|------|-------------|
+| Default-Tier | `defaultEntitlements()` gibt `'premium'` zurueck |
+| Persistenz | `saveEntitlements()` / `loadEntitlements()` Round-Trip |
+| Tier-Minimums | `isFeatureAvailable()` prueft Feature-Tier-Mapping |
+| Overrides | Explizite Feature-Overrides ueberschreiben Tier |
+| Downgrade-Detection | `featuresLostOnTierChange()` erkennt verlorene Features |
+| Upgrade-Detection | `featuresGainedOnTierChange()` erkennt gewonnene Features |
+| Tier-Transition Downgrade | `consumeTierTransition()` erkennt Downgrade |
+| Tier-Transition Upgrade | `consumeTierTransition()` erkennt Upgrade |
+| **multiTable Gate** | `isFeatureAvailable('multiTable', {tier: 'free'})` → false, premium → true |
+| **sidePot Gate** | `isFeatureAvailable('sidePot', {tier: 'free'})` → false, premium → true |
+| **multiTable/sidePot Downgrade** | Enthalten in `featuresLostOnTierChange('premium', 'free')` |
+| **multiTable/sidePot Upgrade** | Enthalten in `featuresGainedOnTierChange('free', 'premium')` |
+
+### J.2 Telemetrie-Tests (monetizationTelemetry.test.ts — 3 Tests)
+
+| Test | Beschreibung |
+|------|-------------|
+| trackSessionStarted | Zaehler inkrementiert |
+| trackFeatureUsed | Feature + Context werden gespeichert |
+| getUsageReport | Aggregierte Nutzungsdaten zurueckgegeben |
+
+### J.3 Manuelle Gate-Verifikation
+
+| Szenario | Schritte | Erwartung |
+|----------|---------|-----------|
+| Default (Premium) | App starten ohne `VITE_APP_TIER` | Alle Features frei, keine Lock-Icons |
+| Free Tier | `VITE_APP_TIER=free npm run dev` | TV/Remote/Liga/MultiTable/SidePot zeigen FeatureGateModal |
+| Gate-Modal | Im Free-Tier auf gesperrtes Feature klicken | Modal mit Feature-Name und Upgrade-Hinweis |
+
+---
+
+*Ende des Testplans v3.1. Stand: 1199 Tests, 17 Dateien, 0 Lint-Errors.*
+*Automatisierte Abdeckung: Domain-Logik 100%, Hooks 5/7, Komponenten 17/30+, Entitlements 12 Tests, Cross-Module-Flows.*
 *Verbleibende Risiken: Audio-Autoplay (Browser-Policy), CSS-Responsive (visuell), PWA (Service Worker) — alle durch manuelle Test-Matrix abgedeckt.*

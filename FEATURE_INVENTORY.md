@@ -1,7 +1,8 @@
 # Feature-Inventur & Testbarkeitsanalyse — 7Mountain Poker
 
 **Erstellt**: 2026-03-09
-**Basis**: v6.0.0, 598 Tests, 23 Domain-Module, ~350+ exportierte Funktionen
+**Aktualisiert**: 2026-03-16
+**Basis**: v6.9.2, 1199 Tests, 23 Domain-Module, ~350+ exportierte Funktionen
 
 ---
 
@@ -271,3 +272,33 @@ tests/
 
 ### Prio 6: Mystery Bounty Edge Case (2 Tests, 30 Min)
 → Pool-Erschoepfung ist ein Produktionsrisiko
+
+---
+
+## 5. Feature-Gating Status (v6.9.2)
+
+### 5.1 Premium-Tier Features
+
+| Feature | Gate-Check | Discovery | Telemetrie | Gate-Location |
+|---------|:----------:|:---------:|:----------:|---------------|
+| TV Display | ✅ | ✅ | ✅ | AppHeader.tsx |
+| Remote Control | ✅ | ✅ | ✅ | AppHeader.tsx |
+| Liga-Modus | ✅ | ✅ | ✅ | AppHeader.tsx |
+| Multi-Table | ✅ | ✅ | ✅ | SetupPage.tsx + GameModeContainer.tsx |
+| Side-Pot | ✅ | ✅ | ✅ | PlayerPanel.tsx |
+
+### 5.2 Pro-Tier Features (Zukunft, noch nicht implementiert)
+
+| Feature | Definiert in | Status |
+|---------|-------------|--------|
+| Cloud Backup | proBlueprint.ts | Nur Blueprint |
+| Team Roles | proBlueprint.ts | Nur Blueprint |
+| Multi-Event | proBlueprint.ts | Nur Blueprint |
+
+### 5.3 Gate-Infrastruktur
+
+- **Entitlements**: `entitlements.ts` — `isFeatureAvailable()`, `loadEntitlements()`, `markFeatureDiscovered()`
+- **Telemetrie**: `monetizationTelemetry.ts` — `trackFeatureUsed()`, `trackSessionStarted()`
+- **UI**: `FeatureGateModal.tsx` — zeigt Upgrade-Dialog bei gesperrtem Feature
+- **Default-Tier**: `'premium'` — alle Features frei, Wechsel zu `'free'` per `VITE_APP_TIER` Env-Variable
+- **Tests**: 12 Unit-Tests in `entitlements.test.ts`, 3 in `monetizationTelemetry.test.ts`

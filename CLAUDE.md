@@ -202,7 +202,7 @@ tests/
 ├── persistence.test.ts          # 24 config/settings/checkpoint save/load round-trips
 ├── controls.test.tsx            # 26 Controls component tests (buttons, callbacks, ARIA, break controls)
 ├── display-channel.test.ts      # 14 BroadcastChannel serialization + communication tests
-├── entitlements.test.ts         # 8 feature gate / entitlement tests
+├── entitlements.test.ts         # 12 feature gate / entitlement tests
 ├── toast.test.ts                # 6 toast notification system tests
 ├── monetizationTelemetry.test.ts # 3 monetization telemetry tests
 ├── recovery.test.ts             # 3 error recovery tests
@@ -252,6 +252,18 @@ public/
 - `useTranslation()` hook returns `{ t, language, setLanguage }`
 - `t('key')` or `t('key', { n: 5 })` for parameterized strings (template vars: `{n}`, `{place}`, etc.)
 - All user-facing strings must go through `t()` — no hardcoded UI text
+
+### Feature Gating & Entitlements (v6.9.2)
+- **3-Tier Model**: `free` → `premium` → `pro` (defined in `entitlements.ts`)
+- **Default tier**: `'premium'` — all features available. Controlled via `VITE_APP_TIER` env var (or `loadEntitlements()` from localStorage)
+- **5 Premium features**: `tvDisplay`, `remoteControl`, `league`, `multiTable`, `sidePot` — all gated via `isFeatureAvailable(feature, entitlements)`
+- **Gate checks in App.tsx**: `canUseTVDisplay`, `canUseRemoteControl`, `canUseLeagueMode`, `canUseMultiTable`, `canUseSidePot` — `useMemo` based on entitlements
+- **Gate UI flow**: Button click → `canUse*` check → if false: `openFeatureGate(feature)` shows `FeatureGateModal` → if true: normal action
+- **Gate prop threading**: App.tsx → SetupModeContainer → SetupPage (multiTable); App.tsx → GameModeContainer → PlayerPanel (sidePot); GameModeContainer safety-guards MultiTablePanel render
+- **Feature Discovery**: `markFeatureDiscovered(feature)` called at all 5 feature entry points (AppHeader: TV/Remote/Liga, SetupPage: MultiTable, PlayerPanel: SidePot) — persisted in localStorage
+- **Usage Telemetry**: `trackFeatureUsed(feature, context)` called at 5 usage points (App.tsx: TV toggle/Remote start/Liga mode, MultiTablePanel/SidePotCalculator: on mount)
+- **Session Telemetry**: `trackSessionStarted()` called once per page load in `main.tsx`
+- **Pro tier** (future): `cloudBackup`, `teamRoles`, `multiEvent` — defined in `proBlueprint.ts`, not yet wired
 
 ### Styling
 - Tailwind utility classes + custom `@keyframes` and `@utility` in `index.css` — no CSS modules, no CSS-in-JS

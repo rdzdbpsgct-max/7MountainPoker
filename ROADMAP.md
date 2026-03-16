@@ -475,6 +475,37 @@ Technische Schulden abbauen, Erweiterbarkeit sichern.
 
 ---
 
+## Phase 5: Premium-Readiness (v6.9.2) ✅ DONE
+
+Gate-Infrastruktur fuer zukuenftigen Freemium-Betrieb vorbereiten — ohne sichtbare Aenderung fuer Nutzer.
+
+### Feature 5.1 — Gate-Checks fuer multiTable und sidePot
+
+**Problem**: 3 von 5 Premium-Features hatten bereits Gate-Checks (TV, Remote, Liga), aber Multi-Table und Side-Pot liefen ungeprueft.
+
+**Umsetzung**:
+- `canUseMultiTable` / `canUseSidePot` Memos in App.tsx
+- Prop-Threading: App.tsx → SetupModeContainer → SetupPage (multiTable), App.tsx → GameModeContainer → PlayerPanel (sidePot)
+- Safety-Guard: MultiTablePanel im Spielmodus wird bei `canUseMultiTable === false` nicht gerendert
+
+**Dateien**: App.tsx, SetupPage.tsx, SetupModeContainer.tsx, PlayerPanel.tsx, GameModeContainer.tsx
+
+---
+
+### Feature 5.2 — Feature-Discovery und Telemetrie
+
+**Problem**: Kein Tracking, welche Premium-Features Nutzer entdecken und verwenden.
+
+**Umsetzung**:
+- `markFeatureDiscovered()` an 5 Feature-Einstiegspunkten (AppHeader: TV/Remote/Liga, SetupPage: MultiTable, PlayerPanel: SidePot)
+- `trackFeatureUsed()` an 5 Nutzungspunkten (App.tsx: TV/Remote/Liga, MultiTablePanel/SidePotCalculator: useEffect on mount)
+- `trackSessionStarted()` einmal pro Page-Load in main.tsx
+
+**Dateien**: AppHeader.tsx, SetupPage.tsx, PlayerPanel.tsx, App.tsx, MultiTablePanel.tsx, SidePotCalculator.tsx, main.tsx
+**Tests**: 4 neue Entitlement-Tests (12 gesamt)
+
+---
+
 ## Zusammenfassung
 
 ### Translation-Keys gesamt: 48 pro Sprache (96 total)
