@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
-import type { TournamentConfig, Settings, TournamentCheckpoint, Table, TableMove, PotResult, PlayerPayout, TournamentEvent } from './domain/types';
-import { serializeColorUpMap } from './domain/displayChannel';
-import type { DisplayStatePayload } from './domain/displayChannel';
+import type { TournamentConfig, Settings, TournamentCheckpoint, Table, TableMove, PotResult, PlayerPayout } from './domain/types';
 import {
   defaultConfig,
   defaultSettings,
@@ -9,32 +7,24 @@ import {
   loadConfig,
   saveSettings,
   loadSettings,
-  saveCheckpoint,
   loadCheckpoint,
   clearCheckpoint,
-  isRebuyActive,
-  isLateRegistrationOpen,
-  computeTournamentElapsedSeconds,
-  computeAverageStack,
-  scheduleToColorUpMap,
-  isBubble,
-  isInTheMoney,
   buildTournamentResult,
   saveTournamentResult,
   loadLeagues,
   createGameDayFromResult,
-  computeExtendedStandings,
-  loadGameDaysForLeague,
   loadPlayerDatabase,
   createEvent,
+  computePrizePool,
 } from './domain/logic';
+import { UndoStack, createUndoSnapshot } from './domain/undoStack';
 import { useTimer } from './hooks/useTimer';
 import { useVoiceAnnouncements } from './hooks/useVoiceAnnouncements';
 import { useGameEvents } from './hooks/useGameEvents';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTournamentActions } from './hooks/useTournamentActions';
 import { useTournamentModeTransitions } from './hooks/useTournamentModeTransitions';
-import { useTVDisplay } from './hooks/useTVDisplay';
+import { useDisplayBridge } from './hooks/useDisplayBridge';
 import { useWakeLock } from './hooks/useWakeLock';
 import { useConfirmDialog } from './hooks/useConfirmDialog';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
@@ -47,21 +37,18 @@ import {
   getRequiredTier,
 } from './domain/entitlements';
 import {
-  setSpeechLanguage,
   announceLastHand,
   announceHandForHand,
   announceTableMove,
   announceFinalTable,
   announceLateRegistrationClosed,
-  setSpeechVolume,
 } from './domain/speech';
-import { setMasterVolume } from './domain/sounds';
-import { setAudioVolume } from './domain/audioPlayer';
+import { setAudioMasterVolume, setAudioLanguage } from './domain/audioService';
 // Setup-mode components (static imports — used immediately on load)
-import { isTourCompleted, isWizardCompleted } from './domain/configPersistence';
+import { isTourCompleted } from './domain/configPersistence';
+import { useModalManager } from './hooks/useModalManager';
 import { ToastContainer } from './components/Toast';
 import { useRemoteHostBridge } from './hooks/useRemoteHostBridge';
-import { useDisplaySession } from './hooks/useDisplaySession';
 import { collectStartErrors } from './domain/startValidation';
 import { SectionErrorBoundary } from './components/ErrorBoundary';
 import { LoadingFallback } from './components/LoadingFallback';
@@ -74,6 +61,9 @@ import { FeatureGateModal } from './components/FeatureGateModal';
 import { useFeatureGate } from './hooks/useFeatureGate';
 import { usePrintViewWarmup } from './hooks/usePrintViewWarmup';
 import { useSharedPayloads } from './hooks/useSharedPayloads';
+import { useGameComputedState } from './hooks/useGameComputedState';
+import { useTournamentEventLog } from './hooks/useTournamentEventLog';
+import { useCheckpointManager } from './hooks/useCheckpointManager';
 
 // Game-mode components (lazy — only needed after tournament starts)
 // DisplayMode is now rendered in a separate TV window via TVDisplayWindow
@@ -95,6 +85,7 @@ const PayoutOverlay = lazy(() => import('./components/PayoutOverlay').then(m => 
 const SeriesManager = lazy(() => import('./components/SeriesManager').then(m => ({ default: m.SeriesManager })));
 const CustomAudioEditor = lazy(() => import('./components/CustomAudioEditor').then(m => ({ default: m.CustomAudioEditor })));
 const ShareHub = lazy(() => import('./components/ShareHub').then(m => ({ default: m.ShareHub })));
+const IcmCalculator = lazy(() => import('./components/IcmCalculator').then(m => ({ default: m.IcmCalculator })));
 
 type Mode = 'setup' | 'game' | 'league';
 
@@ -107,7 +98,7 @@ function App() {
 
   // Sync speech language with app language
   useEffect(() => {
-    setSpeechLanguage(language);
+    setAudioLanguage(language);
   }, [language]);
 
   const [mode, setMode] = useState<Mode>('setup');
@@ -128,14 +119,7 @@ function App() {
       setMode('setup');
     }
   }, [mode, canUseLeagueMode]);
-  const [showPlayerPanel, setShowPlayerPanel] = useState(true);
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showSeries, setShowSeries] = useState(false);
-  const [showCustomAudio, setShowCustomAudio] = useState(false);
-  const [showWizard, setShowWizard] = useState(() => !isWizardCompleted());
-  const [showTour, setShowTour] = useState(false);
+  const modals = useModalManager();
   const printViewReady = usePrintViewWarmup();
   const {
     sharedResult,
@@ -143,14 +127,11 @@ function App() {
     sharedLeague,
     setSharedLeague,
   } = useSharedPayloads();
-  const [cleanView, setCleanView] = useState(false);
   const [lastHandActive, setLastHandActive] = useState(false);
   const [handForHandActive, setHandForHandActive] = useState(false);
-  const [showCallTheClock, setShowCallTheClock] = useState(false);
   const [showDealerBadges, setShowDealerBadges] = useState(true);
   const [sidePotData, setSidePotData] = useState<{ pots: PotResult[]; total: number; payouts?: PlayerPayout[] } | null>(null);
   const [recentTableMoves, setRecentTableMoves] = useState<TableMove[]>([]);
-  const [tournamentEvents, setTournamentEvents] = useState<TournamentEvent[]>([]);
   const { confirmAction, dialogRef: confirmDialogRef, confirm: confirmBeforeAction, dismiss: dismissConfirm, execute: executeConfirm } = useConfirmDialog();
 
   const [pendingCheckpoint, setPendingCheckpoint] = useState<TournamentCheckpoint | null>(() => loadCheckpoint());
@@ -192,6 +173,78 @@ function App() {
 
   const timer = useTimer(config.levels, settings, addOnPauseLevelIndex);
 
+  // Tournament event log (state + timer/mode/finish event effects)
+  const {
+    tournamentEvents,
+    setTournamentEvents,
+    handleAppendEvent,
+  } = useTournamentEventLog({
+    mode,
+    currentLevelIndex: timer.timerState.currentLevelIndex,
+    timerStatus: timer.timerState.status,
+    tournamentFinished: config.players.length >= 2 && config.players.filter(p => p.status === 'active').length === 1,
+    pendingCheckpoint: pendingCheckpoint !== null,
+  });
+
+  // --- Undo/Redo stack ---
+  const [undoStack, setUndoStack] = useState(() => new UndoStack());
+
+  const pushUndoSnapshot = useCallback((actionKey: string) => {
+    setUndoStack(prev => prev.push(
+      createUndoSnapshot(actionKey, config.players, config.tables, tournamentEvents, config.dealerIndex)
+    ));
+  }, [config.players, config.tables, tournamentEvents, config.dealerIndex]);
+
+  const handleUndo = useCallback(() => {
+    const currentSnapshot = createUndoSnapshot('current', config.players, config.tables, tournamentEvents, config.dealerIndex);
+    const result = undoStack.undo(currentSnapshot);
+    if (!result) return;
+    const [newStack, entry] = result;
+    setUndoStack(newStack);
+    setConfig(prev => ({
+      ...prev,
+      players: entry.players,
+      tables: entry.tables,
+      dealerIndex: entry.dealerIndex,
+    }));
+    setTournamentEvents(entry.events);
+  }, [undoStack, config.players, config.tables, tournamentEvents, config.dealerIndex, setConfig, setTournamentEvents]);
+
+  const handleRedo = useCallback(() => {
+    const currentSnapshot = createUndoSnapshot('current', config.players, config.tables, tournamentEvents, config.dealerIndex);
+    const result = undoStack.redo(currentSnapshot);
+    if (!result) return;
+    const [newStack, entry] = result;
+    setUndoStack(newStack);
+    setConfig(prev => ({
+      ...prev,
+      players: entry.players,
+      tables: entry.tables,
+      dealerIndex: entry.dealerIndex,
+    }));
+    setTournamentEvents(entry.events);
+  }, [undoStack, config.players, config.tables, tournamentEvents, config.dealerIndex, setConfig, setTournamentEvents]);
+
+  // Clear undo stack when entering game mode (fresh start)
+  const prevModeForUndo = useRef(mode);
+  useEffect(() => {
+    if (prevModeForUndo.current !== 'game' && mode === 'game') {
+      setUndoStack(new UndoStack());
+    }
+    prevModeForUndo.current = mode;
+  }, [mode]);
+
+  // Auto-save checkpoint in game mode (debounced + periodic)
+  useCheckpointManager({
+    mode,
+    config,
+    settings,
+    currentLevelIndex: timer.timerState.currentLevelIndex,
+    remainingSeconds: timer.timerState.remainingSeconds,
+    timerStatus: timer.timerState.status,
+    tournamentEvents,
+  });
+
   // Track the level where rebuy ended (for one-level add-on window)
   const [addOnEndLevelIndex, setAddOnEndLevelIndex] = useState<number | null>(null);
 
@@ -223,78 +276,16 @@ function App() {
     saveSettings(settings);
   }, [settings]);
 
-  // Sync master volume to all audio modules
+  // Sync master volume to all audio modules via centralized facade
   useEffect(() => {
-    const v = settings.volume / 100;
-    setMasterVolume(v);
-    setAudioVolume(v);
-    setSpeechVolume(v);
+    setAudioMasterVolume(settings.volume / 100);
   }, [settings.volume]);
-
-  // Auto-save tournament checkpoint in game mode
-  // Debounced on config/settings changes (500ms) to avoid blocking during rapid interactions.
-  // Level/status changes and periodic saves (running timer) remain immediate.
-  const checkpointIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const checkpointDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (mode !== 'game') return;
-    const doSave = () => {
-      saveCheckpoint({
-        version: 1,
-        config,
-        settings,
-        timer: {
-          currentLevelIndex: timer.timerState.currentLevelIndex,
-          remainingSeconds: timer.timerState.remainingSeconds,
-        },
-        savedAt: new Date().toISOString(),
-        events: tournamentEvents,
-      });
-    };
-    // Debounce save to avoid blocking during rapid config mutations (e.g. elimination cascade)
-    if (checkpointDebounceRef.current) clearTimeout(checkpointDebounceRef.current);
-    checkpointDebounceRef.current = setTimeout(doSave, 500);
-    // For running timer: periodic save every 5s (instead of every tick)
-    if (checkpointIntervalRef.current) clearInterval(checkpointIntervalRef.current);
-    if (timer.timerState.status === 'running') {
-      checkpointIntervalRef.current = setInterval(doSave, 5000);
-    }
-    return () => {
-      if (checkpointIntervalRef.current) {
-        clearInterval(checkpointIntervalRef.current);
-        checkpointIntervalRef.current = null;
-      }
-      if (checkpointDebounceRef.current) {
-        clearTimeout(checkpointDebounceRef.current);
-        checkpointDebounceRef.current = null;
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- remainingSeconds intentionally excluded: interval handles periodic saves
-  }, [mode, config, settings, timer.timerState.currentLevelIndex, timer.timerState.status, tournamentEvents]);
 
   // Wake Lock: prevent screen from sleeping during active tournament
   useWakeLock(mode === 'game' && timer.timerState.status === 'running');
 
   // PWA install prompt
   const { canPrompt: canInstallPrompt, isInstalled: isPWAInstalled, promptInstall } = useInstallPrompt();
-  const [showInstallGuide, setShowInstallGuide] = useState(() => {
-    if (window.location.hash === '#install') {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-      return true;
-    }
-    return false;
-  });
-  const [showHelp, setShowHelp] = useState(false);
-  const [showTournamentLog, setShowTournamentLog] = useState(false);
-  const [showPayoutOverlay, setShowPayoutOverlay] = useState(false);
-  const [showShareHub, setShowShareHub] = useState(() => {
-    if (window.location.hash === '#share') {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-      return true;
-    }
-    return false;
-  });
-
   // Online/Offline detection — show toast on status change
   const isOnline = useOnlineStatus();
   const prevOnlineRef = useRef(isOnline);
@@ -303,28 +294,6 @@ function App() {
     prevOnlineRef.current = isOnline;
     showToast(isOnline ? t('app.onlineNotice') : t('app.offlineNotice'));
   }, [isOnline, t]);
-
-  // Toggle clean view: also controls both sidebars
-  const toggleCleanView = useCallback(() => {
-    setCleanView((prev) => {
-      const next = !prev;
-      if (next) {
-        // Hiding details → also hide both sidebars
-        setShowPlayerPanel(false);
-        setShowSidebar(false);
-      } else {
-        // Showing details → also show both sidebars
-        setShowPlayerPanel(true);
-        setShowSidebar(true);
-      }
-      return next;
-    });
-  }, []);
-
-  // Append a tournament event to the log
-  const handleAppendEvent = useCallback((event: TournamentEvent) => {
-    setTournamentEvents((prev) => [...prev, event]);
-  }, []);
 
   // Toggle last hand announcement
   const handleLastHand = useCallback(() => {
@@ -371,6 +340,7 @@ function App() {
     setRecentTableMoves,
     currentLevelIndex: timer.timerState.currentLevelIndex,
     onAppendEvent: handleAppendEvent,
+    onPushUndo: pushUndoSnapshot,
   });
 
   // Keyboard shortcuts (only in game mode)
@@ -415,35 +385,37 @@ function App() {
     return () => clearTimeout(timerId);
   }, [recentTableMoves]);
 
-  // --- Computed rebuy state for game mode ---
-  // Stable integer-second value — limits useMemo cascade to 1×/sec instead of 4×/sec
+  // --- Computed game state (extracted to useGameComputedState hook) ---
   const displaySeconds = Math.floor(timer.timerState.remainingSeconds);
 
-  const tournamentElapsed = useMemo(
-    () =>
-      computeTournamentElapsedSeconds(
-        config.levels,
-        timer.timerState.currentLevelIndex,
-        displaySeconds,
-      ),
-    [config.levels, timer.timerState.currentLevelIndex, displaySeconds],
-  );
-
-  const rebuyActive = useMemo(
-    () =>
-      isRebuyActive(
-        config.rebuy,
-        timer.timerState.currentLevelIndex,
-        config.levels,
-        tournamentElapsed,
-      ),
-    [config.rebuy, timer.timerState.currentLevelIndex, config.levels, tournamentElapsed],
-  );
-
-  const lateRegOpen = useMemo(
-    () => isLateRegistrationOpen(config, timer.timerState.currentLevelIndex, config.levels),
-    [config, timer.timerState.currentLevelIndex],
-  );
+  const computed = useGameComputedState({
+    config,
+    timerState: timer.timerState,
+    tournamentEvents,
+    t,
+    lastRebuyLevelIndex,
+    addOnEndLevelIndex,
+    displaySeconds,
+  });
+  const {
+    tournamentElapsed,
+    rebuyActive,
+    lateRegOpen,
+    addOnWindowOpen,
+    currentPlayLevel,
+    averageStack,
+    colorUpMap,
+    activePlayerCount,
+    paidPlaces,
+    bubbleActive,
+    inTheMoney,
+    isBreak,
+    tournamentFinished,
+    winner,
+    finishedResult,
+    startErrors,
+    leagueDisplayData,
+  } = computed;
 
   // Voice: Late registration closed
   const prevLateRegRef = useRef(lateRegOpen);
@@ -467,74 +439,7 @@ function App() {
     prevRebuyActive.current = rebuyActive;
   }, [rebuyActive, config.addOn.enabled, config.rebuy.enabled, config.rebuy.limitType, timer.timerState.currentLevelIndex]);
 
-  const addOnWindowOpen = useMemo(() => {
-    if (!config.addOn.enabled || !config.rebuy.enabled) return false;
-    const idx = timer.timerState.currentLevelIndex;
-
-    if (config.rebuy.limitType === 'levels' && lastRebuyLevelIndex >= 0) {
-      // Show at the end of the last rebuy level (timer expired, waiting for advance)
-      if (idx === lastRebuyLevelIndex && displaySeconds <= 0) return true;
-      // Show during the break after the last rebuy level (if any) + next play level
-      const nextIdx = lastRebuyLevelIndex + 1;
-      if (nextIdx >= config.levels.length) return false;
-      if (config.levels[nextIdx]?.type === 'break') {
-        // Show only during the break — not in the level after the break
-        return idx === nextIdx;
-      }
-      // No break — show during the next play level only
-      return idx === nextIdx;
-    }
-
-    // Time-based: use reactive detection (addOnEndLevelIndex)
-    return !rebuyActive
-      && addOnEndLevelIndex !== null
-      && idx === addOnEndLevelIndex;
-  }, [config.addOn.enabled, config.rebuy, config.levels, lastRebuyLevelIndex, timer.timerState.currentLevelIndex, displaySeconds, rebuyActive, addOnEndLevelIndex]);
-
-  const currentPlayLevel = useMemo(() => {
-    return config.levels
-      .slice(0, timer.timerState.currentLevelIndex + 1)
-      .filter((l) => l.type === 'level').length;
-  }, [config.levels, timer.timerState.currentLevelIndex]);
-
-  const averageStack = useMemo(
-    () =>
-      computeAverageStack(
-        config.players,
-        config.startingChips,
-        config.rebuy.enabled ? config.rebuy.rebuyChips : 0,
-        config.addOn.enabled ? config.addOn.chips : 0,
-      ),
-    [config.players, config.startingChips, config.rebuy.enabled, config.rebuy.rebuyChips, config.addOn.enabled, config.addOn.chips],
-  );
-
-  const colorUpMap = useMemo(
-    () =>
-      config.chips.enabled && config.chips.colorUpEnabled && config.chips.colorUpSchedule.length > 0
-        ? scheduleToColorUpMap(config.chips.colorUpSchedule, config.chips.denominations)
-        : new Map(),
-    [config.chips.enabled, config.chips.colorUpEnabled, config.chips.colorUpSchedule, config.chips.denominations],
-  );
-
-  const activePlayerCount = useMemo(
-    () => config.players.filter((p) => p.status === 'active').length,
-    [config.players],
-  );
-
-  const paidPlaces = config.payout.entries.length;
-
-  const bubbleActive = useMemo(
-    () => isBubble(activePlayerCount, paidPlaces),
-    [activePlayerCount, paidPlaces],
-  );
-
-  const inTheMoney = useMemo(
-    () => isInTheMoney(activePlayerCount, paidPlaces),
-    [activePlayerCount, paidPlaces],
-  );
-
-  // Break detection for skip/extend buttons
-  const isBreak = config.levels[timer.timerState.currentLevelIndex]?.type === 'break';
+  // Break detection for skip/extend buttons (also in computed, but needed for local callbacks)
 
   const handleSkipBreak = useCallback(() => {
     timer.nextLevel();
@@ -556,74 +461,81 @@ function App() {
   }, [bubbleActive]);
 
   // ---------------------------------------------------------------------------
+  // Remote host bridge (PeerJS) — must be before useDisplayBridge which reads the ref
+  // ---------------------------------------------------------------------------
+
+  const {
+    remoteHostRef,
+    remoteHostStatus,
+    remoteControllerCount,
+    showRemoteControl,
+    setShowRemoteControl,
+    isControllerMode,
+    controllerPeerId,
+    controllerSecret,
+    startRemoteHost,
+    remoteHostResumed,
+  } = useRemoteHostBridge({
+    mode,
+    config,
+    settings,
+    timerState: timer.timerState,
+    timerControls: {
+      toggleStartPause: timer.toggleStartPause,
+      start: timer.start,
+      pause: timer.pause,
+      nextLevel: timer.nextLevel,
+      previousLevel: timer.previousLevel,
+      resetLevel: timer.resetLevel,
+      extendLevel: timer.extendLevel,
+    },
+    activePlayerCount,
+    bubbleActive,
+    rebuyActive,
+    addOnWindowOpen,
+    bountyEnabled: config.bounty.enabled,
+    averageStack,
+    tournamentElapsed,
+    isItm: inTheMoney,
+    onAdvanceDealer: handleAdvanceDealer,
+    onEliminatePlayer: eliminatePlayer,
+    onUpdatePlayerRebuys: updatePlayerRebuys,
+    onUpdatePlayerAddOn: updatePlayerAddOn,
+    setShowCallTheClock: modals.setShowCallTheClock,
+    setSettings,
+    onAppendEvent: handleAppendEvent,
+    t,
+  });
+
+  // Show toast when remote session is restored after page refresh
+  const remoteResumedToastShown = useRef(false);
+  useEffect(() => {
+    if (remoteHostResumed && remoteHostStatus === 'ready' && !remoteResumedToastShown.current) {
+      remoteResumedToastShown.current = true;
+      showToast(t('remote.sessionRestored'));
+    }
+  }, [remoteHostResumed, remoteHostStatus, t]);
+
+  // ---------------------------------------------------------------------------
   // BroadcastChannel: send state to TV display window (placed after computed values)
   // ---------------------------------------------------------------------------
 
-  // Build full-state payload
-  // Compute league standings for TV display (only when leagueId is set)
-  const leagueDisplayData = useMemo(() => {
-    if (!config.leagueId) return undefined;
-    const leagues = loadLeagues();
-    const league = leagues.find((l) => l.id === config.leagueId);
-    if (!league) return undefined;
-    const gameDays = loadGameDaysForLeague(league.id);
-    if (gameDays.length === 0) return undefined;
-    return { name: league.name, standings: computeExtendedStandings(league, gameDays) };
-  }, [config.leagueId]);
-
-  // Use ref for timerState in payload to avoid callback recreation every 250ms tick.
-  // TV display receives timer updates separately via timer-tick BroadcastChannel messages.
-  const timerStateForPayloadRef = useRef(timer.timerState);
-  timerStateForPayloadRef.current = timer.timerState;
-
-  const buildFullStatePayload = useCallback((): DisplayStatePayload => ({
-    timerState: timerStateForPayloadRef.current,
-    levels: config.levels,
-    chipConfig: config.chips,
-    colorUpSchedule: serializeColorUpMap(colorUpMap),
-    tournamentName: config.name,
-    activePlayerCount,
-    totalPlayerCount: config.players.length,
-    isBubble: bubbleActive,
-    isLastHand: lastHandActive,
-    isHandForHand: handForHandActive,
-    players: config.players,
-    dealerIndex: config.dealerIndex,
-    buyIn: config.buyIn,
-    payout: config.payout,
-    rebuy: config.rebuy,
-    addOn: config.addOn,
-    bounty: config.bounty,
-    averageStack,
-    tournamentElapsed,
-    tables: config.tables,
-    showDealerBadges,
-    leagueName: leagueDisplayData?.name,
-    leagueStandings: leagueDisplayData?.standings,
-    sidePotData: sidePotData ?? undefined,
-    displayScreens: settings.displayScreens,
-    displayRotationInterval: settings.displayRotationInterval,
-    displayLayout: settings.displayLayout,
-    currency: config.currency,
-  }), [config, colorUpMap, activePlayerCount, bubbleActive, lastHandActive, handForHandActive, averageStack, tournamentElapsed, showDealerBadges, leagueDisplayData, sidePotData, settings.displayScreens, settings.displayRotationInterval, settings.displayLayout]);
-
-  // TV Display: BroadcastChannel sync + window management
-  const { tvWindowActive, openTVWindow, closeTVWindow } = useTVDisplay({
+  // Display bridge: payload construction + local TV + cross-device PeerJS display
+  const { tvWindowActive, handleToggleTVWindow, closeTVWindow, displayCount } = useDisplayBridge({
     mode,
-    buildFullStatePayload,
-    remainingSeconds: timer.timerState.remainingSeconds,
-    timerStatus: timer.timerState.status,
-    currentLevelIndex: timer.timerState.currentLevelIndex,
-    showCallTheClock,
-    callTheClockSeconds: settings.callTheClockSeconds,
-    soundEnabled: settings.soundEnabled,
-    voiceEnabled: settings.voiceEnabled,
+    config,
+    settings,
+    timerState: timer.timerState,
+    computed: { colorUpMap, activePlayerCount, bubbleActive, averageStack, tournamentElapsed, leagueDisplayData },
+    lastHandActive,
+    handForHandActive,
+    showDealerBadges,
+    sidePotData,
+    showCallTheClock: modals.showCallTheClock,
+    remoteHostRef,
+    remoteHostStatus,
   });
 
-  const handleToggleTVWindow = useCallback(() => {
-    if (tvWindowActive) closeTVWindow();
-    else openTVWindow();
-  }, [tvWindowActive, closeTVWindow, openTVWindow]);
   const {
     lockedFeature,
     openFeatureGate,
@@ -649,17 +561,14 @@ function App() {
     onNextLevel: timer.nextLevel,
     onPreviousLevel: timer.previousLevel,
     onResetLevel: handleResetLevelShortcut,
-    onToggleCleanView: toggleCleanView,
+    onToggleCleanView: modals.toggleCleanView,
     onLastHand: handleLastHand,
     onToggleTVWindow: handleToggleTVWindowWithGate,
     onHandForHand: handleHandForHand,
-    onCallTheClock: useCallback(() => setShowCallTheClock((v) => !v), []),
+    onCallTheClock: useCallback(() => modals.setShowCallTheClock((v) => !v), [modals]),
+    onUndo: handleUndo,
+    onRedo: handleRedo,
   });
-
-  const tournamentFinished = useMemo(() => {
-    if (config.players.length < 2) return false;
-    return config.players.filter((p) => p.status === 'active').length === 1;
-  }, [config.players]);
 
   // Clear checkpoint and save result when tournament finishes
   const resultSavedRef = useRef(false);
@@ -693,19 +602,6 @@ function App() {
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [mode, tournamentFinished]);
-
-  const winner = useMemo(() => {
-    if (!tournamentFinished) return null;
-    return config.players.find((p) => p.status === 'active') ?? null;
-  }, [tournamentFinished, config.players]);
-
-  // Build the tournament result for direct use (avoids localStorage timing issues)
-  const finishedResult = useMemo(() => {
-    if (!tournamentFinished) return null;
-    return buildTournamentResult(config, tournamentElapsed, currentPlayLevel, tournamentEvents);
-  }, [tournamentFinished, config, tournamentElapsed, currentPlayLevel, tournamentEvents]);
-
-  const startErrors = useMemo(() => collectStartErrors(config, t), [config, t]);
 
   // Game events: victory sound/pause, bubble/ITM effects
   const { showItmFlash, reset: resetGameEvents } = useGameEvents({
@@ -741,31 +637,6 @@ function App() {
     t,
   });
 
-  // --- Tournament event log: timer events ---
-  const prevLevelForEventsRef = useRef(timer.timerState.currentLevelIndex);
-  const prevTimerStatusForEventsRef = useRef(timer.timerState.status);
-  useEffect(() => {
-    if (mode !== 'game') return;
-    const lvl = timer.timerState.currentLevelIndex;
-    if (lvl !== prevLevelForEventsRef.current) {
-      prevLevelForEventsRef.current = lvl;
-      handleAppendEvent(createEvent('level_start', lvl, { levelNumber: lvl + 1 }));
-    }
-  }, [mode, timer.timerState.currentLevelIndex, handleAppendEvent]);
-
-  useEffect(() => {
-    if (mode !== 'game') return;
-    const status = timer.timerState.status;
-    const prev = prevTimerStatusForEventsRef.current;
-    prevTimerStatusForEventsRef.current = status;
-    if (prev === status) return;
-    if (status === 'paused' && prev === 'running') {
-      handleAppendEvent(createEvent('timer_paused', timer.timerState.currentLevelIndex, {}));
-    } else if (status === 'running' && prev === 'paused') {
-      handleAppendEvent(createEvent('timer_resumed', timer.timerState.currentLevelIndex, {}));
-    }
-  }, [mode, timer.timerState.status, timer.timerState.currentLevelIndex, handleAppendEvent]);
-
   // --- Multi-table handlers ---
   const prevTableCountRef = useRef<number>(config.tables?.length ?? 0);
   useEffect(() => {
@@ -790,71 +661,6 @@ function App() {
   }, [settings.voiceEnabled, t]);
 
   const {
-    remoteHostRef,
-    remoteHostStatus,
-    showRemoteControl,
-    setShowRemoteControl,
-    isControllerMode,
-    controllerPeerId,
-    controllerSecret,
-    startRemoteHost,
-    remoteHostResumed,
-  } = useRemoteHostBridge({
-    mode,
-    config,
-    settings,
-    timerState: timer.timerState,
-    timerControls: {
-      toggleStartPause: timer.toggleStartPause,
-      start: timer.start,
-      pause: timer.pause,
-      nextLevel: timer.nextLevel,
-      previousLevel: timer.previousLevel,
-      resetLevel: timer.resetLevel,
-      extendLevel: timer.extendLevel,
-    },
-    activePlayerCount,
-    bubbleActive,
-    rebuyActive,
-    addOnWindowOpen,
-    bountyEnabled: config.bounty.enabled,
-    averageStack,
-    tournamentElapsed,
-    isItm: inTheMoney,
-    onAdvanceDealer: handleAdvanceDealer,
-    onEliminatePlayer: eliminatePlayer,
-    onUpdatePlayerRebuys: updatePlayerRebuys,
-    onUpdatePlayerAddOn: updatePlayerAddOn,
-    setShowCallTheClock,
-    setSettings,
-    onAppendEvent: handleAppendEvent,
-    t,
-  });
-
-  // Show toast when remote session is restored after page refresh
-  const remoteResumedToastShown = useRef(false);
-  useEffect(() => {
-    if (remoteHostResumed && remoteHostStatus === 'ready' && !remoteResumedToastShown.current) {
-      remoteResumedToastShown.current = true;
-      showToast(t('remote.sessionRestored'));
-    }
-  }, [remoteHostResumed, remoteHostStatus, t]);
-
-  // Display session: broadcast state to connected display peers (TV windows via PeerJS)
-  const { displayCount } = useDisplaySession({
-    hostRef: remoteHostRef,
-    enabled: mode === 'game' && remoteHostStatus !== null,
-    buildFullStatePayload,
-    remainingSeconds: timer.timerState.remainingSeconds,
-    timerStatus: timer.timerState.status,
-    currentLevelIndex: timer.timerState.currentLevelIndex,
-    showCallTheClock,
-    callTheClockSeconds: settings.callTheClockSeconds,
-    soundEnabled: settings.soundEnabled,
-    voiceEnabled: settings.voiceEnabled,
-  });
-
-  const {
     showSeatingOverlay,
     switchToGame,
     handleDismissSeating,
@@ -865,59 +671,32 @@ function App() {
     handleRestart,
     handleExitToSetup,
   } = useTournamentModeTransitions({
-    config,
-    settings,
-    pendingCheckpoint,
+    state: { config, settings, pendingCheckpoint },
     timer,
     t,
-    setConfig,
-    setSettings,
-    setMode,
-    setPendingCheckpoint,
-    setAddOnEndLevelIndex,
-    setRecentTableMoves,
-    setCleanView,
-    setShowPlayerPanel,
-    setShowSidebar,
-    setShowDealerBadges,
-    setLastHandActive,
-    setHandForHandActive,
-    setShowRemoteControl,
-    setTournamentEvents,
-    closeTVWindow,
-    resetGameEvents,
-    resetVoice,
-    confirmBeforeAction,
+    setters: {
+      setConfig,
+      setSettings,
+      setMode,
+      setPendingCheckpoint,
+      setAddOnEndLevelIndex,
+      setRecentTableMoves,
+      setCleanView: modals.setCleanView,
+      setShowPlayerPanel: modals.setShowPlayerPanel,
+      setShowSidebar: modals.setShowSidebar,
+      setShowDealerBadges,
+      setLastHandActive,
+      setHandForHandActive,
+      setShowRemoteControl,
+      setTournamentEvents,
+    },
+    callbacks: {
+      closeTVWindow,
+      resetGameEvents,
+      resetVoice,
+      confirmBeforeAction,
+    },
   });
-
-  // --- Tournament event log: mode transition events ---
-  const prevModeForEventsRef = useRef(mode);
-  useEffect(() => {
-    const prev = prevModeForEventsRef.current;
-    prevModeForEventsRef.current = mode;
-    if (mode === 'game' && prev !== 'game') {
-      // Clear events when starting a new tournament (not restoring from checkpoint)
-      if (!pendingCheckpoint) {
-        setTournamentEvents([]);
-      }
-      handleAppendEvent(createEvent('tournament_started', 0, {}));
-    }
-    if (mode === 'setup' && prev === 'game') {
-      setTournamentEvents([]);
-    }
-  }, [mode, handleAppendEvent, pendingCheckpoint]);
-
-  // Tournament finished event
-  const finishedEventLoggedRef = useRef(false);
-  useEffect(() => {
-    if (mode === 'game' && tournamentFinished && !finishedEventLoggedRef.current) {
-      finishedEventLoggedRef.current = true;
-      handleAppendEvent(createEvent('tournament_finished', timer.timerState.currentLevelIndex, {}));
-    }
-    if (!tournamentFinished) {
-      finishedEventLoggedRef.current = false;
-    }
-  }, [mode, tournamentFinished, timer.timerState.currentLevelIndex, handleAppendEvent]);
 
   // Remote Controller Mode — render ONLY the controller view, skip all other UI
   if (isControllerMode && controllerPeerId) {
@@ -959,18 +738,18 @@ function App() {
           else setMode('game');
         }}
         onExitToSetup={handleExitToSetup}
-        onShowTemplates={() => setShowTemplates(true)}
+        onShowTemplates={() => modals.setShowTemplates(true)}
         onToggleLeagueMode={() => setMode(mode === 'league' ? 'setup' : 'league')}
-        onShowHistory={() => setShowHistory(true)}
-        onShowInstallGuide={() => setShowInstallGuide(true)}
-        onShowHelp={() => setShowHelp(true)}
-        onShowLog={() => setShowTournamentLog(true)}
+        onShowHistory={() => modals.setShowHistory(true)}
+        onShowInstallGuide={() => modals.setShowInstallGuide(true)}
+        onShowHelp={() => modals.setShowHelp(true)}
+        onShowLog={() => modals.setShowTournamentLog(true)}
         showLogButton={mode === 'game' && !tournamentFinished}
         onOpenFeatureGate={openFeatureGate}
-        onShowSeries={() => setShowSeries(true)}
+        onShowSeries={() => modals.setShowSeries(true)}
         onShowShareHub={() => {
           if (!remoteHostRef.current) startRemoteHost();
-          setShowShareHub(true);
+          modals.setShowShareHub(true);
         }}
         displayCount={displayCount}
       />
@@ -1001,7 +780,7 @@ function App() {
             setConfig={setConfig}
             settings={settings}
             onSettingsChange={setSettings}
-            onShowCustomAudio={() => setShowCustomAudio(true)}
+            onShowCustomAudio={() => modals.setShowCustomAudio(true)}
             pendingCheckpoint={pendingCheckpoint}
             onRestoreCheckpoint={restoreFromCheckpoint}
             onDismissCheckpoint={dismissCheckpoint}
@@ -1029,53 +808,68 @@ function App() {
             config={config}
             settings={settings}
             timer={timer}
-            cleanView={cleanView}
-            showPlayerPanel={showPlayerPanel}
-            showSidebar={showSidebar}
-            showDealerBadges={showDealerBadges}
-            rebuyActive={rebuyActive}
-            addOnWindowOpen={addOnWindowOpen}
-            currentPlayLevel={currentPlayLevel}
-            tournamentElapsed={tournamentElapsed}
-            averageStack={averageStack}
-            bubbleActive={bubbleActive}
-            showItmFlash={showItmFlash}
-            lastHandActive={lastHandActive}
-            handForHandActive={handForHandActive}
-            lateRegOpen={lateRegOpen}
-            colorUpMap={colorUpMap}
-            recentTableMoves={recentTableMoves}
-            onTogglePlayerPanel={() => setShowPlayerPanel((v) => !v)}
-            onToggleSidebar={() => setShowSidebar((v) => !v)}
-            onUpdatePlayerRebuys={updatePlayerRebuys}
-            onUpdatePlayerAddOn={updatePlayerAddOn}
-            onEliminatePlayer={eliminatePlayer}
-            onReinstatePlayer={reinstatePlayer}
-            onAdvanceDealer={handleAdvanceDealer}
-            onToggleDealerBadges={handleToggleDealerBadges}
-            onUpdatePlayerStack={updatePlayerStack}
-            onInitStacks={initStacks}
-            onClearStacks={clearStacks}
-            onAddLatePlayer={addLatePlayer}
-            onReEntryPlayer={handleReEntry}
-            onSidePotResultChange={setSidePotData}
-            isBreak={isBreak}
-            onSkipBreak={handleSkipBreak}
-            onExtendBreak={handleExtendBreak}
-            onResetLevel={handleResetLevel}
-            onRestartTournament={handleRestart}
-            onToggleCleanView={toggleCleanView}
-            onLastHand={handleLastHand}
-            onHandForHand={handleHandForHand}
-            onNextHand={handleNextHand}
-            onShowCallTheClock={() => setShowCallTheClock(true)}
-            onShowPayoutOverlay={() => setShowPayoutOverlay(true)}
-            onUpdateTables={handleUpdateTables}
-            onTableMoves={handleTableMoves}
-            onSettingsChange={setSettings}
-            onToggleFullscreen={toggleFullscreen}
-            onShowInstallGuide={() => setShowInstallGuide(true)}
-            onExitToSetup={handleExitToSetup}
+            undo={{
+              canUndo: undoStack.canUndo,
+              canRedo: undoStack.canRedo,
+              undoLabel: undoStack.undoLabel,
+              redoLabel: undoStack.redoLabel,
+              onUndo: handleUndo,
+              onRedo: handleRedo,
+            }}
+            state={{
+              rebuyActive,
+              addOnWindowOpen,
+              currentPlayLevel,
+              tournamentElapsed,
+              averageStack,
+              bubbleActive,
+              showItmFlash,
+              lastHandActive,
+              handForHandActive,
+              lateRegOpen,
+              colorUpMap,
+              recentTableMoves,
+              isBreak,
+            }}
+            ui={{
+              cleanView: modals.cleanView,
+              showPlayerPanel: modals.showPlayerPanel,
+              showSidebar: modals.showSidebar,
+              showDealerBadges,
+            }}
+            actions={{
+              onTogglePlayerPanel: () => modals.setShowPlayerPanel((v) => !v),
+              onToggleSidebar: () => modals.setShowSidebar((v) => !v),
+              onUpdatePlayerRebuys: updatePlayerRebuys,
+              onUpdatePlayerAddOn: updatePlayerAddOn,
+              onEliminatePlayer: eliminatePlayer,
+              onReinstatePlayer: reinstatePlayer,
+              onAdvanceDealer: handleAdvanceDealer,
+              onToggleDealerBadges: handleToggleDealerBadges,
+              onUpdatePlayerStack: updatePlayerStack,
+              onInitStacks: initStacks,
+              onClearStacks: clearStacks,
+              onAddLatePlayer: addLatePlayer,
+              onReEntryPlayer: handleReEntry,
+              onSidePotResultChange: setSidePotData,
+              onSkipBreak: handleSkipBreak,
+              onExtendBreak: handleExtendBreak,
+              onResetLevel: handleResetLevel,
+              onRestartTournament: handleRestart,
+              onToggleCleanView: modals.toggleCleanView,
+              onLastHand: handleLastHand,
+              onHandForHand: handleHandForHand,
+              onNextHand: handleNextHand,
+              onShowCallTheClock: () => modals.setShowCallTheClock(true),
+              onShowPayoutOverlay: () => modals.setShowPayoutOverlay(true),
+              onShowIcm: () => modals.setShowIcm(true),
+              onUpdateTables: handleUpdateTables,
+              onTableMoves: handleTableMoves,
+              onSettingsChange: setSettings,
+              onToggleFullscreen: toggleFullscreen,
+              onShowInstallGuide: () => modals.setShowInstallGuide(true),
+              onExitToSetup: handleExitToSetup,
+            }}
           />
         )}
       </main>
@@ -1098,61 +892,62 @@ function App() {
             peerId={remoteHostRef.current?.peerId ?? ''}
             secret={remoteHostRef.current?.secret}
             status={remoteHostStatus}
+            controllerCount={remoteControllerCount}
             onClose={() => setShowRemoteControl(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Share Hub Modal */}
-      {showShareHub && (
+      {modals.showShareHub && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
           <ShareHub
             sessionId={remoteHostRef.current?.peerId ?? null}
             secret={remoteHostRef.current?.secret}
             displayCount={displayCount}
-            remoteConnected={remoteHostStatus === 'connected'}
+            controllerCount={remoteControllerCount}
             localTVActive={tvWindowActive}
             onOpenLocalTV={handleToggleTVWindow}
             onToggleFullscreen={toggleFullscreen}
-            onClose={() => setShowShareHub(false)}
+            onClose={() => modals.setShowShareHub(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Call the Clock Modal */}
-      {showCallTheClock && mode === 'game' && (
+      {modals.showCallTheClock && mode === 'game' && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
           <CallTheClock
             durationSeconds={settings.callTheClockSeconds}
             soundEnabled={settings.soundEnabled}
             voiceEnabled={settings.voiceEnabled}
-            onClose={() => setShowCallTheClock(false)}
+            onClose={() => modals.setShowCallTheClock(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Templates Modal */}
-      {showTemplates && (
+      {modals.showTemplates && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
           <TemplateManager
             config={config}
             onLoad={setConfig}
-            onClose={() => setShowTemplates(false)}
+            onClose={() => modals.setShowTemplates(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
-      {showHistory && (
+      {modals.showHistory && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
-          <TournamentHistory onClose={() => setShowHistory(false)} />
+          <TournamentHistory onClose={() => modals.setShowHistory(false)} />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Series Modal */}
-      {showSeries && (
+      {modals.showSeries && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
           <SeriesManager
-            onClose={() => setShowSeries(false)}
+            onClose={() => modals.setShowSeries(false)}
             currentConfig={config}
             onLinkSeries={(seriesId) => setConfig(prev => ({ ...prev, seriesId }))}
           />
@@ -1160,70 +955,82 @@ function App() {
       )}
 
       {/* Custom Audio Editor */}
-      {showCustomAudio && (
+      {modals.showCustomAudio && (
         <SectionErrorBoundary><Suspense fallback={null}>
-          <CustomAudioEditor onClose={() => setShowCustomAudio(false)} />
+          <CustomAudioEditor onClose={() => modals.setShowCustomAudio(false)} />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Setup Wizard (first-time users) */}
-      {showWizard && mode === 'setup' && !pendingCheckpoint && (
+      {modals.showWizard && mode === 'setup' && !pendingCheckpoint && (
         <SectionErrorBoundary><Suspense fallback={null}>
           <SetupWizard
             onComplete={(wizardConfig) => {
               setConfig(wizardConfig);
-              setShowWizard(false);
+              modals.setShowWizard(false);
               // Show onboarding tour after wizard if not already completed
               if (!isTourCompleted()) {
-                setTimeout(() => setShowTour(true), 500);
+                setTimeout(() => modals.setShowTour(true), 500);
               }
             }}
-            onSkip={() => setShowWizard(false)}
+            onSkip={() => modals.setShowWizard(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Onboarding Tour (after wizard completion) */}
-      {showTour && mode === 'setup' && (
+      {modals.showTour && mode === 'setup' && (
         <Suspense fallback={null}>
-          <OnboardingTour onComplete={() => setShowTour(false)} />
+          <OnboardingTour onComplete={() => modals.setShowTour(false)} />
         </Suspense>
       )}
 
       {/* Help Center */}
-      {showHelp && (
+      {modals.showHelp && (
         <SectionErrorBoundary><Suspense fallback={null}>
-          <HelpCenter onClose={() => setShowHelp(false)} />
+          <HelpCenter onClose={() => modals.setShowHelp(false)} />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Tournament Log */}
-      {showTournamentLog && mode === 'game' && (
+      {modals.showTournamentLog && mode === 'game' && (
         <SectionErrorBoundary><Suspense fallback={null}>
           <TournamentLog
             events={tournamentEvents}
             players={config.players}
-            onClose={() => setShowTournamentLog(false)}
+            onClose={() => modals.setShowTournamentLog(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* Payout Overlay */}
-      {showPayoutOverlay && mode === 'game' && (
+      {modals.showPayoutOverlay && mode === 'game' && (
         <SectionErrorBoundary><Suspense fallback={null}>
           <PayoutOverlay
             config={config}
             players={config.players}
-            onClose={() => setShowPayoutOverlay(false)}
+            onClose={() => modals.setShowPayoutOverlay(false)}
+          />
+        </Suspense></SectionErrorBoundary>
+      )}
+
+      {/* ICM Calculator */}
+      {modals.showIcm && mode === 'game' && (
+        <SectionErrorBoundary><Suspense fallback={null}>
+          <IcmCalculator
+            players={config.players}
+            payout={config.payout}
+            prizePool={computePrizePool(config.players, config.buyIn, config.rebuy.enabled ? config.rebuy.rebuyCost : undefined, config.addOn.enabled ? config.addOn.cost : 0, config.rebuy.separatePot)}
+            onClose={() => modals.setShowIcm(false)}
           />
         </Suspense></SectionErrorBoundary>
       )}
 
       {/* PWA Install Guide */}
-      {showInstallGuide && (
+      {modals.showInstallGuide && (
         <SectionErrorBoundary><Suspense fallback={null}>
           <PWAInstallGuide
-            onClose={() => setShowInstallGuide(false)}
+            onClose={() => modals.setShowInstallGuide(false)}
             canPrompt={canInstallPrompt}
             isInstalled={isPWAInstalled}
             onPromptInstall={promptInstall}

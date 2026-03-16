@@ -8,7 +8,7 @@ import type { TranslationKey } from '../i18n';
 
 type AppMode = 'setup' | 'game' | 'league';
 
-interface TimerModeTransitions {
+export interface TimerModeTransitions {
   restart: () => void;
   resetLevel: () => void;
   restoreLevel: (levelIndex: number, remainingSeconds: number) => void;
@@ -23,12 +23,15 @@ type ConfirmBeforeAction = (
 
 type Translate = (key: TranslationKey, params?: Record<string, string | number>) => string;
 
-interface UseTournamentModeTransitionsParams {
+/** Read-only tournament state needed for mode transitions. */
+export interface TransitionState {
   config: TournamentConfig;
   settings: Settings;
   pendingCheckpoint: TournamentCheckpoint | null;
-  timer: TimerModeTransitions;
-  t: Translate;
+}
+
+/** All setState dispatchers used during mode transitions. */
+export interface TransitionSetters {
   setConfig: (value: SetStateAction<TournamentConfig>) => void;
   setSettings: (value: SetStateAction<Settings>) => void;
   setMode: (value: SetStateAction<AppMode>) => void;
@@ -43,10 +46,22 @@ interface UseTournamentModeTransitionsParams {
   setHandForHandActive: (value: SetStateAction<boolean>) => void;
   setShowRemoteControl: (value: boolean) => void;
   setTournamentEvents: (value: SetStateAction<TournamentEvent[]>) => void;
+}
+
+/** Side-effect callbacks triggered during mode transitions. */
+export interface TransitionCallbacks {
   closeTVWindow: () => void;
   resetGameEvents: () => void;
   resetVoice: () => void;
   confirmBeforeAction: ConfirmBeforeAction;
+}
+
+interface UseTournamentModeTransitionsParams {
+  state: TransitionState;
+  timer: TimerModeTransitions;
+  t: Translate;
+  setters: TransitionSetters;
+  callbacks: TransitionCallbacks;
 }
 
 function resetPlayerForNewTournament(player: TournamentConfig['players'][number]) {
@@ -62,30 +77,30 @@ function resetPlayerForNewTournament(player: TournamentConfig['players'][number]
 }
 
 export function useTournamentModeTransitions({
-  config,
-  settings,
-  pendingCheckpoint,
+  state,
   timer,
   t,
-  setConfig,
-  setSettings,
-  setMode,
-  setPendingCheckpoint,
-  setAddOnEndLevelIndex,
-  setRecentTableMoves,
-  setCleanView,
-  setShowPlayerPanel,
-  setShowSidebar,
-  setShowDealerBadges,
-  setLastHandActive,
-  setHandForHandActive,
-  setShowRemoteControl,
-  setTournamentEvents,
-  closeTVWindow,
-  resetGameEvents,
-  resetVoice,
-  confirmBeforeAction,
+  setters,
+  callbacks,
 }: UseTournamentModeTransitionsParams) {
+  const { config, settings, pendingCheckpoint } = state;
+  const {
+    setConfig,
+    setSettings,
+    setMode,
+    setPendingCheckpoint,
+    setAddOnEndLevelIndex,
+    setRecentTableMoves,
+    setCleanView,
+    setShowPlayerPanel,
+    setShowSidebar,
+    setShowDealerBadges,
+    setLastHandActive,
+    setHandForHandActive,
+    setShowRemoteControl,
+    setTournamentEvents,
+  } = setters;
+  const { closeTVWindow, resetGameEvents, resetVoice, confirmBeforeAction } = callbacks;
   const [showSeatingOverlay, setShowSeatingOverlay] = useState(false);
 
   const switchToGame = useCallback(() => {

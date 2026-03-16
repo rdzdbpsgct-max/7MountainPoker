@@ -721,3 +721,27 @@ export function decodeResultFromQR(encoded: string): TournamentResult | null {
     return null;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Side Pot — Human-readable formatting
+// ---------------------------------------------------------------------------
+
+/**
+ * Format side pot results as human-readable text.
+ * Uses player names from the PotResult (already embedded) and a currency symbol.
+ * Example: "Main pot: €1,500 between Alice, Bob, Charlie. Side pot 1: €500 between Alice, Bob."
+ */
+export function formatSidePotsAsText(
+  pots: PotResult[],
+  currencySymbol = '€',
+): string {
+  if (pots.length === 0) return '';
+  return pots.map((pot) => {
+    const label = pot.type === 'main' ? 'Main Pot' : `Side Pot ${pot.index}`;
+    const amount = `${currencySymbol}${pot.amount.toLocaleString()}`;
+    const names = pot.eligiblePlayerNames.length > 0
+      ? pot.eligiblePlayerNames.join(', ')
+      : '—';
+    return `${label}: ${amount} between ${names}`;
+  }).join('. ') + '.';
+}

@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.7.0
+**Version**: 6.8.0
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1118 tests, single run)
+npm run test         # Vitest run (1156 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -80,6 +80,7 @@ src/
 │   ├── HeadToHeadMatrix.tsx      # NxN heatmap table for league player win-loss records
 │   ├── SeriesManager.tsx         # Tournament series CRUD modal with standings and export
 │   ├── CustomAudioEditor.tsx     # Drag & drop audio upload + announcement mapping editor
+│   ├── IcmCalculator.tsx        # ICM Calculator modal (Malmuth-Harville equity, lazy-loaded)
 │   ├── LevelPreview.tsx         # Next-level sidebar
 │   ├── NumberStepper.tsx        # Custom +/- stepper with long-press support
 │   ├── PayoutEditor.tsx         # Prize distribution config
@@ -142,8 +143,12 @@ src/
 │   ├── remote.ts                # PeerJS-based remote control (host + controller, signaling via PeerJS Cloud)
 │   ├── sounds.ts                # Web Audio API sound effects (beeps, victory, bubble, ITM)
 │   ├── speech.ts                # Voice announcements — ElevenLabs MP3 (German) + Web Speech API fallback
-│   ├── audioPlayer.ts           # MP3 playback engine — sequential file playback for pre-recorded audio
-│   ├── entitlements.ts          # Feature gate / freemium entitlement checks
+│   ├── audioPlayer.ts           # MP3 playback engine — sequential file playback with timeout fallbacks
+│   ├── audioService.ts          # AudioService facade — centralized volume/language sync across sound modules
+│   ├── undoStack.ts             # Immutable undo/redo stack (UndoStack class, max 30 depth, createUndoSnapshot)
+│   ├── icm.ts                   # ICM Calculator — Malmuth-Harville equity (exact ≤10, Monte Carlo >10)
+│   ├── cloudExport.ts           # Cloud Export — JSON/CSV/text, Web Share API, File System Access API
+│   ├── entitlements.ts          # Feature gate / freemium entitlement checks, feature discovery
 │   ├── monetizationTelemetry.ts # Telemetry for feature access and trial usage
 │   ├── proBlueprint.ts          # Pro tier feature definitions
 │   ├── recovery.ts              # Error recovery and fallback strategies
@@ -160,7 +165,15 @@ src/
 │   ├── useRemoteHostBridge.ts  # Remote host bridge communication
 │   ├── useSharedPayloads.ts    # Shared payload management across modes
 │   ├── useDisplaySession.ts      # Host-side PeerJS display broadcast to connected peers
-│   └── useTournamentModeTransitions.ts # Tournament mode transition logic
+│   ├── useTournamentModeTransitions.ts # Tournament mode transition logic
+│   ├── useGameComputedState.ts  # Extracted computed game state from App.tsx
+│   ├── useTournamentEventLog.ts # Tournament event log state + effects
+│   ├── useCheckpointManager.ts  # Checkpoint auto-save management
+│   ├── useDisplayBridge.ts      # Display bridge (BroadcastChannel + PeerJS)
+│   ├── useWakeLock.ts           # Wake Lock API wrapper
+│   ├── useConfirmDialog.ts      # Confirm dialog state management
+│   ├── useOnlineStatus.ts       # Online/offline detection
+│   └── useInstallPrompt.ts      # PWA install prompt
 ├── theme/                       # Dark/Light mode system
 │   ├── index.ts                 # Public re-exports
 │   ├── ThemeContext.tsx          # React Context provider, system preference listener, localStorage persistence
@@ -176,7 +189,7 @@ src/
     └── useTranslation.ts        # Hook: t(key, params) + language state
 
 tests/
-├── logic.test.ts                # 530 unit tests for domain logic + PeerJS remote control
+├── logic.test.ts                # 530+ unit tests for domain logic + PeerJS remote control + undo/redo + ICM + cloud export
 ├── components.test.tsx          # 95 UI component tests (NumberStepper, CollapsibleSection, PrintView, CallTheClock, BubbleIndicator, RebuyStatus, ChevronIcon, CollapsibleSubSection, LanguageSwitcher, ThemeSwitcher, ErrorBoundary, useTimer, useConfirmDialog, LoadingFallback, ConfigEditor, SettingsPanel, PlayerPanel)
 ├── edge-cases.test.ts           # 88 edge case tests (timer, blinds, players, multi-table, format, tournament, validation, helpers)
 ├── sound-speech.test.ts         # 54 sound effects + speech announcement tests
@@ -204,7 +217,7 @@ public/
 ### State Management
 - **App.tsx** owns all tournament state (config, settings, mode) via `useState`
 - **useTimer** hook manages timer state with drift-free wall-clock computation
-- **Props drilling** for passing state and callbacks to child components
+- **Props drilling** for passing state and callbacks to child components; large components use **grouped prop objects** (e.g., `GameModeContainer` receives `state: GameModeState`, `ui: GameModeUiState`, `actions: GameModeActions` instead of 51 flat props)
 - **React Context** for i18n (language selection) and theme (dark/light mode)
 - **Storage**: Cache-First IndexedDB architecture (see Storage Architecture below). Simple values remain in localStorage: `poker-timer-theme`, `poker-timer-language`, `poker-timer-accent`, `poker-timer-bg`, `poker-timer-wizard-completed`, `poker-timer-migrated`
 
@@ -218,8 +231,8 @@ public/
 ### Domain Logic Separation
 - `src/domain/` contains pure business logic with no React dependencies
 - `src/domain/types.ts` — all shared types (`Level`, `TournamentConfig`, `Player`, `Settings`, `TimerState`, `League`, `PointSystem`, `LeagueStanding`, etc.)
-- `src/domain/logic.ts` — barrel re-export file; actual logic split into 11 focused modules:
-  - `storage.ts` (IndexedDB cache layer, migration), `helpers.ts` (ID generators, spinner rounding), `format.ts` (time/level formatting), `timer.ts` (level navigation, elapsed time), `blinds.ts` (blind generation, ante calculation), `players.ts` (player management, stacks, bubble), `chips.ts` (chip denominations, color-up), `validation.ts` (config validation, rebuy/late-reg checks), `tournament.ts` (results, payouts, stats, export, league standings, mystery bounty), `persistence.ts` (config parsing, templates, player database, league management, wizard), `tables.ts` (multi-table management, balancing, final table merge)
+- `src/domain/logic.ts` — barrel re-export file; actual logic split into 15 focused modules:
+  - `storage.ts` (IndexedDB cache layer, migration), `helpers.ts` (ID generators, spinner rounding), `format.ts` (time/level formatting), `timer.ts` (level navigation, elapsed time), `blinds.ts` (blind generation, ante calculation), `players.ts` (player management, stacks, bubble), `chips.ts` (chip denominations, color-up), `validation.ts` (config validation, rebuy/late-reg checks), `tournament.ts` (results, payouts, stats, export, league standings, mystery bounty), `persistence.ts` (config parsing, templates, player database, league management, wizard), `tables.ts` (multi-table management, balancing, final table merge), `undoStack.ts` (undo/redo snapshots), `icm.ts` (ICM equity calculation), `cloudExport.ts` (unified export), `audioService.ts` (audio facade)
 - All imports use `from '../domain/logic'` (barrel) — no direct module imports needed
 
 ### Storage Architecture (v6.0.0)
@@ -270,7 +283,7 @@ public/
 - **Drift-free timer**: Uses `Date.now()` wall-clock timestamps, not interval counters
 - **Sound**: Web Audio API oscillators — no external audio files. Sound functions return Promises for precise voice coordination (victory: 1700ms, bubble: 1450ms, ITM: 700ms)
 - **Voice announcements**: Triple-fallback system — ElevenLabs pre-recorded MP3s (German: Ava, English: voice `xctasy8XvGp2cVO9HL9k`), HTMLAudioElement fallback, Web Speech API (`speechSynthesis`) as last resort. 234 MP3 files per language in `public/audio/de/` and `public/audio/en/` (468 total, PWA-cached for offline use). `audioPlayer.ts` handles gapless sequential MP3 playback via Web Audio API with trailing-silence trimming, falls back to HTMLAudioElement for maximum browser compatibility; `speech.ts` unified queue supports both `audio` and `speech` items. Manifest-based file lookup (110 blind pairs, 20 ante values, 25 levels, 30 break durations 1–30 min) determines MP3 availability; falls back to Web Speech API for missing files or dynamic content (player names, mystery bounty amounts). `VoiceSwitcher` header toggle (sound-only / voice). Announces: tournament start ("Shuffle up and deal!"), level changes, breaks (start + 30s warning + break over), 5-minute warning, last hand (before break / end of level), bubble, dynamic player count milestones (based on paid places — announces from paidPlaces down to 3 + heads-up), ITM, eliminations, rebuy taken, tournament winner (personalized with name), add-on, rebuy end, color-up (+ next-break warning), timer paused/resumed, mystery bounty draw, call the clock (start + expired), late registration closed, table moves (MP3 intro + speech details), table dissolution (MP3 intro + speech details), final table. Verbal countdown for last 10 seconds (play levels only, beeps during breaks). Sound effects finish before voice starts (delay-based coordination).
-- **Keyboard shortcuts** (in App.tsx): Space (play/pause), N (next level), V (previous), R (reset), F (clean view toggle), L (last hand toggle), T (TV display mode toggle), H (hand-for-hand toggle), C (call the clock)
+- **Keyboard shortcuts** (in App.tsx): Space (play/pause), N (next level), V (previous), R (reset), F (clean view toggle), L (last hand toggle), T (TV display mode toggle), H (hand-for-hand toggle), C (call the clock), Cmd+Z (undo), Cmd+Shift+Z (redo)
 - **TV Display Mode**: Dedicated fullscreen overlay (`DisplayMode.tsx`) optimized for projectors/TVs at 3+ meter distance. Split-layout: **Timer always visible** (top ~55% — level label, blinds, countdown, progress bar, next level preview, banners) + **6 rotating secondary screens** (bottom ~45% — Players → Stats → Payout → Blind Schedule → Chips → Seating, every 15 seconds). Players screen: active grid with CL badge, rebuys, eliminated compact. Stats screen: prizepool, active players, avg BB, elapsed/remaining, rebuys, add-ons, bounty pool. Payout screen: places with amounts, medal emojis top 3, bubble indicator. Dark background, large timer (8rem). Manual navigation via arrow keys. Indicator dots for secondary screens. Exit via T/Escape. Lazy-loaded (~13.5 KB chunk). 📺 button in header during game mode.
 - **Ante calculation**: Two modes — Standard (~12.5% of big blind, rounded to "nice" values) or Big Blind Ante (BBA, ante = big blind). Toggle in setup when ante is enabled. `AnteMode` type in `types.ts`
 - **Blind structure generator**: 3 speeds (fast/normal/slow) with distinct BB progressions scaled from 20k reference; chip-aware rounding via `roundToChipMultiple()` when denominations are active
@@ -313,7 +326,7 @@ public/
 - **Mystery Bounty**: Alternative to fixed bounty — `BountyConfig.type: 'fixed' | 'mystery'`. Configurable pool of random bounty amounts (`mysteryPool: number[]`). `drawMysteryBounty()` randomly draws from pool on elimination. Voice announcement `announceMysteryBounty()` reveals drawn amount. Segmented toggle in BountyEditor with pool editor + presets. Backward-compatible via `parseConfigObject`.
 - **Printable blind structure**: `PrintView.tsx` renders print-optimized blind table, chip values, payout, and tournament info. "Print" button in SetupPage triggers `window.print()`. `@media print` CSS hides all UI except print content. Clean black-on-white design.
 - **Setup Wizard**: Guided 6-step first-time setup (`SetupWizard.tsx`, ~280 lines). Steps: Welcome → Players → Buy-In → Blind Speed → Tips (Remote, TV, Voice) → Review. Shows only on first visit (`poker-timer-wizard-completed` in localStorage). Generates full config with `defaultConfig`, `generateBlindStructure`, `defaultPlayers`. Skippable. `isWizardCompleted()` / `markWizardCompleted()` in persistence.ts.
-- **Help Center**: In-app documentation system (`HelpCenter.tsx`, ~300 lines + `helpContent.ts`, ~350 lines). Bilingual (DE/EN) with 3 tabs: Guide (8 collapsible sections covering all features), FAQ (14 entries), Keyboard Shortcuts (11 entries). Live search filters sections and FAQ. Uses `BottomSheet` for responsive modal. Accessible via **?** icon button in header (setup + league mode). Lazy-loaded ~27KB chunk.
+- **Help Center**: In-app documentation system (`HelpCenter.tsx`, ~300 lines + `helpContent.ts`, ~600 lines). Bilingual (DE/EN) with 3 tabs: Guide (10 collapsible sections covering all features), FAQ (22 entries), Keyboard Shortcuts (13 entries). Live search filters sections and FAQ. Uses `BottomSheet` for responsive modal. Accessible via **?** icon button in header (**all modes** — setup, game, league). Lazy-loaded ~27KB chunk.
 - **Seating Diagram**: SVG oval poker table in TV Display Mode (`SeatingScreen.tsx`, ~155 lines). Players arranged elliptically around green felt table. Shows active/eliminated status, dealer button (D), chip leader badge (CL). 6th rotating screen in DisplayMode. `viewBox="0 0 1000 600"`, responsive.
 - **Multi-Table Support**: `Table` and `TableMove` types in types.ts. `tables.ts` module with pure functions: `createTable()`, `distributePlayersToTables()`, `getActivePlayersPerTable()`, `removePlayerFromTable()`, `findPlayerTable()`, `balanceTables()` (iterative, max ±1 diff), `shouldMergeToFinalTable()`, `mergeToFinalTable()`. `MultiTablePanel.tsx` (lazy-loaded) shows table list, balance button, move announcements. Setup: CollapsibleSection with table count/seats config, distribute button. Auto-detect final table on elimination. Voice: `announceTableMove()` and `announceFinalTable()` via Web Speech API. `parseConfigObject()` handles backward-compat (undefined if missing).
 - **Tournament Presets**: 3 built-in tournament profiles ("Quick Cash Game", "Standard Home Game", "Deep Stack Tournament") for instant start. `getBuiltInPresets()` in persistence.ts. Preset buttons on SetupPage.
@@ -340,11 +353,20 @@ public/
 - **Remote Session Persistence**: Peer ID stored in `sessionStorage` — remote connection survives browser refresh. `remoteResizeTable` command for table resize support.
 - **Cross-Device Display**: PeerJS-based display on remote devices (TV, tablet, laptop). Hash `#display=PKR-XXXXX` connects to host session, receives `DisplayStatePayload` via PeerJS data channel. `CrossDeviceDisplay.tsx` renders same `DisplayMode` component as local TV window. Timer interpolation (100ms), auto-reconnect (3 attempts, exponential backoff). Hello handshake protocol (`{ type: 'hello', role: 'display', version: 2 }`) differentiates display from remote controller connections. Host broadcasts to N display peers simultaneously.
 - **Share Hub**: Central `ShareHub.tsx` modal (📡 button in game mode header) for all sharing/display options. Sections: Display on another device (QR + link), Remote control (QR + link), This device (second window + fullscreen), Cable & Wireless guides (AirPlay, Chromecast, HDMI). Live connection status indicators. Auto-starts PeerJS host session when opened.
+- **Undo/Redo System**: Full snapshot-based undo/redo for all tournament actions (eliminate, rebuy, add-on, reinstate, dealer, late reg, re-entry, stacks). `UndoStack` class in `undoStack.ts` (immutable, max 30 depth). `createUndoSnapshot()` captures players + tables + config state. Keyboard: Cmd+Z (undo) / Cmd+Shift+Z (redo). Buttons in Controls component with action labels. 20 translation keys.
+- **ICM Calculator**: Independent Chip Model equity calculation. `icm.ts` implements Malmuth-Harville algorithm — exact recursive permutation for ≤10 players, Monte Carlo simulation (10K iterations) for >10. `IcmCalculator.tsx` modal accessible from game mode sidebar. Lazy-loaded.
+- **Cloud Export**: Unified export module `cloudExport.ts` — JSON/CSV/text formats, Web Share API for mobile, File System Access API for desktop save dialogs, Blob download fallback.
+- **Multi-Controller Remote**: `RemoteHost` supports N simultaneous controllers via `Map<string, DataConnection>`. Controller count displayed in ShareHub.
+- **AudioService Facade**: Centralized `audioService.ts` syncs master volume and language across `sounds.ts`, `audioPlayer.ts`, `speech.ts`. Single point for audio configuration changes.
+- **App.tsx State Extraction**: 8 new hooks extracted from App.tsx reducing complexity: `useGameComputedState`, `useTournamentEventLog`, `useCheckpointManager`, `useDisplayBridge`, `useWakeLock`, `useConfirmDialog`, `useOnlineStatus`, `useInstallPrompt`.
+- **Checkpoint Schema Versioning**: Version field in checkpoint for forward compatibility.
+- **Feature Discovery**: `isFeatureDiscovered()`, `markFeatureDiscovered()`, `getUndiscoveredFeatures()` in `entitlements.ts`. Tracks which features users have found.
+- **Conversion Telemetry**: `monetizationTelemetry.ts` tracks feature access patterns for conversion insights.
 
 ## Testing
 
-- **1118 tests** across 16 test files + 1 setup file
-- Core files: `logic.test.ts` (654), `components.test.tsx` (95), `edge-cases.test.ts` (88), `sound-speech.test.ts` (54), `integration.test.ts` (36), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (22), `display-channel.test.ts` (14), `entitlements.test.ts` (8), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
+- **1156 tests** across 17 test files + 1 setup file
+- Core files: `logic.test.ts` (654), `components.test.tsx` (95), `edge-cases.test.ts` (88), `sound-speech.test.ts` (54), `integration.test.ts` (36), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (22), `display-channel.test.ts` (14), `entitlements.test.ts` (8), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -381,6 +403,28 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.8.0 — Phase 1: Stability, Undo/Redo & App.tsx Extraction
+
+- **Undo/Redo System**: Snapshot-basiertes Undo/Redo für alle Turnieraktionen (Elimination, Rebuy, Add-On, Reinstate, Dealer, Late Reg, Re-Entry, Stacks). `UndoStack` Klasse in `undoStack.ts` (immutable, max 30 Tiefe). `createUndoSnapshot()` erfasst Players + Tables + Config. Tastenkürzel: Cmd+Z / Cmd+Shift+Z. Buttons in Controls mit Aktionslabels. 20 Translation-Keys.
+- **ICM Calculator**: Independent Chip Model Equity-Berechnung. `icm.ts` implementiert Malmuth-Harville — exakt rekursiv für ≤10 Spieler, Monte Carlo (10K Sims) für >10. `IcmCalculator.tsx` Modal im Spielmodus. Lazy-loaded.
+- **Cloud Export**: Einheitliches Export-Modul `cloudExport.ts` — JSON/CSV/Text-Formate, Web Share API, File System Access API, Blob-Download-Fallback.
+- **Multi-Controller Remote**: RemoteHost unterstützt N gleichzeitige Controller (`Map<string, DataConnection>`). Controller-Anzahl im ShareHub angezeigt.
+- **AudioService Facade**: Zentrales `audioService.ts` synchronisiert Master-Volume und Sprache über sounds.ts, audioPlayer.ts, speech.ts.
+- **App.tsx State Extraction**: 8 neue Hooks aus App.tsx extrahiert: `useGameComputedState`, `useTournamentEventLog`, `useCheckpointManager`, `useDisplayBridge`, `useWakeLock`, `useConfirmDialog`, `useOnlineStatus`, `useInstallPrompt`.
+- **GameModeContainer Props-Konsolidierung**: 51 flache Props → 6 typisierte Objekte (config, settings, timer, state, ui, actions + undo). 3 exportierte Interfaces.
+- **Checkpoint Schema Versioning**: Version-Feld im Checkpoint für Vorwärtskompatibilität.
+- **Feature Discovery**: `isFeatureDiscovered()`, `markFeatureDiscovered()`, `getUndiscoveredFeatures()` in entitlements.ts.
+- **Conversion Telemetry**: monetizationTelemetry.ts trackt Feature-Zugriffsmuster.
+- **Storage Retention Policies**: Dokumentiert in storage.ts.
+- **Neue Dateien**: `undoStack.ts`, `icm.ts`, `cloudExport.ts`, `audioService.ts`, `IcmCalculator.tsx`, `useGameComputedState.ts`, `useTournamentEventLog.ts`, `useCheckpointManager.ts`, `useDisplayBridge.ts`, `useWakeLock.ts`, `useConfirmDialog.ts`, `useOnlineStatus.ts`, `useInstallPrompt.ts`
+- **38 neue Tests** — **1156 Tests gesamt** (17 Testdateien)
+
+### v6.7.1 — Phase B: Tech Debt
+
+- **GameModeContainer Props-Konsolidierung**: 51 flache Props → 6 typisierte Objekte (`config`, `settings`, `timer`, `state`, `ui`, `actions`). 3 exportierte Interfaces: `GameModeState` (13 Felder), `GameModeUiState` (4 Felder), `GameModeActions` (29 Callbacks). Call-Site in App.tsx baut Objekte inline. React-Compiler-kompatibel durch Destructuring vor `useCallback`.
+- **Audio Queue Timeout-Fallback**: Web Audio API Pfad: Safety-Timeout (`totalDuration + 2s`) nach letztem Buffer-`onended`. HTMLAudioElement Pfad: 15s Safety-Timeout pro Datei mit `done`-Flag gegen doppelte Resolves. Verhindert hängende Promises bei Browser-Audio-Bugs.
+- **Keine neuen Tests, keine neuen Dateien** — rein internes Refactoring. **1118 Tests gesamt**.
 
 ### v6.7.0 — Phase 2: Display-Layouts, Plattform-Guides & Presentation API
 

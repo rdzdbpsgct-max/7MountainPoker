@@ -23,6 +23,12 @@ interface Props {
   showHandForHand?: boolean;
   callTheClockSeconds?: number;
   onCallTheClock?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  undoLabel?: string | null;
+  redoLabel?: string | null;
 }
 
 export const Controls = memo(function Controls({
@@ -46,6 +52,12 @@ export const Controls = memo(function Controls({
   showHandForHand,
   callTheClockSeconds,
   onCallTheClock,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
+  undoLabel,
+  redoLabel,
 }: Props) {
   const { t } = useTranslation();
   const isRunning = timerState.status === 'running';
@@ -187,6 +199,36 @@ export const Controls = memo(function Controls({
 
       {!hideSecondaryControls && (
         <div className="flex items-center gap-3">
+          {onUndo && (
+            <button
+              onClick={onUndo}
+              disabled={!canUndo}
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 border shadow-md active:scale-[0.97] active:shadow-sm ${
+                canUndo
+                  ? 'bg-white dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700/30 shadow-gray-200/30 dark:shadow-black/15'
+                  : 'bg-gray-100 dark:bg-gray-800/40 text-gray-400 dark:text-gray-600 border-gray-100 dark:border-gray-800/40 shadow-none cursor-not-allowed'
+              }`}
+              title={undoLabel ? t('undo.undoAction', { action: undoLabel }) : t('undo.noUndo')}
+              aria-label={t('undo.undo')}
+            >
+              {'\u21A9'} {t('undo.undo')}
+            </button>
+          )}
+          {onRedo && (
+            <button
+              onClick={onRedo}
+              disabled={!canRedo}
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 border shadow-md active:scale-[0.97] active:shadow-sm ${
+                canRedo
+                  ? 'bg-white dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700/30 shadow-gray-200/30 dark:shadow-black/15'
+                  : 'bg-gray-100 dark:bg-gray-800/40 text-gray-400 dark:text-gray-600 border-gray-100 dark:border-gray-800/40 shadow-none cursor-not-allowed'
+              }`}
+              title={redoLabel ? t('undo.redoAction', { action: redoLabel }) : t('undo.noRedo')}
+              aria-label={t('undo.redo')}
+            >
+              {'\u21AA'} {t('undo.redo')}
+            </button>
+          )}
           <button
             onClick={onReset}
             className="px-4 py-2 bg-white dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium transition-all duration-200 border border-gray-200 dark:border-gray-700/30 shadow-md shadow-gray-200/30 dark:shadow-black/15 active:scale-[0.97] active:shadow-sm"
@@ -228,5 +270,11 @@ export const Controls = memo(function Controls({
   prev.onNextHand === next.onNextHand &&
   prev.showHandForHand === next.showHandForHand &&
   prev.callTheClockSeconds === next.callTheClockSeconds &&
-  prev.onCallTheClock === next.onCallTheClock
+  prev.onCallTheClock === next.onCallTheClock &&
+  prev.canUndo === next.canUndo &&
+  prev.canRedo === next.canRedo &&
+  prev.onUndo === next.onUndo &&
+  prev.onRedo === next.onRedo &&
+  prev.undoLabel === next.undoLabel &&
+  prev.redoLabel === next.redoLabel
 );

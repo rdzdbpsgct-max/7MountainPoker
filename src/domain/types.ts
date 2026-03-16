@@ -194,6 +194,8 @@ export interface Settings {
 
 export interface TournamentCheckpoint {
   version: 1;
+  /** Schema version for checkpoint compatibility checks. Bumped when checkpoint shape changes. */
+  schemaVersion?: number;
   config: TournamentConfig;
   settings: Settings;
   timer: {

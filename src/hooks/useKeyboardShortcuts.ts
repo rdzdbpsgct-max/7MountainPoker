@@ -11,6 +11,8 @@ interface KeyboardShortcutHandlers {
   onToggleTVWindow: () => void;
   onHandForHand: () => void;
   onCallTheClock: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
 /**
@@ -29,13 +31,26 @@ export function useKeyboardShortcuts({
   onToggleTVWindow,
   onHandForHand,
   onCallTheClock,
+  onUndo,
+  onRedo,
 }: KeyboardShortcutHandlers) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (mode !== 'game') return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      // Ignore keyboard shortcuts when modifier keys are held (e.g. Ctrl+C, Cmd+R)
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // Allow Ctrl/Cmd+Z (undo) and Ctrl/Cmd+Shift+Z (redo)
+      if (e.altKey) return;
+      if (e.ctrlKey || e.metaKey) {
+        if (e.code === 'KeyZ') {
+          e.preventDefault();
+          if (e.shiftKey) {
+            onRedo();
+          } else {
+            onUndo();
+          }
+        }
+        return;
+      }
 
       switch (e.code) {
         case 'Space':
@@ -70,5 +85,5 @@ export function useKeyboardShortcuts({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, onToggleStartPause, onNextLevel, onPreviousLevel, onResetLevel, onToggleCleanView, onLastHand, onToggleTVWindow, onHandForHand, onCallTheClock]);
+  }, [mode, onToggleStartPause, onNextLevel, onPreviousLevel, onResetLevel, onToggleCleanView, onLastHand, onToggleTVWindow, onHandForHand, onCallTheClock, onUndo, onRedo]);
 }

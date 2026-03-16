@@ -27,14 +27,20 @@ const MultiTablePanel = lazy(() => import('../MultiTablePanel').then((m) => ({ d
 
 type TimerController = ReturnType<typeof useTimer>;
 
-interface Props {
-  config: TournamentConfig;
-  settings: Settings;
-  timer: TimerController;
-  cleanView: boolean;
-  showPlayerPanel: boolean;
-  showSidebar: boolean;
-  showDealerBadges: boolean;
+// ─── Grouped Props Interfaces ──────────────────────────────────────────────
+
+/** Undo/Redo state for Controls */
+export interface GameModeUndoState {
+  canUndo: boolean;
+  canRedo: boolean;
+  undoLabel: string | null;
+  redoLabel: string | null;
+  onUndo: () => void;
+  onRedo: () => void;
+}
+
+/** Computed/derived tournament game state */
+export interface GameModeState {
   rebuyActive: boolean;
   addOnWindowOpen: boolean;
   currentPlayLevel: number;
@@ -47,6 +53,19 @@ interface Props {
   lateRegOpen: boolean;
   colorUpMap: Map<number, ChipDenomination[]>;
   recentTableMoves: TableMove[];
+  isBreak: boolean;
+}
+
+/** UI visibility toggles */
+export interface GameModeUiState {
+  cleanView: boolean;
+  showPlayerPanel: boolean;
+  showSidebar: boolean;
+  showDealerBadges: boolean;
+}
+
+/** All action callbacks for game mode */
+export interface GameModeActions {
   onTogglePlayerPanel: () => void;
   onToggleSidebar: () => void;
   onUpdatePlayerRebuys: (playerId: string, newCount: number) => void;
@@ -61,7 +80,6 @@ interface Props {
   onAddLatePlayer: () => void;
   onReEntryPlayer: (playerId: string) => void;
   onSidePotResultChange: (data: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] } | null) => void;
-  isBreak: boolean;
   onSkipBreak: () => void;
   onExtendBreak: (seconds: number) => void;
   onResetLevel: () => void;
@@ -72,6 +90,7 @@ interface Props {
   onNextHand: () => void;
   onShowCallTheClock: () => void;
   onShowPayoutOverlay: () => void;
+  onShowIcm: () => void;
   onUpdateTables: (tables: Table[]) => void;
   onTableMoves: (moves: TableMove[]) => void;
   onSettingsChange: Dispatch<SetStateAction<Settings>>;
@@ -80,59 +99,21 @@ interface Props {
   onExitToSetup: () => void;
 }
 
-export function GameModeContainer({
-  config,
-  settings,
-  timer,
-  cleanView,
-  showPlayerPanel,
-  showSidebar,
-  showDealerBadges,
-  rebuyActive,
-  addOnWindowOpen,
-  currentPlayLevel,
-  tournamentElapsed,
-  averageStack,
-  bubbleActive,
-  showItmFlash,
-  lastHandActive,
-  handForHandActive,
-  lateRegOpen,
-  colorUpMap,
-  recentTableMoves,
-  onTogglePlayerPanel,
-  onToggleSidebar,
-  onUpdatePlayerRebuys,
-  onUpdatePlayerAddOn,
-  onEliminatePlayer,
-  onReinstatePlayer,
-  onAdvanceDealer,
-  onToggleDealerBadges,
-  onUpdatePlayerStack,
-  onInitStacks,
-  onClearStacks,
-  onAddLatePlayer,
-  onReEntryPlayer,
-  onSidePotResultChange,
-  isBreak,
-  onSkipBreak,
-  onExtendBreak,
-  onResetLevel,
-  onRestartTournament,
-  onToggleCleanView,
-  onLastHand,
-  onHandForHand,
-  onNextHand,
-  onShowCallTheClock,
-  onShowPayoutOverlay,
-  onUpdateTables,
-  onTableMoves,
-  onSettingsChange,
-  onToggleFullscreen,
-  onShowInstallGuide,
-  onExitToSetup,
-}: Props) {
+// ─── Component Props ────────────────────────────────────────────────────────
+
+interface Props {
+  config: TournamentConfig;
+  settings: Settings;
+  timer: TimerController;
+  state: GameModeState;
+  ui: GameModeUiState;
+  actions: GameModeActions;
+  undo?: GameModeUndoState;
+}
+
+export function GameModeContainer({ config, settings, timer, state, ui, actions, undo }: Props) {
   const { t } = useTranslation();
+  const { onUpdateTables } = actions;
 
   const handleAdvanceTableDealer = useCallback((tableId: string) => {
     const tables = config.tables ?? [];
@@ -146,35 +127,35 @@ export function GameModeContainer({
     <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Player Panel (LEFT) */}
-        {showPlayerPanel && config.players.length > 0 && (
+        {ui.showPlayerPanel && config.players.length > 0 && (
           <aside className="w-full md:absolute md:left-0 md:top-0 md:bottom-0 md:w-60 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/20 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700/30 bg-gray-50 dark:bg-gray-900/40 p-3 sm:p-4 overflow-y-auto max-h-[40vh] sm:max-h-[50vh] md:max-h-none">
             <PlayerPanel
               players={config.players}
               dealerIndex={config.dealerIndex}
               buyIn={config.buyIn}
               payout={config.payout}
-              rebuyActive={rebuyActive}
+              rebuyActive={state.rebuyActive}
               rebuyConfig={config.rebuy}
               addOnConfig={config.addOn}
-              addOnWindowOpen={addOnWindowOpen}
+              addOnWindowOpen={state.addOnWindowOpen}
               bountyConfig={config.bounty}
-              averageStack={averageStack}
-              onUpdateRebuys={onUpdatePlayerRebuys}
-              onUpdateAddOn={onUpdatePlayerAddOn}
-              onEliminatePlayer={onEliminatePlayer}
-              onReinstatePlayer={onReinstatePlayer}
-              onAdvanceDealer={onAdvanceDealer}
-              showDealerBadges={showDealerBadges}
-              onToggleDealerBadges={onToggleDealerBadges}
-              onUpdateStack={onUpdatePlayerStack}
-              onInitStacks={onInitStacks}
-              onClearStacks={onClearStacks}
-              lateRegOpen={lateRegOpen}
-              onAddLatePlayer={onAddLatePlayer}
-              onReEntryPlayer={onReEntryPlayer}
+              averageStack={state.averageStack}
+              onUpdateRebuys={actions.onUpdatePlayerRebuys}
+              onUpdateAddOn={actions.onUpdatePlayerAddOn}
+              onEliminatePlayer={actions.onEliminatePlayer}
+              onReinstatePlayer={actions.onReinstatePlayer}
+              onAdvanceDealer={actions.onAdvanceDealer}
+              showDealerBadges={ui.showDealerBadges}
+              onToggleDealerBadges={actions.onToggleDealerBadges}
+              onUpdateStack={actions.onUpdatePlayerStack}
+              onInitStacks={actions.onInitStacks}
+              onClearStacks={actions.onClearStacks}
+              lateRegOpen={state.lateRegOpen}
+              onAddLatePlayer={actions.onAddLatePlayer}
+              onReEntryPlayer={actions.onReEntryPlayer}
               tables={config.tables}
-              onSidePotResultChange={onSidePotResultChange}
-              onShowPayoutOverlay={onShowPayoutOverlay}
+              onSidePotResultChange={actions.onSidePotResultChange}
+              onShowPayoutOverlay={actions.onShowPayoutOverlay}
               currency={config.currency}
             />
           </aside>
@@ -185,19 +166,19 @@ export function GameModeContainer({
           {/* Desktop: side toggle buttons */}
           {config.players.length > 0 && (
             <button
-              onClick={onTogglePlayerPanel}
+              onClick={actions.onTogglePlayerPanel}
               className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-30 w-7 h-20 items-center justify-center bg-white dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-r-lg text-xs transition-all duration-200 border-r border-y border-gray-200 dark:border-gray-700/30 shadow-md shadow-gray-300/30 dark:shadow-black/10"
-              title={showPlayerPanel ? t('app.hidePlayers') : t('app.showPlayers')}
+              title={ui.showPlayerPanel ? t('app.hidePlayers') : t('app.showPlayers')}
             >
-              {showPlayerPanel ? '\u25C0' : '\u25B6'}
+              {ui.showPlayerPanel ? '\u25C0' : '\u25B6'}
             </button>
           )}
           <button
-            onClick={onToggleSidebar}
+            onClick={actions.onToggleSidebar}
             className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 w-7 h-20 items-center justify-center bg-white dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-l-lg text-xs transition-all duration-200 border-l border-y border-gray-200 dark:border-gray-700/30 shadow-md shadow-gray-300/30 dark:shadow-black/10"
-            title={showSidebar ? t('app.hideSidebar') : t('app.showSidebar')}
+            title={ui.showSidebar ? t('app.hideSidebar') : t('app.showSidebar')}
           >
-            {showSidebar ? '\u25B6' : '\u25C0'}
+            {ui.showSidebar ? '\u25B6' : '\u25C0'}
           </button>
 
           {/* Timer + Controls */}
@@ -210,25 +191,25 @@ export function GameModeContainer({
               onScrub={timer.setRemainingSeconds}
               onScrubEnd={timer.start}
               chipConfig={config.chips}
-              cleanView={cleanView}
-              colorUpMap={colorUpMap}
+              cleanView={ui.cleanView}
+              colorUpMap={state.colorUpMap}
               anteMode={config.anteMode}
             />
             <BubbleIndicator
-              isBubble={bubbleActive}
-              showItmFlash={showItmFlash}
-              addOnWindowOpen={addOnWindowOpen}
+              isBubble={state.bubbleActive}
+              showItmFlash={state.showItmFlash}
+              addOnWindowOpen={state.addOnWindowOpen}
               addOnCost={config.addOn.cost}
               addOnChips={config.addOn.chips}
-              lastHandActive={lastHandActive}
-              handForHandActive={handForHandActive}
+              lastHandActive={state.lastHandActive}
+              handForHandActive={state.handForHandActive}
             />
-            {!cleanView && (
+            {!ui.cleanView && (
               <RebuyStatus
-                active={rebuyActive}
+                active={state.rebuyActive}
                 rebuy={config.rebuy}
-                currentPlayLevel={currentPlayLevel}
-                elapsedSeconds={tournamentElapsed}
+                currentPlayLevel={state.currentPlayLevel}
+                elapsedSeconds={state.tournamentElapsed}
               />
             )}
             <Controls
@@ -236,22 +217,28 @@ export function GameModeContainer({
               onToggleStartPause={timer.toggleStartPause}
               onNext={timer.nextLevel}
               onPrevious={timer.previousLevel}
-              onReset={onResetLevel}
-              onRestart={onRestartTournament}
-              isBreak={isBreak}
-              onSkipBreak={onSkipBreak}
-              onExtendBreak={onExtendBreak}
-              hideSecondaryControls={cleanView}
-              cleanView={cleanView}
-              onToggleCleanView={onToggleCleanView}
-              lastHandActive={lastHandActive}
-              onLastHand={onLastHand}
-              handForHandActive={handForHandActive}
-              onHandForHand={onHandForHand}
-              onNextHand={onNextHand}
-              showHandForHand={bubbleActive}
+              onReset={actions.onResetLevel}
+              onRestart={actions.onRestartTournament}
+              isBreak={state.isBreak}
+              onSkipBreak={actions.onSkipBreak}
+              onExtendBreak={actions.onExtendBreak}
+              hideSecondaryControls={ui.cleanView}
+              cleanView={ui.cleanView}
+              onToggleCleanView={actions.onToggleCleanView}
+              lastHandActive={state.lastHandActive}
+              onLastHand={actions.onLastHand}
+              handForHandActive={state.handForHandActive}
+              onHandForHand={actions.onHandForHand}
+              onNextHand={actions.onNextHand}
+              showHandForHand={state.bubbleActive}
               callTheClockSeconds={settings.callTheClockSeconds}
-              onCallTheClock={onShowCallTheClock}
+              onCallTheClock={actions.onShowCallTheClock}
+              canUndo={undo?.canUndo}
+              canRedo={undo?.canRedo}
+              onUndo={undo?.onUndo}
+              onRedo={undo?.onRedo}
+              undoLabel={undo?.undoLabel}
+              redoLabel={undo?.redoLabel}
             />
           </div>
 
@@ -259,39 +246,39 @@ export function GameModeContainer({
           <div className="flex md:hidden justify-center gap-2 px-3 pb-2">
             {config.players.length > 0 && (
               <button
-                onClick={onTogglePlayerPanel}
+                onClick={actions.onTogglePlayerPanel}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  showPlayerPanel
+                  ui.showPlayerPanel
                     ? 'text-white'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
                 }`}
-                style={showPlayerPanel ? { backgroundColor: 'var(--accent-700)' } : undefined}
+                style={ui.showPlayerPanel ? { backgroundColor: 'var(--accent-700)' } : undefined}
               >
-                {showPlayerPanel ? `✓ ${t('app.players')}` : t('app.players')}
+                {ui.showPlayerPanel ? `✓ ${t('app.players')}` : t('app.players')}
               </button>
             )}
             <button
-              onClick={onToggleSidebar}
+              onClick={actions.onToggleSidebar}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                showSidebar
+                ui.showSidebar
                   ? 'text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
               }`}
-              style={showSidebar ? { backgroundColor: 'var(--accent-700)' } : undefined}
+              style={ui.showSidebar ? { backgroundColor: 'var(--accent-700)' } : undefined}
             >
-              {showSidebar ? `✓ ${t('app.sidebar')}` : t('app.sidebar')}
+              {ui.showSidebar ? `✓ ${t('app.sidebar')}` : t('app.sidebar')}
             </button>
           </div>
         </div>
 
         {/* Sidebar (RIGHT) */}
-        {showSidebar && (
+        {ui.showSidebar && (
           <aside className="w-full md:absolute md:right-0 md:top-0 md:bottom-0 md:w-64 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/20 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700/30 bg-gray-50 dark:bg-gray-900/40 p-3 sm:p-4 space-y-4 sm:space-y-6 overflow-y-auto max-h-[60vh] sm:max-h-[70vh] md:max-h-none">
             <LevelPreview timerState={timer.timerState} levels={config.levels} />
             {config.chips.enabled && (
               <ChipSidebar
                 chipConfig={config.chips}
-                colorUpMap={colorUpMap}
+                colorUpMap={state.colorUpMap}
                 currentLevelIndex={timer.timerState.currentLevelIndex}
                 levels={config.levels}
               />
@@ -299,20 +286,26 @@ export function GameModeContainer({
             {config.tables && config.tables.length > 0 && (
               <MultiTablePanel
                 config={config}
-                recentMoves={recentTableMoves}
-                onUpdateTables={onUpdateTables}
-                onTableMoves={onTableMoves}
+                recentMoves={state.recentTableMoves}
+                onUpdateTables={actions.onUpdateTables}
+                onTableMoves={actions.onTableMoves}
                 onAdvanceTableDealer={handleAdvanceTableDealer}
               />
             )}
             <SettingsPanel
               settings={settings}
-              onChange={onSettingsChange}
-              onToggleFullscreen={onToggleFullscreen}
-              onShowInstallGuide={onShowInstallGuide}
+              onChange={actions.onSettingsChange}
+              onToggleFullscreen={actions.onToggleFullscreen}
+              onShowInstallGuide={actions.onShowInstallGuide}
             />
             <button
-              onClick={onExitToSetup}
+              onClick={actions.onShowIcm}
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm transition-colors"
+            >
+              {t('icm.title')}
+            </button>
+            <button
+              onClick={actions.onExitToSetup}
               className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm transition-colors"
             >
               {t('app.backToSetup')}

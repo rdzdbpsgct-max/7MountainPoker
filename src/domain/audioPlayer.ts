@@ -126,10 +126,19 @@ function playWithWebAudio(files: string[], basePath: string): Promise<void> {
       // Resolve when the last buffer finishes (guard against cancelled sources
       // — source.stop() also fires onended, which would corrupt isSpeaking state)
       const lastSource = scheduledSources[scheduledSources.length - 1];
-      lastSource.onended = () => {
+      const totalDuration = buffers.reduce((sum, b) => sum + b.duration, 0);
+      let resolved = false;
+      const safeResolve = () => {
+        if (resolved) return;
+        resolved = true;
         scheduledSources = [];
         if (!cancelRequested) resolve();
       };
+
+      lastSource.onended = safeResolve;
+
+      // Safety timeout: if onended never fires (browser bug), force resolve
+      setTimeout(safeResolve, totalDuration * 1000 + 2000);
     });
   });
 }
@@ -160,19 +169,39 @@ function playWithHtmlAudio(files: string[], basePath: string): Promise<void> {
       currentHtmlAudio = audio;
       index++;
 
-      audio.onended = () => {
+      let done = false;
+      const safeNext = () => {
+        if (done) return;
+        done = true;
+        if (safetyTimer) clearTimeout(safetyTimer);
         currentHtmlAudio = null;
         anyPlayed = true;
         playNext();
       };
 
+      audio.onended = safeNext;
+
       audio.onerror = () => {
+        if (done) return;
+        done = true;
+        if (safetyTimer) clearTimeout(safetyTimer);
         currentHtmlAudio = null;
         console.warn('[audioPlayer] HTMLAudioElement skipping failed file:', files[index - 1]);
         playNext(); // Continue with remaining files instead of aborting
       };
 
+      // Safety timeout: if onended never fires, force next after 15s
+      const safetyTimer = setTimeout(() => {
+        if (!done) {
+          console.warn('[audioPlayer] HTMLAudioElement onended timeout, forcing next:', files[index - 1]);
+          safeNext();
+        }
+      }, 15_000);
+
       audio.play().catch(() => {
+        if (done) return;
+        done = true;
+        if (safetyTimer) clearTimeout(safetyTimer);
         currentHtmlAudio = null;
         console.warn('[audioPlayer] HTMLAudioElement play() rejected, skipping:', files[index - 1]);
         playNext(); // Continue with remaining files

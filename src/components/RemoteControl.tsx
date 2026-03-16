@@ -19,10 +19,12 @@ interface HostProps {
   secret?: string;
   /** Current host connection status */
   status: HostStatus | null;
+  /** Number of connected controller peers */
+  controllerCount?: number;
   onClose: () => void;
 }
 
-export function RemoteHostModal({ peerId, secret, status, onClose }: HostProps) {
+export function RemoteHostModal({ peerId, secret, status, controllerCount = 0, onClose }: HostProps) {
   const { t } = useTranslation();
   const dialogRef = useDialogA11y(onClose);
   const { resolved } = useTheme();
@@ -79,7 +81,9 @@ export function RemoteHostModal({ peerId, secret, status, onClose }: HostProps) 
                 <div className="flex items-center justify-center gap-2 py-2">
                   <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent-500)' }} />
                   <span className="text-sm font-medium" style={{ color: 'var(--accent-text)' }}>
-                    {t('remote.connected')}
+                    {controllerCount > 1
+                      ? (t as (key: string, params?: Record<string, string | number>) => string)('remote.controllersConnected', { n: controllerCount })
+                      : t('remote.connected')}
                   </span>
                 </div>
                 <p className="text-xs text-gray-400 dark:text-gray-500 text-center">

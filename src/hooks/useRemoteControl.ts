@@ -12,6 +12,8 @@ interface UseRemoteControlReturn {
   hostRef: React.RefObject<RemoteHost | null>;
   /** Current host status */
   hostStatus: HostStatus | null;
+  /** Number of currently connected controller peers */
+  controllerCount: number;
   /** Whether the host modal should be shown */
   showRemoteModal: boolean;
   setShowRemoteModal: (v: boolean) => void;
@@ -38,6 +40,7 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
   const hostRef = useRef<RemoteHost | null>(null);
   const [showRemoteModalRaw, setShowRemoteModal] = useState(false);
   const [hostStatusRaw, setHostStatusRaw] = useState<HostStatus | null>(null);
+  const [controllerCountRaw, setControllerCountRaw] = useState(0);
   const [hostResumed, setHostResumed] = useState(false);
 
   // Keep onCommand ref fresh so the host always calls the latest handler
@@ -51,6 +54,9 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
 
   // Derive effective host status — null when disabled
   const hostStatus = useMemo(() => enabled ? hostStatusRaw : null, [enabled, hostStatusRaw]);
+
+  // Derive effective controller count — 0 when disabled
+  const controllerCount = useMemo(() => enabled ? controllerCountRaw : 0, [enabled, controllerCountRaw]);
 
   // Detect controller mode from URL hash (only once on mount)
   const [controllerInfo] = useState<{ peerId: string; secret: string | null } | null>(() => {
@@ -82,6 +88,7 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
       {
         onCommand: (cmd) => onCommandRef.current(cmd),
         onStatusChange: (s) => setHostStatusRaw(s),
+        onControllerCountChange: (n) => setControllerCountRaw(n),
       },
       persisted ? { peerId: persisted.peerId, secret: persisted.secret } : undefined,
     );
@@ -102,6 +109,7 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
   return {
     hostRef,
     hostStatus,
+    controllerCount,
     showRemoteModal,
     setShowRemoteModal,
     isControllerMode,

@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import type { TournamentConfig, Table, TableMove, TableMoveReason } from '../domain/types';
 import { balanceTables, getActivePlayersPerTable, getTablePlayerIds } from '../domain/logic';
 import { useTranslation } from '../i18n';
@@ -18,6 +18,11 @@ const reasonKey: Record<TableMoveReason, string> = {
   'late-registration': 'multiTable.reasonLateReg',
   manual: 'multiTable.reasonBalance',
 };
+
+interface BalancePreview {
+  tables: Table[];
+  moves: TableMove[];
+}
 
 export function MultiTablePanel({ config, recentMoves, onUpdateTables, onTableMoves, onAdvanceTableDealer }: Props) {
   const { t } = useTranslation();
@@ -42,13 +47,45 @@ export function MultiTablePanel({ config, recentMoves, onUpdateTables, onTableMo
   const dissolvedTables = useMemo(() => tables.filter(tbl => tbl.status === 'dissolved'), [tables]);
   const isFinalTable = activeTables.length === 1;
 
+  // Balance preview modal state
+  const [balancePreview, setBalancePreview] = useState<BalancePreview | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Escape to close + auto-focus
+  useEffect(() => {
+    if (!balancePreview) return;
+    modalRef.current?.focus();
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setBalancePreview(null);
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [balancePreview]);
+
   const handleBalance = useCallback(() => {
     const result = balanceTables(tables, config.players);
-    onUpdateTables(result.tables);
-    if (result.moves.length > 0) {
-      onTableMoves(result.moves);
+    if (result.moves.length === 0) {
+      // No moves needed — show preview with empty moves (already balanced)
+      setBalancePreview({ tables: result.tables, moves: [] });
+    } else {
+      setBalancePreview(result);
     }
-  }, [tables, config.players, onUpdateTables, onTableMoves]);
+  }, [tables, config.players]);
+
+  const handleApplyBalance = useCallback(() => {
+    if (!balancePreview) return;
+    onUpdateTables(balancePreview.tables);
+    if (balancePreview.moves.length > 0) {
+      onTableMoves(balancePreview.moves);
+    }
+    setBalancePreview(null);
+  }, [balancePreview, onUpdateTables, onTableMoves]);
+
+  const handleCancelBalance = useCallback(() => {
+    setBalancePreview(null);
+  }, []);
 
   // Map player IDs to player names
   const playerNameMap = useMemo(() => {
@@ -187,6 +224,81 @@ export function MultiTablePanel({ config, recentMoves, onUpdateTables, onTableMo
         >
           {t('multiTable.balance')}
         </button>
+      )}
+
+      {/* Balance preview modal */}
+      {balancePreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={handleCancelBalance}
+          />
+          {/* Modal */}
+          <div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('multiTable.balancePreview')}
+            tabIndex={-1}
+            className="relative bg-white dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700/40 rounded-2xl shadow-2xl shadow-gray-300/30 dark:shadow-black/40 w-full max-w-md animate-scale-in outline-none"
+          >
+            <div className="p-5 space-y-4">
+              {/* Title */}
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                {t('multiTable.balancePreview')}
+              </h3>
+
+              {balancePreview.moves.length === 0 ? (
+                /* Already balanced */
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {t('multiTable.balanceNoMoves')}
+                </p>
+              ) : (
+                /* Move list */
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {t('multiTable.balancePreviewDesc', { n: balancePreview.moves.length })}
+                  </p>
+                  <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                    {balancePreview.moves.map((move, i) => (
+                      <div
+                        key={`${move.playerId}-${i}`}
+                        className="px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-lg text-sm text-amber-800 dark:text-amber-200"
+                      >
+                        <span className="font-medium">{move.playerName}</span>
+                        <span className="text-amber-600 dark:text-amber-400">
+                          {': '}
+                          {move.fromTableName} {t('multiTable.seat', { n: move.fromSeat })}
+                          {' → '}
+                          {move.toTableName} {t('multiTable.seat', { n: move.toSeat })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={handleCancelBalance}
+                  className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+                >
+                  {t('multiTable.balanceCancel')}
+                </button>
+                {balancePreview.moves.length > 0 && (
+                  <button
+                    onClick={handleApplyBalance}
+                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white shadow-md shadow-amber-900/30 active:scale-[0.97] transition-all duration-200"
+                  >
+                    {t('multiTable.balanceApply')}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Recent moves log */}

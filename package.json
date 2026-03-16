@@ -1,7 +1,7 @@
 {
   "name": "7mountain-poker",
   "private": true,
-  "version": "6.7.0",
+  "version": "6.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,9 +15,9 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@sentry/react": "^10.42.0",
-    "@vercel/analytics": "^1.6.1",
-    "@vercel/speed-insights": "^1.3.1",
+    "@sentry/react": "^10.43.0",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "html-to-image": "^1.11.13",
     "idb": "^8.0.3",
     "jspdf": "^4.2.0",
@@ -33,7 +33,7 @@
     "@tailwindcss/vite": "^4.2.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@types/node": "^25.4.0",
+    "@types/node": "^25.5.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.2.0",
