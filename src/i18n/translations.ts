@@ -1126,6 +1126,8 @@ const de = {
   'tour.prev': 'Zurück',
   'tour.next': 'Weiter',
   'tour.finish': 'Los geht\'s!',
+  'tour.restartTour': 'Einführungstour starten',
+  'wizard.restartWizard': 'Setup-Wizard starten',
 
   // --- PWA Install Guide ---
   'pwa.title': 'Als App installieren',
@@ -2446,6 +2448,8 @@ const en: Record<TranslationKey, string> = {
   'tour.prev': 'Back',
   'tour.next': 'Next',
   'tour.finish': 'Let\'s go!',
+  'tour.restartTour': 'Start guided tour',
+  'wizard.restartWizard': 'Start setup wizard',
 
   // --- PWA Install Guide ---
   'pwa.title': 'Install as App',

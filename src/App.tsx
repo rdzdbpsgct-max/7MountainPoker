@@ -48,7 +48,7 @@ import {
 } from './domain/speech';
 import { setAudioMasterVolume, setAudioLanguage } from './domain/audioService';
 // Setup-mode components (static imports — used immediately on load)
-import { isTourCompleted } from './domain/configPersistence';
+import { isTourCompleted, resetTourCompleted, resetWizardCompleted } from './domain/configPersistence';
 import { useModalManager } from './hooks/useModalManager';
 import { ToastContainer } from './components/Toast';
 import { useRemoteHostBridge } from './hooks/useRemoteHostBridge';
@@ -762,6 +762,14 @@ function App() {
         onShowShareHub={() => {
           if (!remoteHostRef.current) startRemoteHost();
           modals.setShowShareHub(true);
+        }}
+        onShowTour={() => {
+          resetTourCompleted();
+          modals.setShowTour(true);
+        }}
+        onShowWizard={() => {
+          resetWizardCompleted();
+          modals.setShowWizard(true);
         }}
         displayCount={displayCount}
       />

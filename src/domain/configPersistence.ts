@@ -438,6 +438,12 @@ export function markWizardCompleted(): void {
   } catch { /* private browsing */ }
 }
 
+export function resetWizardCompleted(): void {
+  try {
+    localStorage.removeItem(WIZARD_KEY);
+  } catch { /* private browsing */ }
+}
+
 // ---------------------------------------------------------------------------
 // Onboarding Tour
 // ---------------------------------------------------------------------------
@@ -455,5 +461,11 @@ export function isTourCompleted(): boolean {
 export function markTourCompleted(): void {
   try {
     localStorage.setItem(TOUR_KEY, 'true');
+  } catch { /* private browsing */ }
+}
+
+export function resetTourCompleted(): void {
+  try {
+    localStorage.removeItem(TOUR_KEY);
   } catch { /* private browsing */ }
 }
