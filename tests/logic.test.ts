@@ -7403,7 +7403,9 @@ describe('Custom Audio', () => {
     expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('winner');
     expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('last-hand');
     expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('final-table');
-    expect(CUSTOMIZABLE_ANNOUNCEMENTS.length).toBe(26);
+    expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('break-skipped');
+    expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('break-extended');
+    expect(CUSTOMIZABLE_ANNOUNCEMENTS.length).toBe(28);
   });
 });
 

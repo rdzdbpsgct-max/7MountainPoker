@@ -33,6 +33,8 @@ export const CUSTOMIZABLE_ANNOUNCEMENTS = [
   'timer-paused',
   'timer-resumed',
   'last-hand',
+  'break-skipped',
+  'break-extended',
 ] as const;
 
 export type AnnouncementKey = typeof CUSTOMIZABLE_ANNOUNCEMENTS[number];

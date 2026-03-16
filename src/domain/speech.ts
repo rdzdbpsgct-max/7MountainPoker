@@ -471,12 +471,14 @@ export function announceBreakOver(t: TranslateFn): void {
 
 /** Break skipped — "Pause übersprungen" / "Break skipped" */
 export function announceBreakSkipped(t: TranslateFn): void {
-  enqueue({ mode: 'speech', text: t('voice.breakSkipped') });
+  if (enqueueCustomAudioIfAvailable('break-skipped')) return;
+  enqueue(audioOrSpeech(['fixed/break-skipped.mp3'], t('voice.breakSkipped')));
 }
 
 /** Break extended — "Pause verlängert um N Minuten" / "Break extended by N minutes" */
 export function announceBreakExtended(minutes: number, t: TranslateFn): void {
-  enqueue({ mode: 'speech', text: t('voice.breakExtended', { minutes }) });
+  if (enqueueCustomAudioIfAvailable('break-extended')) return;
+  enqueue(audioOrSpeech(['fixed/break-extended.mp3'], t('voice.breakExtended', { minutes })));
 }
 
 /** Color-Up warning — next break */
