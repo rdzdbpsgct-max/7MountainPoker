@@ -57,6 +57,8 @@ import {
   announceCallTheClockExpired,
   announceLateRegistrationClosed,
   announceTournamentWinner,
+  announceBreakSkipped,
+  announceBreakExtended,
   initSpeech,
 } from '../src/domain/speech';
 
@@ -360,6 +362,16 @@ describe('Speech system (speech.ts)', () => {
     it('announceTableDissolution enqueues MP3 intro + speech detail', () => {
       // Should not throw; now uses MP3 intro followed by speech
       expect(() => announceTableDissolution('Tisch 3', mockT as never)).not.toThrow();
+    });
+
+    it('announceBreakSkipped enqueues speech for break skipped', () => {
+      expect(() => announceBreakSkipped(mockT as never)).not.toThrow();
+      expect(mockT).toHaveBeenCalledWith('voice.breakSkipped');
+    });
+
+    it('announceBreakExtended enqueues speech for break extended with minutes', () => {
+      expect(() => announceBreakExtended(5, mockT as never)).not.toThrow();
+      expect(mockT).toHaveBeenCalledWith('voice.breakExtended', { minutes: 5 });
     });
   });
 });

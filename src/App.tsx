@@ -42,6 +42,8 @@ import {
   announceTableMove,
   announceFinalTable,
   announceLateRegistrationClosed,
+  announceBreakSkipped,
+  announceBreakExtended,
 } from './domain/speech';
 import { setAudioMasterVolume, setAudioLanguage } from './domain/audioService';
 // Setup-mode components (static imports — used immediately on load)
@@ -444,12 +446,18 @@ function App() {
   const handleSkipBreak = useCallback(() => {
     timer.nextLevel();
     handleAppendEvent(createEvent('break_skipped', timer.timerState.currentLevelIndex, {}));
-  }, [timer, handleAppendEvent]);
+    if (settings.voiceEnabled) {
+      announceBreakSkipped(t);
+    }
+  }, [timer, handleAppendEvent, settings.voiceEnabled, t]);
 
   const handleExtendBreak = useCallback((seconds: number) => {
     timer.extendLevel(seconds);
     handleAppendEvent(createEvent('break_extended', timer.timerState.currentLevelIndex, { seconds }));
-  }, [timer, handleAppendEvent]);
+    if (settings.voiceEnabled) {
+      announceBreakExtended(Math.round(seconds / 60), t);
+    }
+  }, [timer, handleAppendEvent, settings.voiceEnabled, t]);
 
   // Auto-deactivate Hand-for-Hand when bubble bursts
   const prevBubbleForHfH = useRef(bubbleActive);

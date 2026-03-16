@@ -469,6 +469,16 @@ export function announceBreakOver(t: TranslateFn): void {
   enqueue(audioOrSpeech(['fixed/break-over.mp3'], t('voice.breakOver')));
 }
 
+/** Break skipped — "Pause übersprungen" / "Break skipped" */
+export function announceBreakSkipped(t: TranslateFn): void {
+  enqueue({ mode: 'speech', text: t('voice.breakSkipped') });
+}
+
+/** Break extended — "Pause verlängert um N Minuten" / "Break extended by N minutes" */
+export function announceBreakExtended(minutes: number, t: TranslateFn): void {
+  enqueue({ mode: 'speech', text: t('voice.breakExtended', { minutes }) });
+}
+
 /** Color-Up warning — next break */
 export function announceColorUpWarning(t: TranslateFn): void {
   if (enqueueCustomAudioIfAvailable('color-up-warning')) return;

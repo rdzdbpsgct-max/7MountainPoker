@@ -659,6 +659,8 @@ const de = {
   'voice.rebuyTaken': 'Riebai genommen',
   'voice.tableMoveIntro': 'Tischwechsel',
   'voice.tableDissolutionIntro': 'Tisch aufgelöst',
+  'voice.breakSkipped': 'Pause übersprungen',
+  'voice.breakExtended': 'Pause verlängert um {minutes} Minuten',
 
   // --- Leagues ---
   'app.leagues': 'Ligen',
@@ -1951,6 +1953,8 @@ const en: Record<TranslationKey, string> = {
   'voice.rebuyTaken': 'Rebuy taken',
   'voice.tableMoveIntro': 'Table move',
   'voice.tableDissolutionIntro': 'Table dissolved',
+  'voice.breakSkipped': 'Break skipped',
+  'voice.breakExtended': 'Break extended by {minutes} minutes',
 
   // --- Leagues ---
   'app.leagues': 'Leagues',
