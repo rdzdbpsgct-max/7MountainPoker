@@ -72,4 +72,26 @@ describe('entitlements', () => {
     expect(second.gainedFeatures).toContain('tvDisplay');
     expect(second.lostFeatures).toHaveLength(0);
   });
+
+  it('gates multiTable for free tier', () => {
+    expect(isFeatureAvailable('multiTable', { tier: 'free' })).toBe(false);
+    expect(isFeatureAvailable('multiTable', { tier: 'premium' })).toBe(true);
+  });
+
+  it('gates sidePot for free tier', () => {
+    expect(isFeatureAvailable('sidePot', { tier: 'free' })).toBe(false);
+    expect(isFeatureAvailable('sidePot', { tier: 'premium' })).toBe(true);
+  });
+
+  it('includes multiTable and sidePot in features lost on downgrade', () => {
+    const lost = featuresLostOnTierChange('premium', 'free');
+    expect(lost).toContain('multiTable');
+    expect(lost).toContain('sidePot');
+  });
+
+  it('includes multiTable and sidePot in features gained on upgrade', () => {
+    const gained = featuresGainedOnTierChange('free', 'premium');
+    expect(gained).toContain('multiTable');
+    expect(gained).toContain('sidePot');
+  });
 });
