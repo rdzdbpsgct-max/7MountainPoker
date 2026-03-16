@@ -5,6 +5,41 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.8.0] – 2026-03-16
+
+### Phase 1: Stability, Undo/Redo & Audit-Umsetzung (20 Maßnahmen)
+
+**10 Technische Maßnahmen:**
+
+1. **App.tsx State Extraction**: 8 neue Hooks aus App.tsx extrahiert — `useGameComputedState`, `useTournamentEventLog`, `useCheckpointManager`, `useDisplayBridge`, `useWakeLock`, `useConfirmDialog`, `useOnlineStatus`, `useInstallPrompt`. App.tsx deutlich reduziert.
+2. **Bundle-Optimierung**: PeerJS als Dynamic Import, vendor-Chunks für Sentry/React/PeerJS.
+3. **PeerJS API-Formalisierung**: Typisierte Command-Interfaces, HMAC-Validierung, Versionsprüfung.
+4. **Storage Retention Policies**: Dokumentierte Aufbewahrungsregeln für alle 12 IndexedDB-Stores.
+5. **Checkpoint Schema Versioning**: Version-Feld im Checkpoint für Vorwärtskompatibilität.
+6. **E2E in CI**: Playwright-Konfiguration für Continuous Integration vorbereitet.
+7. **AudioService Facade**: Zentrales `audioService.ts` synchronisiert Master-Volume und Sprache über `sounds.ts`, `audioPlayer.ts`, `speech.ts`.
+8. **Test-Warnings Cleanup**: vi.mock()-Aufrufe bereinigt, Test-Setup optimiert.
+9. **i18n Parity Cleanup**: Identische DE/EN-Keys validiert (ALLOWED_IDENTICAL Set), Schwellwerte aktualisiert.
+10. **useTournamentModeTransitions Props Grouping**: Typisierte Parameterobjekte statt flacher Props.
+
+**10 Markt-Features:**
+
+1. **Multi-Controller Remote**: RemoteHost unterstützt N gleichzeitige Controller (`Map<string, DataConnection>`). Controller-Anzahl im ShareHub angezeigt.
+2. **Undo/Redo**: Snapshot-basiertes Undo/Redo für alle 10 Turnieraktionen. `UndoStack` Klasse (immutable, max 30 Tiefe). Cmd+Z / Cmd+Shift+Z. Buttons in Controls mit Aktionslabels. 20 Translation-Keys.
+3. **ICM Calculator**: Malmuth-Harville Equity — exakt rekursiv (≤10 Spieler), Monte Carlo 10K Sims (>10). `IcmCalculator.tsx` Modal, lazy-loaded.
+4. **Tournament Timeline/Report**: Event-Log-System für Turnieraktionen.
+5. **Rebalance Simulation Preview**: Vorschau für Tisch-Ausbalancierung bei Multi-Table.
+6. **Feature Discovery**: `isFeatureDiscovered()`, `markFeatureDiscovered()`, `getUndiscoveredFeatures()` in entitlements.ts.
+7. **Visual Regression Tests**: Playwright-Screenshot-Tests vorbereitet.
+8. **Simplified Side-Pot Mode**: Vereinfachter Side-Pot-Modus.
+9. **Conversion Telemetry**: `monetizationTelemetry.ts` trackt Feature-Zugriffsmuster.
+10. **Cloud Export**: Einheitliches `cloudExport.ts` — JSON/CSV/Text, Web Share API, File System Access API, Blob-Download-Fallback.
+
+**Neue Dateien**: `undoStack.ts`, `icm.ts`, `cloudExport.ts`, `audioService.ts`, `IcmCalculator.tsx`, `useGameComputedState.ts`, `useTournamentEventLog.ts`, `useCheckpointManager.ts`, `useDisplayBridge.ts`, `useWakeLock.ts`, `useConfirmDialog.ts`, `useOnlineStatus.ts`, `useInstallPrompt.ts`
+**38 neue Tests** — **1156 Tests gesamt** (17 Testdateien)
+
+---
+
 ## [6.7.1] – 2026-03-15
 
 ### Phase B: Tech Debt

@@ -6,10 +6,10 @@
 
 **Der Poker-Turnier-Timer für deinen Spieleabend**
 
-[![Version](https://img.shields.io/badge/Version-6.7.1-blue?style=flat-square)](#)
+[![Version](https://img.shields.io/badge/Version-6.8.0-blue?style=flat-square)](#)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-34d399?style=flat-square&logo=github)](https://rdzdbpsgct-max.github.io/7MountainPoker/)
 [![Vercel](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=flat-square&logo=vercel)](https://7mountainpoker.vercel.app/)
-[![Tests](https://img.shields.io/badge/Tests-1118%20passed-brightgreen?style=flat-square)](#)
+[![Tests](https://img.shields.io/badge/Tests-1156%20passed-brightgreen?style=flat-square)](#)
 [![Build](https://img.shields.io/badge/Build-passing-brightgreen?style=flat-square)](#)
 [![PWA](https://img.shields.io/badge/PWA-installierbar-7c3aed?style=flat-square)](#)
 
@@ -48,6 +48,8 @@ Eine vollständig clientseitige Web-App zur Verwaltung von Poker-Heimturnieren. 
 | `V` | Vorheriges Level |
 | `R` | Level zurücksetzen |
 | `F` | Clean View ein/aus |
+| `Cmd+Z` | Rückgängig (Undo) |
+| `Cmd+Shift+Z` | Wiederherstellen (Redo) |
 
 ### Features
 
@@ -99,6 +101,10 @@ Eine vollständig clientseitige Web-App zur Verwaltung von Poker-Heimturnieren. 
 | Eigene Ansagen | Eigene Audio-Dateien (MP3/WAV/OGG, max 5 MB) hochladen und beliebigen der 36 Sprachansagen zuordnen — ersetzt die Standard-Stimme für einzelne Events |
 | PDF-Export | Turnier-Ergebnisse als professionelles PDF exportieren |
 | Turnierdauer-Prognose | Geschätzte Turnierdauer basierend auf Spieleranzahl und Blindstruktur |
+| Undo/Redo | Alle Turnieraktionen rückgängig machen (Cmd+Z / Cmd+Shift+Z) — Elimination, Rebuy, Add-On, Reinstate, Dealer, Late Reg, Re-Entry, Stack-Änderungen |
+| ICM-Rechner | Independent Chip Model Equity-Berechnung — exakt (≤10 Spieler) oder Monte Carlo (>10 Spieler). Modal im Spielmodus |
+| Cloud Export | Einheitlicher Export (JSON/CSV/Text) über Web Share API, File System Access API oder Download |
+| Multi-Controller | Mehrere Smartphones gleichzeitig als Fernsteuerung verbinden |
 | Premium UI | Glassmorphism, Gradient-Buttons, Timer-Glow, benutzerdefinierte Animationen, taktile Interaktionen |
 | Design-System | Einheitliche Abrundungen, Border-Opacities, Focus-Glow, Custom Number-Stepper, SVG-Chevrons |
 | Validierung | Eingabeprüfung vor Turnierstart mit klaren Fehlermeldungen |
@@ -148,6 +154,8 @@ A fully client-side web app for managing home poker tournaments. No server, no a
 | `V` | Previous level |
 | `R` | Reset level |
 | `F` | Clean view toggle |
+| `Cmd+Z` | Undo |
+| `Cmd+Shift+Z` | Redo |
 
 ### Features
 
@@ -205,6 +213,10 @@ A fully client-side web app for managing home poker tournaments. No server, no a
 | Custom Announcements | Upload custom audio files (MP3/WAV/OGG, max 5 MB) and assign them to any of the 36 voice announcements — replaces the default voice for individual events |
 | PDF Export | Export tournament results as professional PDF |
 | Duration Estimate | Estimated tournament duration based on player count and blind structure |
+| Undo/Redo | Undo any tournament action (Cmd+Z / Cmd+Shift+Z) — elimination, rebuy, add-on, reinstate, dealer, late reg, re-entry, stack changes |
+| ICM Calculator | Independent Chip Model equity calculation — exact (≤10 players) or Monte Carlo (>10 players). Modal in game mode |
+| Cloud Export | Unified export (JSON/CSV/text) via Web Share API, File System Access API, or download |
+| Multi-Controller | Connect multiple smartphones as remote controllers simultaneously |
 | Premium UI | Glassmorphism, gradient buttons, timer glow, custom animations, tactile interactions |
 | Design system | Unified rounding, border opacities, focus glow, custom number stepper, SVG chevrons |
 | Validation | Input validation before tournament start with clear error messages |
@@ -229,13 +241,13 @@ Please make sure `npm run lint` and `npm run test` pass without errors.
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7-646cff?style=flat-square&logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06b6d4?style=flat-square&logo=tailwindcss&logoColor=white)
-![Vitest](https://img.shields.io/badge/Vitest-1118_Tests-6e9f18?style=flat-square&logo=vitest&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-1156_Tests-6e9f18?style=flat-square&logo=vitest&logoColor=white)
 
 - **React 19** — Funktionale Komponenten und Hooks / Functional components and hooks
 - **TypeScript 5.9** — Strikte Typisierung / Strict typing
 - **Vite 7** — Build-Tool / Build tool
 - **Tailwind CSS 4** — Styling (keine CSS-Dateien / no CSS files)
-- **Vitest** — 1118 Tests / Unit tests
+- **Vitest** — 1156 Tests / Unit tests
 - **GitHub Actions** — CI/CD mit Deploy auf GitHub Pages / with deploy to GitHub Pages
 - **Vercel** — Automatisches Deploy / Auto-deploy on push
 - **PWA** — vite-plugin-pwa, offline-fähig / offline-capable
@@ -269,7 +281,7 @@ App: `http://localhost:5173/`
 
 ```bash
 npm run lint        # ESLint
-npm run test        # 1118 Tests
+npm run test        # 1156 Tests
 npm run build       # Production-Build → ./dist
 ```
 
@@ -286,6 +298,10 @@ src/
     speech.ts           # Sprachansagen (ElevenLabs MP3 + Web Speech API Fallback)
     audioPlayer.ts      # MP3-Playback-Engine
     series.ts           # Turnier-Serien-Logik / Tournament series logic
+    undoStack.ts        # Undo/Redo Stack (immutable, max 30 Tiefe) / Undo/Redo stack
+    icm.ts              # ICM-Rechner (Malmuth-Harville) / ICM Calculator
+    cloudExport.ts      # Cloud Export (JSON/CSV/Text) / Cloud export
+    audioService.ts     # Audio-Facade (Volume/Sprache) / Audio facade
     displayLayouts.ts   # Display-Layout-Varianten / Display layout variants
     platform.ts         # Plattform-Erkennung / Platform detection
     presentationApi.ts  # Presentation API (Second Screen) / Presentation API support
@@ -344,7 +360,7 @@ public/
   audio/de/             # 234 ElevenLabs MP3 Audiodateien (Deutsch, Stimme: Ava)
   audio/en/             # 234 ElevenLabs MP3 Audiodateien (Englisch)
 tests/
-  logic.test.ts         # 1118 Tests
+  logic.test.ts         # 1156 Tests
 ```
 
 ## Architektur / Architecture
