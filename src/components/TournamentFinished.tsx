@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from 'react';
-import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, TournamentResult, Currency } from '../domain/types';
+import { useState, useRef, useCallback, useMemo } from 'react';
+import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, TournamentResult, TournamentEvent, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
-import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, exportTournamentResultAsPdf } from '../domain/logic';
+import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, exportTournamentResultAsPdf, formatEventAsText } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
 import { ChevronIcon } from './ChevronIcon';
@@ -19,6 +19,7 @@ interface Props {
   tournamentResult: TournamentResult | null;
   onBackToSetup: () => void;
   currency?: Currency;
+  events?: TournamentEvent[];
 }
 
 export function TournamentFinished({
@@ -32,11 +33,13 @@ export function TournamentFinished({
   tournamentResult,
   onBackToSetup,
   currency,
+  events,
 }: Props) {
   const { t, language } = useTranslation();
   const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const { resolved: theme } = useTheme();
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [activeTab, setActiveTab] = useState<'standings' | 'log'>('standings');
   const [capturing, setCapturing] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -116,6 +119,13 @@ export function TournamentFinished({
   const payoutMap = new Map(payoutAmounts.map((p) => [p.place, p.amount]));
   const maxPaidPlace = payoutAmounts.length > 0 ? Math.max(...payoutAmounts.map((p) => p.place)) : 0;
 
+  // Player name map for event formatting
+  const playerNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const p of players) map[p.id] = p.name;
+    return map;
+  }, [players]);
+
   // Build standings: winner = 1st, then eliminated sorted by placement
   const standings: (Player & { finalPlace: number })[] = [
     { ...winner, finalPlace: 1 },
@@ -164,8 +174,41 @@ export function TournamentFinished({
           </p>
         </div>
 
+        {/* Tab switcher (only when events available) */}
+        {events && events.length > 0 && (
+          <div className="flex gap-1">
+            {(['standings', 'log'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === tab
+                    ? 'text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                }`}
+                style={activeTab === tab ? { backgroundColor: 'var(--accent-600)' } : undefined}
+              >
+                {t(tab === 'standings' ? 'finished.tabStandings' : 'finished.tabLog')}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Event Log tab */}
+        {activeTab === 'log' && events && events.length > 0 && (
+          <div className="bg-gray-50/90 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700/40 rounded-xl overflow-hidden shadow-lg shadow-gray-300/30 dark:shadow-black/20">
+            <div className="divide-y divide-gray-100 dark:divide-gray-800/30">
+              {events.map(event => (
+                <div key={event.id} className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 font-mono">
+                  {formatEventAsText(event, playerNameMap, t)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Standings / Ergebnis */}
-        <div>
+        {activeTab === 'standings' && (<><div>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">
               {t('finished.results')}
@@ -324,6 +367,7 @@ export function TournamentFinished({
             </div>
           </div>
         )}
+        </>)}
 
         {/* Tournament info summary */}
         <div>

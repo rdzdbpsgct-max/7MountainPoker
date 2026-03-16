@@ -6,6 +6,7 @@ import type {
   PayoutConfig,
   Player,
   RebuyConfig,
+  TournamentEvent,
   TournamentResult,
 } from '../../domain/types';
 import { SectionErrorBoundary } from '../ErrorBoundary';
@@ -26,6 +27,7 @@ interface Props {
   tournamentResult: TournamentResult | null;
   onBackToSetup: () => void;
   currency?: Currency;
+  events?: TournamentEvent[];
 }
 
 export function TournamentFinishedContainer({
@@ -39,6 +41,7 @@ export function TournamentFinishedContainer({
   tournamentResult,
   onBackToSetup,
   currency,
+  events,
 }: Props) {
   return (
     <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
@@ -53,6 +56,7 @@ export function TournamentFinishedContainer({
         tournamentResult={tournamentResult}
         onBackToSetup={onBackToSetup}
         currency={currency}
+        events={events}
       />
     </Suspense></SectionErrorBoundary>
   );

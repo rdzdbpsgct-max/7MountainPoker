@@ -409,6 +409,8 @@ const de = {
   'finished.collapse': 'Details ausblenden',
   'finished.expand': 'Details einblenden',
   'finished.backToSetup': 'Zurück zum Setup',
+  'finished.tabStandings': 'Ergebnis',
+  'finished.tabLog': 'Verlauf',
 
   // --- Level Preview ---
   'levelPreview.title': 'Level-Übersicht',
@@ -1730,6 +1732,8 @@ const en: Record<TranslationKey, string> = {
   'finished.collapse': 'Hide details',
   'finished.expand': 'Show details',
   'finished.backToSetup': 'Back to Setup',
+  'finished.tabStandings': 'Results',
+  'finished.tabLog': 'Log',
 
   // --- Level Preview ---
   'levelPreview.title': 'Level Overview',

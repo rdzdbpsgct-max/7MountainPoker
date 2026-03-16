@@ -809,6 +809,7 @@ function App() {
             tournamentResult={finishedResult}
             onBackToSetup={switchToSetup}
             currency={config.currency}
+            events={tournamentEvents}
           />
         ) : (
           /* Game Mode */
