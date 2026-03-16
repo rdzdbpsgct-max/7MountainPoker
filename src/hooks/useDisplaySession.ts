@@ -46,13 +46,8 @@ export function useDisplaySession({
   useEffect(() => {
     const host = hostRef.current;
     if (!enabled || !host) return;
-    // Patch the callback onto the host's callbacks
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (host as any).callbacks.onDisplayConnected = onDisplayConnected;
-    return () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((host as any).callbacks) (host as any).callbacks.onDisplayConnected = undefined;
-    };
+    host.setDisplayConnectedHandler(onDisplayConnected);
+    return () => host.setDisplayConnectedHandler(undefined);
   }, [enabled, hostRef, onDisplayConnected]);
 
   // Poll display count from host

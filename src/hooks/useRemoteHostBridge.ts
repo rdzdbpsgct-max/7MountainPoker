@@ -196,6 +196,7 @@ export function useRemoteHostBridge({
   const {
     hostRef: remoteHostRef,
     hostStatus: remoteHostStatus,
+    controllerCount: remoteControllerCount,
     showRemoteModal: showRemoteControl,
     setShowRemoteModal: setShowRemoteControl,
     isControllerMode,
@@ -295,6 +296,7 @@ export function useRemoteHostBridge({
   return {
     remoteHostRef,
     remoteHostStatus,
+    remoteControllerCount,
     showRemoteControl,
     setShowRemoteControl,
     isControllerMode,

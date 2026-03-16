@@ -22,6 +22,16 @@ import { defaultLateRegistrationConfig } from './validation';
 import { defaultMultiTableConfig } from './tables';
 
 // ---------------------------------------------------------------------------
+// Checkpoint Schema Versioning
+// ---------------------------------------------------------------------------
+
+/**
+ * Schema version for tournament checkpoints. Bump this when the checkpoint
+ * shape changes in a way that would be incompatible with older versions.
+ */
+export const CHECKPOINT_SCHEMA_VERSION = 2;
+
+// ---------------------------------------------------------------------------
 // Default Configs
 // ---------------------------------------------------------------------------
 
@@ -342,9 +352,9 @@ export function loadSettings(): Settings | null {
 // Tournament Checkpoint (auto-save / restore, backed by IndexedDB cache)
 // ---------------------------------------------------------------------------
 
-/** Save tournament checkpoint to storage. */
+/** Save tournament checkpoint to storage. Stamps with current schema version. */
 export function saveCheckpoint(checkpoint: TournamentCheckpoint): void {
-  setCached('checkpoint', checkpoint);
+  setCached('checkpoint', { ...checkpoint, schemaVersion: CHECKPOINT_SCHEMA_VERSION });
 }
 
 /**
@@ -357,6 +367,11 @@ export function loadCheckpoint(): TournamentCheckpoint | null {
   try {
     const raw = parsed as unknown as Record<string, unknown>;
     if (raw.version !== 1) return null;
+    // Reject checkpoints from incompatible schema versions
+    if (raw.schemaVersion !== undefined && raw.schemaVersion !== CHECKPOINT_SCHEMA_VERSION) {
+      clearCheckpoint();
+      return null;
+    }
     const config = raw.config ? parseConfigObject(raw.config as Record<string, unknown>) : null;
     if (!config) return null;
     // Guard: empty levels array would cause downstream crashes (index -1)

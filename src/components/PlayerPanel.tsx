@@ -505,7 +505,7 @@ export const PlayerPanel = memo(function PlayerPanel({
     </div>
     {showSidePot && (
       <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
-        <SidePotCalculator onClose={() => setShowSidePot(false)} onResultChange={onSidePotResultChange} />
+        <SidePotCalculator onClose={() => setShowSidePot(false)} onResultChange={onSidePotResultChange} tournamentPlayers={players} />
       </Suspense></SectionErrorBoundary>
     )}
     </>

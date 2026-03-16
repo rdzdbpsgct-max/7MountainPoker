@@ -63,4 +63,79 @@ if (typeof HTMLMediaElement !== 'undefined') {
     configurable: true,
     value: vi.fn(() => Promise.reject(new Error('Not implemented'))),
   });
+  Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
+    configurable: true,
+    value: vi.fn(),
+  });
+}
+
+// Mock Web Audio API — prevents "AudioContext is not defined" warnings
+const mockGainNode = {
+  connect: vi.fn(),
+  gain: { value: 1, setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() },
+};
+const mockOscillator = {
+  connect: vi.fn(),
+  start: vi.fn(),
+  stop: vi.fn(),
+  type: '' as OscillatorType,
+  frequency: { value: 0, setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() },
+  onended: null as (() => void) | null,
+};
+Object.defineProperty(window, 'AudioContext', {
+  writable: true,
+  configurable: true,
+  value: vi.fn(() => ({
+    createOscillator: vi.fn(() => ({ ...mockOscillator })),
+    createGain: vi.fn(() => ({ ...mockGainNode })),
+    destination: {},
+    currentTime: 0,
+    resume: vi.fn(() => Promise.resolve()),
+    close: vi.fn(() => Promise.resolve()),
+    state: 'running' as AudioContextState,
+    decodeAudioData: vi.fn(() => Promise.resolve({ duration: 1, length: 44100, sampleRate: 44100, numberOfChannels: 1, getChannelData: vi.fn() })),
+    createBufferSource: vi.fn(() => ({
+      connect: vi.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
+      buffer: null,
+      onended: null as (() => void) | null,
+    })),
+  })),
+});
+
+// Mock SpeechSynthesis — prevents "speechSynthesis is not defined" warnings
+if (typeof window.speechSynthesis === 'undefined') {
+  Object.defineProperty(window, 'speechSynthesis', {
+    writable: true,
+    value: {
+      speak: vi.fn(),
+      cancel: vi.fn(),
+      pause: vi.fn(),
+      resume: vi.fn(),
+      getVoices: vi.fn(() => []),
+      speaking: false,
+      pending: false,
+      paused: false,
+      onvoiceschanged: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    },
+  });
+}
+
+if (typeof window.SpeechSynthesisUtterance === 'undefined') {
+  Object.defineProperty(window, 'SpeechSynthesisUtterance', {
+    writable: true,
+    value: vi.fn(() => ({
+      text: '',
+      lang: '',
+      voice: null,
+      volume: 1,
+      rate: 1,
+      pitch: 1,
+      onend: null,
+      onerror: null,
+    })),
+  });
 }

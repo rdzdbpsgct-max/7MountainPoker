@@ -136,6 +136,58 @@ function writeLastSeenTier(tier: AppTier): void {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Feature Discovery — track which features the user has seen/interacted with
+// ---------------------------------------------------------------------------
+
+const DISCOVERY_KEY = 'poker-timer-feature-discovery';
+let memoryDiscovery: Set<AppFeature> | null = null;
+
+function loadDiscovery(): Set<AppFeature> {
+  if (memoryDiscovery) return memoryDiscovery;
+  try {
+    const raw = localStorage.getItem(DISCOVERY_KEY);
+    if (!raw) { memoryDiscovery = new Set(); return memoryDiscovery; }
+    const arr = JSON.parse(raw) as string[];
+    memoryDiscovery = new Set(arr.filter((f) => f in FEATURE_MIN_TIER) as AppFeature[]);
+    return memoryDiscovery;
+  } catch {
+    memoryDiscovery = new Set();
+    return memoryDiscovery;
+  }
+}
+
+function saveDiscovery(set: Set<AppFeature>): void {
+  memoryDiscovery = set;
+  try {
+    localStorage.setItem(DISCOVERY_KEY, JSON.stringify([...set]));
+  } catch { /* ignore */ }
+}
+
+/** Check if user has discovered (seen tooltip for) a feature. */
+export function isFeatureDiscovered(feature: AppFeature): boolean {
+  return loadDiscovery().has(feature);
+}
+
+/** Mark a feature as discovered. */
+export function markFeatureDiscovered(feature: AppFeature): void {
+  const set = loadDiscovery();
+  if (!set.has(feature)) {
+    set.add(feature);
+    saveDiscovery(set);
+  }
+}
+
+/** Get list of features not yet discovered. */
+export function getUndiscoveredFeatures(): AppFeature[] {
+  const discovered = loadDiscovery();
+  return ALL_FEATURES.filter((f) => !discovered.has(f));
+}
+
+// ---------------------------------------------------------------------------
+// Tier Transitions
+// ---------------------------------------------------------------------------
+
 export function consumeTierTransition(currentTier: AppTier): {
   previousTier: AppTier | null;
   downgraded: boolean;

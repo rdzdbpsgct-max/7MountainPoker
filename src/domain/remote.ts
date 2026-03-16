@@ -17,8 +17,25 @@
  * One QR scan — no second scan or paste required.
  */
 
-import Peer from 'peerjs';
+import type PeerType from 'peerjs';
 import type { DataConnection } from 'peerjs';
+
+/** Instance type alias for the dynamically-loaded Peer class. */
+type Peer = InstanceType<typeof PeerType>;
+
+// ---------------------------------------------------------------------------
+// Lazy PeerJS import — PeerJS (~117 KB) is only loaded when needed
+// ---------------------------------------------------------------------------
+
+let PeerConstructor: typeof PeerType | null = null;
+
+async function getPeerConstructor(): Promise<typeof PeerType> {
+  if (!PeerConstructor) {
+    const mod = await import('peerjs');
+    PeerConstructor = mod.default;
+  }
+  return PeerConstructor;
+}
 
 // ---------------------------------------------------------------------------
 // Peer ID generation
@@ -359,6 +376,7 @@ export interface RemoteHostCallbacks {
   onStatusChange: (status: HostStatus) => void;
   onError?: (error: string) => void;
   onDisplayCountChange?: (count: number) => void;
+  onControllerCountChange?: (count: number) => void;
   /** Called when a new display peer connects — host should push full DisplayMessage */
   onDisplayConnected?: () => void;
 }
@@ -372,7 +390,8 @@ export interface RemoteHostOptions {
 
 export class RemoteHost {
   private peer: Peer | null = null;
-  private conn: DataConnection | null = null;
+  /** Connected controller peers (smartphones) */
+  private controllerConns: Map<string, DataConnection> = new Map();
   private callbacks: RemoteHostCallbacks;
   private keepaliveInterval: ReturnType<typeof setInterval> | null = null;
   private _status: HostStatus = 'initializing';
@@ -414,6 +433,11 @@ export class RemoteHost {
     return this._status === 'connected';
   }
 
+  /** Number of currently connected controller peers */
+  get controllerCount(): number {
+    return this.controllerConns.size;
+  }
+
   /** True if this host was created from a persisted session (page refresh). */
   get resumed(): boolean {
     return this._resumed;
@@ -422,6 +446,11 @@ export class RemoteHost {
   /** Number of currently connected display peers */
   get displayCount(): number {
     return this.displayConnections.size;
+  }
+
+  /** Register a handler for when a display peer connects. */
+  setDisplayConnectedHandler(handler: (() => void) | undefined): void {
+    this.callbacks.onDisplayConnected = handler;
   }
 
   private async initHmacKey(): Promise<void> {
@@ -437,8 +466,9 @@ export class RemoteHost {
     this.callbacks.onStatusChange(status);
   }
 
-  private init(): void {
+  private async init(): Promise<void> {
     try {
+      const Peer = await getPeerConstructor();
       this.peer = new Peer(this._peerId);
 
       this.peer.on('open', () => {
@@ -487,21 +517,18 @@ export class RemoteHost {
               return;
             }
             if (isHelloMessage(msg) && msg.role === 'remote') {
-              // Remote controller hello — register and set up, but don't re-process the hello
+              // Remote controller hello — add to controller map
               identified = true;
               conn.off('data', onFirstData);
-              // Close previous remote connection cleanly (prevents ghost close handlers)
-              if (this.conn && this.conn !== conn) {
-                try { this.conn.close(); } catch { /* ignore */ }
-              }
-              this.conn = conn;
-              this.setupConnection(conn);
+              this.controllerConns.set(conn.peer, conn);
+              this.setupControllerConnection(conn);
               // Connection is already open at hello time — PeerJS won't re-fire 'open'.
               // Manually trigger what on('open') would have done:
               if (conn.open) {
                 this.setStatus('connected');
                 this.startKeepalive();
                 this.rateLimiter.reset();
+                this.callbacks.onControllerCountChange?.(this.controllerConns.size);
               }
               // Send immediate state snapshot
               if (this.lastBuiltState && conn.open) {
@@ -514,13 +541,14 @@ export class RemoteHost {
           // No hello at all → treat as legacy remote controller
           identified = true;
           conn.off('data', onFirstData);
-          this.conn = conn;
-          this.setupConnection(conn);
+          this.controllerConns.set(conn.peer, conn);
+          this.setupControllerConnection(conn);
           // Connection is already open (data was received) — manually activate
           if (conn.open) {
             this.setStatus('connected');
             this.startKeepalive();
             this.rateLimiter.reset();
+            this.callbacks.onControllerCountChange?.(this.controllerConns.size);
           }
           // Re-process this first message through normal handler
           this.handleIncoming(raw);
@@ -533,13 +561,14 @@ export class RemoteHost {
           if (!identified) {
             identified = true;
             conn.off('data', onFirstData);
-            this.conn = conn;
-            this.setupConnection(conn);
+            this.controllerConns.set(conn.peer, conn);
+            this.setupControllerConnection(conn);
             // Connection may already be open — manually activate
             if (conn.open) {
               this.setStatus('connected');
               this.startKeepalive();
               this.rateLimiter.reset();
+              this.callbacks.onControllerCountChange?.(this.controllerConns.size);
             }
           }
         }, 2000);
@@ -576,11 +605,13 @@ export class RemoteHost {
     }
   }
 
-  private setupConnection(conn: DataConnection): void {
+  private setupControllerConnection(conn: DataConnection): void {
     conn.on('open', () => {
+      this.controllerConns.set(conn.peer, conn);
       this.setStatus('connected');
       this.startKeepalive();
       this.rateLimiter.reset();
+      this.callbacks.onControllerCountChange?.(this.controllerConns.size);
       // Send immediate state snapshot so controller doesn't wait for next periodic update
       if (this.lastBuiltState && conn.open) {
         try {
@@ -596,19 +627,25 @@ export class RemoteHost {
     });
 
     conn.on('close', () => {
-      this.stopKeepalive();
-      this.conn = null;
-      // Go back to 'ready' — waiting for new connection
-      if (this._status !== 'error') {
-        this.setStatus('ready');
+      this.controllerConns.delete(conn.peer);
+      this.callbacks.onControllerCountChange?.(this.controllerConns.size);
+      // If no controllers left, go back to 'ready'
+      if (this.controllerConns.size === 0) {
+        this.stopKeepalive();
+        if (this._status !== 'error') {
+          this.setStatus('ready');
+        }
       }
     });
 
     conn.on('error', () => {
-      this.stopKeepalive();
-      this.conn = null;
-      if (this._status !== 'error') {
-        this.setStatus('ready');
+      this.controllerConns.delete(conn.peer);
+      this.callbacks.onControllerCountChange?.(this.controllerConns.size);
+      if (this.controllerConns.size === 0) {
+        this.stopKeepalive();
+        if (this._status !== 'error') {
+          this.setStatus('ready');
+        }
       }
     });
   }
@@ -674,11 +711,14 @@ export class RemoteHost {
   private startKeepalive(): void {
     this.stopKeepalive();
     this.keepaliveInterval = setInterval(() => {
-      if (this.conn?.open) {
-        try {
-          this.conn.send(JSON.stringify({ type: 'ping' }));
-        } catch {
-          // Connection lost
+      const pingMsg = JSON.stringify({ type: 'ping' });
+      // Ping all connected controllers
+      for (const [peerId, conn] of this.controllerConns) {
+        if (conn.open) {
+          try { conn.send(pingMsg); } catch {
+            this.controllerConns.delete(peerId);
+            this.callbacks.onControllerCountChange?.(this.controllerConns.size);
+          }
         }
       }
     }, 10_000);
@@ -691,7 +731,7 @@ export class RemoteHost {
     }
   }
 
-  /** Send state update to connected controller */
+  /** Send state update to all connected controllers */
   sendState(state: RemoteState['data']): void {
     const msg: RemoteState = {
       type: 'state',
@@ -700,11 +740,16 @@ export class RemoteHost {
       data: state,
     };
     this.lastBuiltState = msg;
-    if (!this.conn?.open) return;
-    try {
-      this.conn.send(JSON.stringify(msg));
-    } catch {
-      // Connection lost
+    if (this.controllerConns.size === 0) return;
+    const json = JSON.stringify(msg);
+    for (const [peerId, conn] of this.controllerConns) {
+      if (conn.open) {
+        try { conn.send(json); } catch {
+          // Connection lost — clean up
+          this.controllerConns.delete(peerId);
+          this.callbacks.onControllerCountChange?.(this.controllerConns.size);
+        }
+      }
     }
   }
 
@@ -725,7 +770,7 @@ export class RemoteHost {
     }
   }
 
-  /** Close the connection and destroy peer */
+  /** Close all connections and destroy peer */
   destroy(): void {
     this.stopKeepalive();
     clearHostSession();
@@ -734,10 +779,11 @@ export class RemoteHost {
       try { conn.close(); } catch { /* ignore */ }
     }
     this.displayConnections.clear();
-    if (this.conn) {
-      try { this.conn.close(); } catch { /* ignore */ }
-      this.conn = null;
+    // Close all controller connections
+    for (const [, conn] of this.controllerConns) {
+      try { conn.close(); } catch { /* ignore */ }
     }
+    this.controllerConns.clear();
     if (this.peer) {
       try { this.peer.destroy(); } catch { /* ignore */ }
       this.peer = null;
@@ -795,10 +841,11 @@ export class RemoteController {
     this.callbacks.onStatusChange(status);
   }
 
-  private connect(): void {
+  private async connect(): Promise<void> {
     if (this.destroyed) return;
 
     try {
+      const Peer = await getPeerConstructor();
       this.peer = new Peer();
 
       // 10s timeout: if 'open' never fires → set error status

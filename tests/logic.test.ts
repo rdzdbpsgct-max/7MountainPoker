@@ -159,6 +159,10 @@ import {
   CUSTOMIZABLE_ANNOUNCEMENTS,
   getLayoutConfig,
   DISPLAY_LAYOUTS,
+  computeIcmEquity,
+  computeIcmDeal,
+  UndoStack,
+  createUndoSnapshot,
 } from '../src/domain/logic';
 import {
   applyChipPreset,
@@ -7428,5 +7432,173 @@ describe('Presentation API', () => {
   it('buildPresentationUrl uses current origin', () => {
     const url = buildPresentationUrl('PKR-99999');
     expect(url).toMatch(/^https?:\/\//);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ICM Calculator
+// ---------------------------------------------------------------------------
+describe('ICM Calculator', () => {
+  describe('computeIcmEquity', () => {
+    it('returns zeros for empty inputs', () => {
+      expect(computeIcmEquity([], [])).toEqual([]);
+      expect(computeIcmEquity([1000], [])).toEqual([0]);
+    });
+
+    it('single player gets all payouts', () => {
+      const equities = computeIcmEquity([5000], [100, 50, 25]);
+      expect(equities[0]).toBeCloseTo(175, 0);
+    });
+
+    it('equal stacks produce equal equity', () => {
+      const equities = computeIcmEquity([5000, 5000], [100, 50]);
+      expect(equities[0]).toBeCloseTo(equities[1], 2);
+      expect(equities[0]).toBeCloseTo(75, 0); // each gets (100+50)/2
+    });
+
+    it('chip leader has higher equity but not proportional to chips', () => {
+      // Classic ICM: 70% chips ≠ 70% equity due to non-linear payout
+      const equities = computeIcmEquity([7000, 3000], [100, 50]);
+      expect(equities[0]).toBeGreaterThan(equities[1]);
+      // Chip leader has 70% of chips but < 70% of total prize
+      expect(equities[0]).toBeLessThan(105); // < 70% of 150
+      expect(equities[0]).toBeGreaterThan(75); // > 50% of 150
+    });
+
+    it('3-player known ICM values', () => {
+      // Classic example: 5000/3000/2000 stacks, payouts 50/30/20
+      const equities = computeIcmEquity([5000, 3000, 2000], [50, 30, 20]);
+      const total = equities.reduce((a, b) => a + b, 0);
+      expect(total).toBeCloseTo(100, 0); // total payouts preserved
+      // Chip leader gets most
+      expect(equities[0]).toBeGreaterThan(equities[1]);
+      expect(equities[1]).toBeGreaterThan(equities[2]);
+    });
+
+    it('ignores zero-stack players (eliminated)', () => {
+      const equities = computeIcmEquity([5000, 0, 3000], [100, 50]);
+      expect(equities[1]).toBe(0);
+      expect(equities[0] + equities[2]).toBeCloseTo(150, 0);
+    });
+
+    it('total equity equals total payouts', () => {
+      const stacks = [8000, 5000, 4000, 3000];
+      const payouts = [200, 120, 80, 40];
+      const equities = computeIcmEquity(stacks, payouts);
+      const total = equities.reduce((a, b) => a + b, 0);
+      expect(total).toBeCloseTo(440, 0);
+    });
+
+    it('more players than payout places', () => {
+      const stacks = [4000, 3000, 2000, 1000];
+      const payouts = [100, 50]; // only 2 paid places
+      const equities = computeIcmEquity(stacks, payouts);
+      const total = equities.reduce((a, b) => a + b, 0);
+      expect(total).toBeCloseTo(150, 0);
+      // All players have some equity (even unpaid positions matter)
+      expect(equities[3]).toBeGreaterThan(0);
+    });
+  });
+
+  describe('computeIcmDeal', () => {
+    it('returns structured results with percentages', () => {
+      const results = computeIcmDeal([6000, 4000], [100, 50]);
+      expect(results).toHaveLength(2);
+      expect(results[0].stackPercent).toBeCloseTo(60, 0);
+      expect(results[1].stackPercent).toBeCloseTo(40, 0);
+      expect(results[0].equityPercent + results[1].equityPercent).toBeCloseTo(100, 0);
+    });
+
+    it('handles all-zero stacks', () => {
+      const results = computeIcmDeal([0, 0], [100, 50]);
+      expect(results[0].equity).toBe(0);
+      expect(results[1].equity).toBe(0);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Undo Stack
+// ---------------------------------------------------------------------------
+describe('UndoStack', () => {
+  const makeSnapshot = (action: string) =>
+    createUndoSnapshot(action, [{ id: '1', name: 'Alice', status: 'active', rebuys: 0, addOn: false, seatIndex: 0, placement: null, knockouts: 0 }], undefined, [], 0);
+
+  it('starts empty', () => {
+    const stack = new UndoStack();
+    expect(stack.canUndo).toBe(false);
+    expect(stack.canRedo).toBe(false);
+    expect(stack.undoCount).toBe(0);
+  });
+
+  it('push adds entry and clears redo', () => {
+    let stack = new UndoStack();
+    stack = stack.push(makeSnapshot('eliminate'));
+    expect(stack.canUndo).toBe(true);
+    expect(stack.undoCount).toBe(1);
+    expect(stack.undoLabel).toBe('eliminate');
+  });
+
+  it('undo restores previous state', () => {
+    let stack = new UndoStack();
+    const before = makeSnapshot('eliminate');
+    stack = stack.push(before);
+    const current = makeSnapshot('current');
+    const result = stack.undo(current);
+    expect(result).not.toBeNull();
+    const [newStack, restored] = result!;
+    expect(restored.actionKey).toBe('eliminate');
+    expect(newStack.canUndo).toBe(false);
+    expect(newStack.canRedo).toBe(true);
+  });
+
+  it('redo restores undone state', () => {
+    let stack = new UndoStack();
+    stack = stack.push(makeSnapshot('eliminate'));
+    const current = makeSnapshot('current');
+    const [afterUndo] = stack.undo(current)!;
+    const redoCurrent = makeSnapshot('after-undo');
+    const result = afterUndo.redo(redoCurrent);
+    expect(result).not.toBeNull();
+    const [afterRedo, restored] = result!;
+    expect(restored.actionKey).toBe('current');
+    expect(afterRedo.canUndo).toBe(true);
+    expect(afterRedo.canRedo).toBe(false);
+  });
+
+  it('push clears redo stack', () => {
+    let stack = new UndoStack();
+    stack = stack.push(makeSnapshot('a'));
+    const [afterUndo] = stack.undo(makeSnapshot('b'))!;
+    expect(afterUndo.canRedo).toBe(true);
+    const afterPush = afterUndo.push(makeSnapshot('c'));
+    expect(afterPush.canRedo).toBe(false);
+  });
+
+  it('respects max depth (30)', () => {
+    let stack = new UndoStack();
+    for (let i = 0; i < 35; i++) {
+      stack = stack.push(makeSnapshot(`action-${i}`));
+    }
+    expect(stack.undoCount).toBe(30);
+  });
+
+  it('clear resets everything', () => {
+    let stack = new UndoStack();
+    stack = stack.push(makeSnapshot('a'));
+    stack = stack.push(makeSnapshot('b'));
+    const cleared = stack.clear();
+    expect(cleared.canUndo).toBe(false);
+    expect(cleared.canRedo).toBe(false);
+  });
+
+  it('undo returns null when empty', () => {
+    const stack = new UndoStack();
+    expect(stack.undo(makeSnapshot('x'))).toBeNull();
+  });
+
+  it('redo returns null when empty', () => {
+    const stack = new UndoStack();
+    expect(stack.redo(makeSnapshot('x'))).toBeNull();
   });
 });

@@ -55,6 +55,9 @@ describe('i18n untranslated detection', () => {
   // Keys that are legitimately identical in both languages (brand names, symbols, etc.)
   const ALLOWED_IDENTICAL = new Set([
     'app.title',
+    'undo.actions.eliminate',
+    'undo.actions.rebuy',
+    'undo.actions.reEntry',
   ]);
 
   it('identifies potentially untranslated keys (DE === EN, excluding known exceptions)', () => {

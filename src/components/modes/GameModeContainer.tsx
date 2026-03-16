@@ -29,6 +29,16 @@ type TimerController = ReturnType<typeof useTimer>;
 
 // ─── Grouped Props Interfaces ──────────────────────────────────────────────
 
+/** Undo/Redo state for Controls */
+export interface GameModeUndoState {
+  canUndo: boolean;
+  canRedo: boolean;
+  undoLabel: string | null;
+  redoLabel: string | null;
+  onUndo: () => void;
+  onRedo: () => void;
+}
+
 /** Computed/derived tournament game state */
 export interface GameModeState {
   rebuyActive: boolean;
@@ -80,6 +90,7 @@ export interface GameModeActions {
   onNextHand: () => void;
   onShowCallTheClock: () => void;
   onShowPayoutOverlay: () => void;
+  onShowIcm: () => void;
   onUpdateTables: (tables: Table[]) => void;
   onTableMoves: (moves: TableMove[]) => void;
   onSettingsChange: Dispatch<SetStateAction<Settings>>;
@@ -97,9 +108,10 @@ interface Props {
   state: GameModeState;
   ui: GameModeUiState;
   actions: GameModeActions;
+  undo?: GameModeUndoState;
 }
 
-export function GameModeContainer({ config, settings, timer, state, ui, actions }: Props) {
+export function GameModeContainer({ config, settings, timer, state, ui, actions, undo }: Props) {
   const { t } = useTranslation();
   const { onUpdateTables } = actions;
 
@@ -220,6 +232,12 @@ export function GameModeContainer({ config, settings, timer, state, ui, actions 
               showHandForHand={state.bubbleActive}
               callTheClockSeconds={settings.callTheClockSeconds}
               onCallTheClock={actions.onShowCallTheClock}
+              canUndo={undo?.canUndo}
+              canRedo={undo?.canRedo}
+              onUndo={undo?.onUndo}
+              onRedo={undo?.onRedo}
+              undoLabel={undo?.undoLabel}
+              redoLabel={undo?.redoLabel}
             />
           </div>
 
@@ -279,6 +297,12 @@ export function GameModeContainer({ config, settings, timer, state, ui, actions 
               onToggleFullscreen={actions.onToggleFullscreen}
               onShowInstallGuide={actions.onShowInstallGuide}
             />
+            <button
+              onClick={actions.onShowIcm}
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm transition-colors"
+            >
+              {t('icm.title')}
+            </button>
             <button
               onClick={actions.onExitToSetup}
               className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm transition-colors"

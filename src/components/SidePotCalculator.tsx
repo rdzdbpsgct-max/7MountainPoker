@@ -1,16 +1,20 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { calculateSidePots, resolvePotWinners, generateId } from '../domain/logic';
-import type { PlayerPotInput, PlayerPotStatus, PotResult, PotWinnerAssignment, PlayerPayout, SidePotPayoutResult } from '../domain/types';
+import type { Player, PlayerPotInput, PlayerPotStatus, PotResult, PotWinnerAssignment, PlayerPayout, SidePotPayoutResult } from '../domain/types';
 import { useTranslation } from '../i18n';
 import { showToast } from '../domain/toast';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { NumberStepper } from './NumberStepper';
 
+type SidePotMode = 'quick' | 'advanced';
+
 interface Props {
   onClose: () => void;
   /** Called when pot calculation results change (for TV display integration) */
   onResultChange?: (data: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] } | null) => void;
+  /** Active tournament players — enables Quick Mode when provided with stacks */
+  tournamentPlayers?: Player[];
 }
 
 const DEFAULT_INVESTED = 1000;
@@ -33,9 +37,47 @@ const EXAMPLE_DATA: PlayerPotInput[] = [
   { id: 'ex-e', name: 'Eve', invested: 3000, status: 'active' },
 ];
 
-export function SidePotCalculator({ onClose, onResultChange }: Props) {
+export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }: Props) {
   const { t } = useTranslation();
   const dialogRef = useDialogA11y(onClose);
+
+  // Quick Mode: active tournament players with tracked stacks
+  const playersWithStacks = useMemo(
+    () => (tournamentPlayers ?? []).filter((p) => p.status === 'active' && typeof p.chips === 'number' && p.chips > 0),
+    [tournamentPlayers],
+  );
+  const hasQuickModeData = playersWithStacks.length >= 2;
+
+  const [mode, setMode] = useState<SidePotMode>(hasQuickModeData ? 'quick' : 'advanced');
+
+  // Quick Mode state: set of player IDs that are all-in
+  const [allInIds, setAllInIds] = useState<Set<string>>(new Set());
+
+  const quickPlayers = useMemo<PlayerPotInput[]>(() => {
+    if (mode !== 'quick') return [];
+    return playersWithStacks.map((p) => ({
+      id: p.id,
+      name: p.name,
+      invested: p.chips ?? 0,
+      status: (allInIds.has(p.id) ? 'all-in' : 'active') as PlayerPotStatus,
+    }));
+  }, [mode, playersWithStacks, allInIds]);
+
+  const handleToggleAllIn = useCallback((playerId: string) => {
+    setAllInIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(playerId)) next.delete(playerId);
+      else next.add(playerId);
+      return next;
+    });
+  }, []);
+
+  const quickResult = useMemo(
+    () => (mode === 'quick' ? calculateSidePots(quickPlayers) : null),
+    [mode, quickPlayers],
+  );
+
+  // Advanced Mode state
   const [players, setPlayers] = useState<PlayerPotInput[]>(() => [
     createPlayer(t('sidePot.playerDefault', { n: 1 })),
     createPlayer(t('sidePot.playerDefault', { n: 2 }), 500, 'all-in'),
@@ -114,7 +156,7 @@ export function SidePotCalculator({ onClose, onResultChange }: Props) {
     setShowPayout(false);
   }, []);
 
-  const result = useMemo(() => calculateSidePots(players), [players]);
+  const result = useMemo(() => calculateSidePots(mode === 'quick' ? quickPlayers : players), [mode, quickPlayers, players]);
 
   // Derive valid winner selections: remove stale pot indices and ineligible players
   const validWinnerSelections = useMemo(() => {
@@ -268,8 +310,108 @@ export function SidePotCalculator({ onClose, onResultChange }: Props) {
           </div>
         )}
 
-        {/* Player rows */}
-        <div className="px-5 py-4 space-y-2">
+        {/* Mode toggle — only shown when tournament players with stacks are available */}
+        {hasQuickModeData && (
+          <div className="px-5 pt-4 pb-1">
+            <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-700/40 overflow-hidden text-xs font-medium">
+              <button
+                onClick={() => setMode('quick')}
+                className={`px-3 py-1.5 transition-colors ${
+                  mode === 'quick'
+                    ? 'text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+                style={mode === 'quick' ? { backgroundColor: 'var(--accent-600)' } : undefined}
+              >
+                {t('sidePot.quickMode')}
+              </button>
+              <button
+                onClick={() => setMode('advanced')}
+                className={`px-3 py-1.5 transition-colors ${
+                  mode === 'advanced'
+                    ? 'text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+                style={mode === 'advanced' ? { backgroundColor: 'var(--accent-600)' } : undefined}
+              >
+                {t('sidePot.advancedMode')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Mode UI */}
+        {mode === 'quick' && (
+          <div className="px-5 py-4 space-y-3 animate-fade-in">
+            {playersWithStacks.map((player) => {
+              const isAllIn = allInIds.has(player.id);
+              return (
+                <div key={player.id} className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{player.name}</span>
+                    <span className="text-xs font-mono tabular-nums text-gray-500 dark:text-gray-400">
+                      {(player.chips ?? 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleToggleAllIn(player.id)}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${
+                      isAllIn
+                        ? 'bg-red-500 dark:bg-red-600 text-white border-red-500 dark:border-red-600 shadow-sm'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600/60 hover:border-gray-400 dark:hover:border-gray-500'
+                    }`}
+                    title={t('sidePot.quickToggleAllIn')}
+                  >
+                    {isAllIn ? t('sidePot.quickAllIn') : t('sidePot.quickStillPlaying')}
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* Quick Mode results — plain English */}
+            {quickResult && quickResult.pots.length > 0 && (
+              <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/40 rounded-lg space-y-1.5 animate-fade-in">
+                {quickResult.pots.map((pot) => {
+                  const label = pot.type === 'main'
+                    ? t('sidePot.quickResultMainPot')
+                    : t('sidePot.quickResultSidePot', { n: pot.index });
+                  return (
+                    <div key={pot.index} className="text-sm text-gray-700 dark:text-gray-300">
+                      <span className="font-semibold">{label}:</span>{' '}
+                      <span className="font-mono tabular-nums font-bold" style={{ color: 'var(--accent-text)' }}>
+                        {pot.amount.toLocaleString()}
+                      </span>{' '}
+                      <span className="text-gray-500 dark:text-gray-400">
+                        {t('sidePot.quickResultBetween')} {pot.eligiblePlayerNames.join(', ')}
+                      </span>
+                    </div>
+                  );
+                })}
+                <div className="pt-1.5 border-t border-gray-200 dark:border-gray-700/40 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Total</span>
+                  <span className="text-sm font-bold font-mono tabular-nums text-gray-800 dark:text-gray-100">
+                    {quickResult.total.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Mode warnings */}
+            {quickResult && quickResult.warnings.length > 0 && (
+              <div className="space-y-1">
+                {quickResult.warnings.map((w, i) => (
+                  <div key={i} className="flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+                    <span className="shrink-0 mt-0.5">⚠</span>
+                    <span>{w}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Player rows (Advanced Mode) */}
+        {mode === 'advanced' && <div className="px-5 py-4 space-y-2">
           {/* Column headers */}
           <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-medium px-1">
             <span className="w-24 shrink-0">{t('sidePot.headerName')}</span>
@@ -357,10 +499,10 @@ export function SidePotCalculator({ onClose, onResultChange }: Props) {
               {t('sidePot.reset')}
             </button>
           </div>
-        </div>
+        </div>}
 
-        {/* Warnings */}
-        {result.warnings.length > 0 && (
+        {/* Warnings (Advanced Mode only) */}
+        {mode === 'advanced' && result.warnings.length > 0 && (
           <div className="px-5 pb-2 space-y-1">
             {result.warnings.map((w, i) => (
               <div key={i} className="flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400">
@@ -371,8 +513,8 @@ export function SidePotCalculator({ onClose, onResultChange }: Props) {
           </div>
         )}
 
-        {/* Pot Results + Winner Selection */}
-        {result.pots.length > 0 && (
+        {/* Pot Results + Winner Selection (Advanced Mode) */}
+        {mode === 'advanced' && result.pots.length > 0 && (
           <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-700/40 space-y-2">
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 font-medium">
@@ -475,8 +617,8 @@ export function SidePotCalculator({ onClose, onResultChange }: Props) {
           </div>
         )}
 
-        {/* Payout Overview */}
-        {showPayout && payoutResult && (
+        {/* Payout Overview (Advanced Mode) */}
+        {mode === 'advanced' && showPayout && payoutResult && (
           <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-700/40 space-y-2 animate-fade-in">
             <h3 className="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 font-medium mb-2">
               {t('sidePot.payoutTitle')}
@@ -537,8 +679,8 @@ export function SidePotCalculator({ onClose, onResultChange }: Props) {
           </div>
         )}
 
-        {/* Empty state */}
-        {result.pots.length === 0 && players.length >= 2 && (
+        {/* Empty state (Advanced Mode) */}
+        {mode === 'advanced' && result.pots.length === 0 && players.length >= 2 && (
           <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-700/40 text-center text-sm text-gray-400 dark:text-gray-500">
             {t('sidePot.noResult')}
           </div>
