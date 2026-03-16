@@ -3259,6 +3259,14 @@ describe('QR code decoding', () => {
   });
 });
 
+describe('SharedResultView currency fallback', () => {
+  it('decodeResultFromQR returns undefined currency for QR-encoded results', () => {
+    const result = decodeResultFromQR('Test|2025-01-01T00:00:00Z|2|10|20|0|0|0|60|5|Alice:1:15:0:0:0;Bob:2:5:0:0:0');
+    expect(result).not.toBeNull();
+    expect(result!.currency).toBeUndefined();
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Per-player stack tracking
 // ---------------------------------------------------------------------------

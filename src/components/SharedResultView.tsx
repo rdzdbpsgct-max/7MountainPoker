@@ -1,4 +1,5 @@
-import type { TournamentResult } from '../domain/types';
+import type { TournamentResult, Currency } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import { useTranslation } from '../i18n';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { formatElapsedTime } from '../domain/logic';
@@ -11,6 +12,7 @@ interface Props {
 export function SharedResultView({ result, onClose }: Props) {
   const { t } = useTranslation();
   const dialogRef = useDialogA11y(onClose);
+  const currencySymbol = CURRENCY_SYMBOLS[(result.currency ?? 'EUR') as Currency];
 
   const placeEmoji = (place: number) => {
     if (place === 1) return '\u{1F3C6}';
@@ -64,10 +66,9 @@ export function SharedResultView({ result, onClose }: Props) {
                     {player.name}
                   </span>
                 </div>
-                {/* TODO: use result.currency when available */}
                 {player.payout > 0 && (
                   <span className="text-sm font-bold shrink-0 ml-3" style={{ color: 'var(--accent-text)' }}>
-                    {player.payout.toFixed(2)} {t('unit.eur')}
+                    {player.payout.toFixed(2)} {currencySymbol}
                   </span>
                 )}
               </div>
@@ -78,7 +79,7 @@ export function SharedResultView({ result, onClose }: Props) {
           <div className="bg-white/80 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/40 rounded-xl px-4 py-3 space-y-1">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">{t('finished.prizePool')}</span>
-              <span className="text-gray-900 dark:text-white font-medium">{result.prizePool.toFixed(2)} {t('unit.eur')}</span>
+              <span className="text-gray-900 dark:text-white font-medium">{result.prizePool.toFixed(2)} {currencySymbol}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">{t('finished.players')}</span>
@@ -86,7 +87,7 @@ export function SharedResultView({ result, onClose }: Props) {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">{t('finished.buyIn')}</span>
-              <span className="text-gray-900 dark:text-white">{result.buyIn} {t('unit.eur')}</span>
+              <span className="text-gray-900 dark:text-white">{result.buyIn} {currencySymbol}</span>
             </div>
             {result.totalRebuys > 0 && (
               <div className="flex justify-between text-sm">
@@ -97,7 +98,7 @@ export function SharedResultView({ result, onClose }: Props) {
             {result.bountyEnabled && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{t('finished.bountyLabel')}</span>
-                <span className="text-gray-900 dark:text-white">{result.bountyAmount} {t('unit.eur')} / KO</span>
+                <span className="text-gray-900 dark:text-white">{result.bountyAmount} {currencySymbol} / KO</span>
               </div>
             )}
             <div className="flex justify-between text-sm">
