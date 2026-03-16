@@ -200,7 +200,7 @@ export function TournamentFinished({
             <div className="divide-y divide-gray-100 dark:divide-gray-800/30">
               {events.map(event => (
                 <div key={event.id} className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 font-mono">
-                  {formatEventAsText(event, playerNameMap, t)}
+                  {formatEventAsText(event, playerNameMap, t as never)}
                 </div>
               ))}
             </div>

@@ -47,7 +47,7 @@ export function TournamentLog({ events, players, onClose }: Props) {
     const text = filteredEvents
       .slice()
       .reverse() // Copy in chronological order
-      .map((e) => formatEventAsText(e, playerNameMap, t))
+      .map((e) => formatEventAsText(e, playerNameMap, t as never))
       .join('\n');
     try {
       await navigator.clipboard.writeText(text);
@@ -104,7 +104,7 @@ export function TournamentLog({ events, players, onClose }: Props) {
               key={event.id}
               className="px-3 py-2 bg-gray-50/80 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700/40 rounded-lg text-sm text-gray-700 dark:text-gray-300 font-mono"
             >
-              {formatEventAsText(event, playerNameMap, t)}
+              {formatEventAsText(event, playerNameMap, t as never)}
             </div>
           ))
         )}

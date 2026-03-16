@@ -5,6 +5,18 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.9.0] – 2026-03-16
+
+### Tournament Event Log & Break Controls Polish
+
+- **Turnier-Protokoll (Event Log)**: 📋 Modal im Spielmodus zeigt chronologisches Turnier-Protokoll. Drei Filter (Alle/Eliminations/Rebuys/Levels), Text-Export. Bestehende `TournamentLog.tsx` mit i18n-formatiertem Event-Text aufgewertet. Events als "Verlauf"-Tab auf Ergebnis-Screen.
+- **Break Skip/Extend poliert**: Pausen-Buttons in Controls (+2 Min / +5 Min Verlängerung statt vorher +1/+5, Überspringen). Sprachansagen (`announceBreakSkipped`, `announceBreakExtended`). Events: `break_skipped`, `break_extended`.
+- **Event-Formatierung i18n**: Alle 22 Event-Typen bilingual (DE/EN) via optionalem `t`-Parameter in `formatEventAsText()` — rückwärtskompatibel mit hardkodiertem Deutsch.
+- **~48 neue Translation-Keys** (24 DE + 24 EN)
+- **35 neue Tests** — **1191 Tests gesamt**
+
+---
+
 ## [6.8.0] – 2026-03-16
 
 ### Help Center: Game Mode + Content-Update

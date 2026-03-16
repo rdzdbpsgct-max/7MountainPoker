@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.8.0
+**Version**: 6.9.0
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1156 tests, single run)
+npm run test         # Vitest run (1191 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -100,7 +100,8 @@ src/
 │   ├── ThemeSwitcher.tsx        # System/Light/Dark 3-way toggle
 │   ├── VoiceSwitcher.tsx        # Sound/Voice segmented toggle in header
 │   ├── TimerDisplay.tsx         # Main timer, blinds display, progress bar
-│   ├── TournamentFinished.tsx   # Results & payout display with screenshot/share/text-copy/CSV/QR
+│   ├── TournamentLog.tsx        # Tournament event log modal — filter, copy, i18n formatted events
+│   ├── TournamentFinished.tsx   # Results & payout display with screenshot/share/text-copy/CSV/QR + event log tab
 │   ├── SharedLeagueView.tsx      # Shared league standings from QR code
 │   ├── SharedResultView.tsx     # Read-only modal for QR-shared tournament results
 │   ├── TournamentHistory.tsx    # Tournament history modal with standings, player stats, export
@@ -134,6 +135,7 @@ src/
 │   ├── series.ts                # Tournament series management: CRUD, 3 ranking modes, standings, text/CSV/JSON export
 │   ├── customAudio.ts           # Custom audio file management: upload, mapping to announcements, playback integration
 │   ├── pdfExport.ts             # PDF export for tournament results (jsPDF + jspdf-autotable)
+│   ├── tournamentEvents.ts       # Tournament event creation, filtering, i18n-aware text formatting
 │   ├── toast.ts                  # Toast notification context and hook (useToast)
 │   ├── helpContent.ts            # Bilingual help content data — sections, FAQ, keyboard shortcuts
 │   ├── displayChannel.ts         # BroadcastChannel communication for TV display window
@@ -190,7 +192,7 @@ src/
 
 tests/
 ├── logic.test.ts                # 530+ unit tests for domain logic + PeerJS remote control + undo/redo + ICM + cloud export
-├── components.test.tsx          # 95 UI component tests (NumberStepper, CollapsibleSection, PrintView, CallTheClock, BubbleIndicator, RebuyStatus, ChevronIcon, CollapsibleSubSection, LanguageSwitcher, ThemeSwitcher, ErrorBoundary, useTimer, useConfirmDialog, LoadingFallback, ConfigEditor, SettingsPanel, PlayerPanel)
+├── components.test.tsx          # 98 UI component tests (NumberStepper, CollapsibleSection, PrintView, CallTheClock, BubbleIndicator, RebuyStatus, ChevronIcon, CollapsibleSubSection, LanguageSwitcher, ThemeSwitcher, ErrorBoundary, useTimer, useConfirmDialog, LoadingFallback, ConfigEditor, SettingsPanel, PlayerPanel, TournamentLog)
 ├── edge-cases.test.ts           # 88 edge case tests (timer, blinds, players, multi-table, format, tournament, validation, helpers)
 ├── sound-speech.test.ts         # 54 sound effects + speech announcement tests
 ├── integration.test.ts          # 36 cross-module integration tests (checkpoint, timer, config compat, tournament flow)
@@ -198,7 +200,7 @@ tests/
 ├── hooks.test.tsx               # 25 useKeyboardShortcuts + useGameEvents tests
 ├── i18n.test.ts                 # 24 i18n key parity, parameters, placeholder consistency, quality
 ├── persistence.test.ts          # 24 config/settings/checkpoint save/load round-trips
-├── controls.test.tsx            # 22 Controls component tests (buttons, callbacks, ARIA)
+├── controls.test.tsx            # 26 Controls component tests (buttons, callbacks, ARIA, break controls)
 ├── display-channel.test.ts      # 14 BroadcastChannel serialization + communication tests
 ├── entitlements.test.ts         # 8 feature gate / entitlement tests
 ├── toast.test.ts                # 6 toast notification system tests
@@ -365,8 +367,8 @@ public/
 
 ## Testing
 
-- **1156 tests** across 17 test files + 1 setup file
-- Core files: `logic.test.ts` (654), `components.test.tsx` (95), `edge-cases.test.ts` (88), `sound-speech.test.ts` (54), `integration.test.ts` (36), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (22), `display-channel.test.ts` (14), `entitlements.test.ts` (8), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service
+- **1191 tests** across 17 test files + 1 setup file
+- Core files: `logic.test.ts` (665), `components.test.tsx` (98), `edge-cases.test.ts` (88), `sound-speech.test.ts` (56), `integration.test.ts` (36), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (26), `display-channel.test.ts` (14), `entitlements.test.ts` (8), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service, event log, break controls
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -403,6 +405,14 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.9.0 — Tournament Event Log & Break Controls Polish
+
+- **Turnier-Protokoll (Event Log)**: 📋 Modal im Spielmodus zeigt chronologisches Turnier-Protokoll. Drei Filter (Alle/Eliminations/Rebuys/Levels), Text-Export. Bestehende `TournamentLog.tsx` mit i18n-formatiertem Event-Text aufgewertet. Events als "Verlauf"-Tab auf Ergebnis-Screen.
+- **Break Skip/Extend**: Pausen-Buttons in Controls (+2 Min / +5 Min Verlängerung, Überspringen). Sprachansagen (`announceBreakSkipped`, `announceBreakExtended`). Events: `break_skipped`, `break_extended`.
+- **Event-Formatierung i18n**: Alle 22 Event-Typen bilingual (DE/EN) via optionalem `t`-Parameter in `formatEventAsText()` — rückwärtskompatibel mit hardkodiertem Deutsch.
+- **~48 neue Translation-Keys** (24 DE + 24 EN): `event.*` (22 Keys), `controls.skipBreak/extendBreak2/extendBreak5`, `voice.breakSkipped/breakExtended`, `finished.tabStandings/tabLog`, `log.*` (filter/title/close/empty/copyText/copied)
+- **35 neue Tests** — **1191 Tests gesamt** (17 Testdateien)
 
 ### v6.8.0 — Phase 1: Stability, Undo/Redo & App.tsx Extraction
 
