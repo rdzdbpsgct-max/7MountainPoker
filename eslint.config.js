@@ -20,6 +20,9 @@ export default defineConfig([
       security: security,
     },
     rules: {
+      // Code quality
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      '@typescript-eslint/no-explicit-any': 'error',
       // Security rules (warn to avoid blocking existing code)
       'security/detect-object-injection': 'off', // too many false positives with TypeScript
       'security/detect-non-literal-regexp': 'warn',
