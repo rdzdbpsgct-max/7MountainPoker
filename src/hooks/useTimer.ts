@@ -201,10 +201,6 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
       }
       return next;
     });
-    // Eagerly restart the tick interval — when status was already 'running',
-    // the useEffect won't re-fire (no status change), so we must restart here.
-    // If the level has no time left, the tick is a no-op and useEffect cleans up.
-    intervalRef.current = setInterval(tick, TICK_INTERVAL_MS);
   }, [levels, clearTick, tick]);
 
   const previousLevel = useCallback(() => {
@@ -220,8 +216,6 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
       }
       return next;
     });
-    // Eagerly restart the tick interval (same reason as nextLevel above)
-    intervalRef.current = setInterval(tick, TICK_INTERVAL_MS);
   }, [levels, clearTick, tick]);
 
   const resetLevel = useCallback(() => {

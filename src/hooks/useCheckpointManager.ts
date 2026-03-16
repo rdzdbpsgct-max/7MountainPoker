@@ -34,39 +34,68 @@ export function useCheckpointManager({
   const checkpointIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const checkpointDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Keep refs for values that change frequently so the periodic interval always reads fresh data
+  const remainingSecondsRef = useRef(remainingSeconds);
+  useEffect(() => { remainingSecondsRef.current = remainingSeconds; });
+
+  const configRef = useRef(config);
+  useEffect(() => { configRef.current = config; });
+
+  const settingsRef = useRef(settings);
+  useEffect(() => { settingsRef.current = settings; });
+
+  const currentLevelIndexRef = useRef(currentLevelIndex);
+  useEffect(() => { currentLevelIndexRef.current = currentLevelIndex; });
+
+  const tournamentEventsRef = useRef(tournamentEvents);
+  useEffect(() => { tournamentEventsRef.current = tournamentEvents; });
+
+  // Debounced save on state changes (config, settings, level, events)
   useEffect(() => {
     if (mode !== 'game') return;
-    const doSave = () => {
+    if (checkpointDebounceRef.current) clearTimeout(checkpointDebounceRef.current);
+    checkpointDebounceRef.current = setTimeout(() => {
       saveCheckpoint({
         version: 1,
         config,
         settings,
         timer: {
           currentLevelIndex,
-          remainingSeconds,
+          remainingSeconds: remainingSecondsRef.current,
         },
         savedAt: new Date().toISOString(),
         events: tournamentEvents,
       });
-    };
-    // Debounce save to avoid blocking during rapid config mutations (e.g. elimination cascade)
-    if (checkpointDebounceRef.current) clearTimeout(checkpointDebounceRef.current);
-    checkpointDebounceRef.current = setTimeout(doSave, 500);
-    // For running timer: periodic save every 5s (instead of every tick)
-    if (checkpointIntervalRef.current) clearInterval(checkpointIntervalRef.current);
-    if (timerStatus === 'running') {
-      checkpointIntervalRef.current = setInterval(doSave, 5000);
-    }
+    }, 500);
     return () => {
-      if (checkpointIntervalRef.current) {
-        clearInterval(checkpointIntervalRef.current);
-        checkpointIntervalRef.current = null;
-      }
       if (checkpointDebounceRef.current) {
         clearTimeout(checkpointDebounceRef.current);
         checkpointDebounceRef.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- remainingSeconds intentionally excluded: interval handles periodic saves
-  }, [mode, config, settings, currentLevelIndex, timerStatus, tournamentEvents]);
+  }, [mode, config, settings, currentLevelIndex, tournamentEvents, remainingSeconds]);
+
+  // Periodic save every 5s while timer is running — reads from refs to avoid stale closures
+  useEffect(() => {
+    if (mode !== 'game' || timerStatus !== 'running') return;
+    checkpointIntervalRef.current = setInterval(() => {
+      saveCheckpoint({
+        version: 1,
+        config: configRef.current,
+        settings: settingsRef.current,
+        timer: {
+          currentLevelIndex: currentLevelIndexRef.current,
+          remainingSeconds: remainingSecondsRef.current,
+        },
+        savedAt: new Date().toISOString(),
+        events: tournamentEventsRef.current,
+      });
+    }, 5000);
+    return () => {
+      if (checkpointIntervalRef.current) {
+        clearInterval(checkpointIntervalRef.current);
+        checkpointIntervalRef.current = null;
+      }
+    };
+  }, [mode, timerStatus]);
 }

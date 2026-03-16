@@ -125,6 +125,9 @@ let ready = false;
 let db: IDBPDatabase | null = null;
 let useLocalStorageFallback = false;
 
+/** Per-store write queue to serialize IndexedDB persistence and prevent race conditions. */
+const persistQueue = new Map<string, Promise<void>>();
+
 // ---------------------------------------------------------------------------
 // Initialization
 // ---------------------------------------------------------------------------
@@ -276,11 +279,15 @@ function persistStore(store: StoreKey): void {
     return;
   }
   if (!db) return;
-  persistToIndexedDB(store).catch((err) => {
-    console.warn(`[storage] Failed to persist "${store}" to IndexedDB:`, err);
-    // Fallback: also write to localStorage as safety net
-    persistToLocalStorage(store);
-  });
+  const prev = persistQueue.get(store) ?? Promise.resolve();
+  const next = prev
+    .then(() => persistToIndexedDB(store))
+    .catch((err) => {
+      console.warn(`[storage] Failed to persist "${store}" to IndexedDB:`, err);
+      // Fallback: also write to localStorage as safety net
+      persistToLocalStorage(store);
+    });
+  persistQueue.set(store, next);
 }
 
 async function persistToIndexedDB(store: StoreKey): Promise<void> {
