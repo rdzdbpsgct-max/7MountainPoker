@@ -97,68 +97,129 @@ export function formatEventTimestamp(timestamp: number): string {
   });
 }
 
+type TranslateFn = (key: string, params?: Record<string, unknown>) => string;
+
 /**
  * Formats a single event as compact text with emojis (WhatsApp-friendly).
  * @param event The event to format
  * @param playerNameMap Map from player ID to display name
+ * @param t Optional translation function for i18n; falls back to German if omitted
  */
 export function formatEventAsText(
   event: TournamentEvent,
   playerNameMap: Record<string, string>,
+  t?: TranslateFn,
 ): string {
   const time = formatEventTimestamp(event.timestamp);
   const playerName = (id: unknown) =>
     typeof id === 'string' ? (playerNameMap[id] ?? id) : String(id ?? '');
 
+  if (!t) {
+    // Backward-compatible German hardcoded fallback
+    switch (event.type) {
+      case 'player_eliminated': {
+        const name = playerName(event.data.playerId);
+        const eliminator = event.data.eliminatorId
+          ? ` (von ${playerName(event.data.eliminatorId)})`
+          : '';
+        const placement = event.data.placement != null
+          ? ` → Platz ${event.data.placement}`
+          : '';
+        return `${time} ❌ ${name} ausgeschieden${eliminator}${placement}`;
+      }
+      case 'rebuy_taken':
+        return `${time} 🔄 ${playerName(event.data.playerId)} Rebuy`;
+      case 'addon_taken':
+        return `${time} ➕ ${playerName(event.data.playerId)} Add-On`;
+      case 'level_start':
+        return `${time} ▶ Level ${typeof event.data.levelNumber === 'number' ? event.data.levelNumber : event.levelIndex + 1} gestartet`;
+      case 'timer_paused':
+        return `${time} ⏸ Timer pausiert`;
+      case 'timer_resumed':
+        return `${time} ▶ Timer fortgesetzt`;
+      case 'break_extended':
+        return `${time} ☕ Pause verlängert (+${event.data.seconds ?? 0}s)`;
+      case 'break_skipped':
+        return `${time} ⏭ Pause übersprungen`;
+      case 'tournament_started':
+        return `${time} 🃏 Turnier gestartet`;
+      case 'tournament_finished':
+        return `${time} 🏆 Turnier beendet`;
+      case 'player_reinstated':
+        return `${time} ↩ ${playerName(event.data.playerId)} zurück im Turnier`;
+      case 'late_registration':
+        return `${time} 📝 ${playerName(event.data.playerId)} nachgemeldet`;
+      case 're_entry':
+        return `${time} 🔁 ${playerName(event.data.playerId)} Re-Entry`;
+      case 'dealer_advanced':
+        return `${time} 🎯 Dealer weitergerückt`;
+      case 'table_move':
+        return `${time} 🔀 ${playerName(event.data.playerId)} Tischwechsel`;
+      case 'table_dissolved':
+        return `${time} 🚫 Tisch ${event.data.tableNumber ?? ''} aufgelöst`;
+      case 'call_the_clock_started':
+        return `${time} ⏱ Call the Clock gestartet`;
+      case 'call_the_clock_expired':
+        return `${time} ⏱ Call the Clock abgelaufen`;
+      case 'level_skip_forward':
+        return `${time} ⏩ Level vorgesprungen`;
+      case 'level_skip_backward':
+        return `${time} ⏪ Level zurückgesprungen`;
+      default:
+        return `${time} ${event.type}`;
+    }
+  }
+
+  // i18n-aware formatting
   switch (event.type) {
     case 'player_eliminated': {
       const name = playerName(event.data.playerId);
       const eliminator = event.data.eliminatorId
-        ? ` (von ${playerName(event.data.eliminatorId)})`
+        ? ` (${t('event.by')} ${playerName(event.data.eliminatorId)})`
         : '';
       const placement = event.data.placement != null
-        ? ` → Platz ${event.data.placement}`
+        ? ` → ${t('event.place')} ${event.data.placement}`
         : '';
-      return `${time} ❌ ${name} ausgeschieden${eliminator}${placement}`;
+      return `${time} ${t('event.playerEliminated', { name, eliminator, placement })}`;
     }
     case 'rebuy_taken':
-      return `${time} 🔄 ${playerName(event.data.playerId)} Rebuy`;
+      return `${time} ${t('event.rebuyTaken', { name: playerName(event.data.playerId) })}`;
     case 'addon_taken':
-      return `${time} ➕ ${playerName(event.data.playerId)} Add-On`;
+      return `${time} ${t('event.addonTaken', { name: playerName(event.data.playerId) })}`;
     case 'level_start':
-      return `${time} ▶ Level ${typeof event.data.levelNumber === 'number' ? event.data.levelNumber : event.levelIndex + 1} gestartet`;
+      return `${time} ${t('event.levelStart', { level: typeof event.data.levelNumber === 'number' ? event.data.levelNumber : event.levelIndex + 1 })}`;
     case 'timer_paused':
-      return `${time} ⏸ Timer pausiert`;
+      return `${time} ${t('event.timerPaused')}`;
     case 'timer_resumed':
-      return `${time} ▶ Timer fortgesetzt`;
+      return `${time} ${t('event.timerResumed')}`;
     case 'break_extended':
-      return `${time} ☕ Pause verlängert (+${event.data.seconds ?? 0}s)`;
+      return `${time} ${t('event.breakExtended', { seconds: event.data.seconds ?? 0 })}`;
     case 'break_skipped':
-      return `${time} ⏭ Pause übersprungen`;
+      return `${time} ${t('event.breakSkipped')}`;
     case 'tournament_started':
-      return `${time} 🃏 Turnier gestartet`;
+      return `${time} ${t('event.tournamentStarted')}`;
     case 'tournament_finished':
-      return `${time} 🏆 Turnier beendet`;
+      return `${time} ${t('event.tournamentFinished')}`;
     case 'player_reinstated':
-      return `${time} ↩ ${playerName(event.data.playerId)} zurück im Turnier`;
+      return `${time} ${t('event.playerReinstated', { name: playerName(event.data.playerId) })}`;
     case 'late_registration':
-      return `${time} 📝 ${playerName(event.data.playerId)} nachgemeldet`;
+      return `${time} ${t('event.lateRegistration', { name: playerName(event.data.playerId) })}`;
     case 're_entry':
-      return `${time} 🔁 ${playerName(event.data.playerId)} Re-Entry`;
+      return `${time} ${t('event.reEntry', { name: playerName(event.data.playerId) })}`;
     case 'dealer_advanced':
-      return `${time} 🎯 Dealer weitergerückt`;
+      return `${time} ${t('event.dealerAdvanced')}`;
     case 'table_move':
-      return `${time} 🔀 ${playerName(event.data.playerId)} Tischwechsel`;
+      return `${time} ${t('event.tableMove', { name: playerName(event.data.playerId) })}`;
     case 'table_dissolved':
-      return `${time} 🚫 Tisch ${event.data.tableNumber ?? ''} aufgelöst`;
+      return `${time} ${t('event.tableDissolved', { table: event.data.tableNumber ?? '' })}`;
     case 'call_the_clock_started':
-      return `${time} ⏱ Call the Clock gestartet`;
+      return `${time} ${t('event.callTheClockStarted')}`;
     case 'call_the_clock_expired':
-      return `${time} ⏱ Call the Clock abgelaufen`;
+      return `${time} ${t('event.callTheClockExpired')}`;
     case 'level_skip_forward':
-      return `${time} ⏩ Level vorgesprungen`;
+      return `${time} ${t('event.levelSkipForward')}`;
     case 'level_skip_backward':
-      return `${time} ⏪ Level zurückgesprungen`;
+      return `${time} ${t('event.levelSkipBackward')}`;
     default:
       return `${time} ${event.type}`;
   }

@@ -142,6 +142,7 @@ import {
   resetStorage,
   isStorageReady,
   createEvent,
+  formatEventAsText,
   computeHistoricalDurationEstimate,
   createSeries,
   addTournamentToSeries,
@@ -7735,5 +7736,86 @@ describe('Quick-Start config generation', () => {
 
     const payout10 = defaultPayoutForPlayerCount(10);
     expect(payout10.entries.length).toBe(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatEventAsText with i18n
+// ---------------------------------------------------------------------------
+
+describe('formatEventAsText with i18n', () => {
+  const mockT = (key: string, params?: Record<string, unknown>) => {
+    const translations: Record<string, string> = {
+      'event.playerEliminated': '❌ {name} ausgeschieden{eliminator}{placement}',
+      'event.by': 'von',
+      'event.place': 'Platz',
+      'event.rebuyTaken': '🔄 {name} Rebuy',
+      'event.addonTaken': '➕ {name} Add-On',
+      'event.levelStart': '▶ Level {level} gestartet',
+      'event.timerPaused': '⏸ Timer pausiert',
+      'event.timerResumed': '▶ Timer fortgesetzt',
+      'event.breakExtended': '☕ Pause verlängert (+{seconds}s)',
+      'event.breakSkipped': '⏭ Pause übersprungen',
+      'event.tournamentStarted': '🃏 Turnier gestartet',
+      'event.tournamentFinished': '🏆 Turnier beendet',
+      'event.playerReinstated': '↩ {name} zurück im Turnier',
+      'event.lateRegistration': '📝 {name} nachgemeldet',
+      'event.reEntry': '🔁 {name} Re-Entry',
+      'event.dealerAdvanced': '🎯 Dealer weitergerückt',
+      'event.tableMove': '🔀 {name} Tischwechsel',
+      'event.tableDissolved': '🚫 Tisch {table} aufgelöst',
+      'event.callTheClockStarted': '⏱ Call the Clock gestartet',
+      'event.callTheClockExpired': '⏱ Call the Clock abgelaufen',
+      'event.levelSkipForward': '⏩ Level vorgesprungen',
+      'event.levelSkipBackward': '⏪ Level zurückgesprungen',
+    };
+    let text = translations[key] ?? key;
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        text = text.replace(`{${k}}`, String(v));
+      }
+    }
+    return text;
+  };
+
+  it('formats elimination with i18n', () => {
+    const event = createEvent('player_eliminated', 0, { playerId: 'p1', placement: 3 });
+    const result = formatEventAsText(event, { p1: 'Alice' }, mockT as never);
+    expect(result).toContain('Alice');
+    expect(result).toContain('❌');
+  });
+
+  it('formats elimination with eliminator using i18n', () => {
+    const event = createEvent('player_eliminated', 0, { playerId: 'p1', eliminatorId: 'p2', placement: 2 });
+    const result = formatEventAsText(event, { p1: 'Alice', p2: 'Bob' }, mockT as never);
+    expect(result).toContain('Alice');
+    expect(result).toContain('Bob');
+  });
+
+  it('formats rebuy_taken with i18n', () => {
+    const event = createEvent('rebuy_taken', 2, { playerId: 'p1' });
+    const result = formatEventAsText(event, { p1: 'Alice' }, mockT as never);
+    expect(result).toContain('Alice');
+    expect(result).toContain('🔄');
+  });
+
+  it('formats break_skipped with i18n', () => {
+    const event = createEvent('break_skipped', 5, {});
+    const result = formatEventAsText(event, {}, mockT as never);
+    expect(result).toContain('⏭');
+  });
+
+  it('formats break_extended with i18n', () => {
+    const event = createEvent('break_extended', 5, { seconds: 300 });
+    const result = formatEventAsText(event, {}, mockT as never);
+    expect(result).toContain('300');
+    expect(result).toContain('☕');
+  });
+
+  it('backwards compatible: formats without t function (German hardcoded)', () => {
+    const event = createEvent('player_eliminated', 0, { playerId: 'p1', placement: 3 });
+    const result = formatEventAsText(event, { p1: 'Alice' });
+    expect(result).toContain('Alice');
+    expect(result).toContain('❌');
   });
 });
