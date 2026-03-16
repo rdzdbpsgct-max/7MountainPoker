@@ -8,8 +8,8 @@
  * - Security: HMAC-SHA256 authentication on all commands, rate-limiting, message-size caps
  *
  * Signaling flow:
- * 1. Host creates Peer with generated ID (PKR-XXXXX) and a 16-byte random secret
- * 2. QR code contains app URL with #remote=PKR-XXXXX&s=BASE64SECRET hash
+ * 1. Host creates Peer with generated ID (PKR-XXXXXXXX) and a 16-byte random secret
+ * 2. QR code contains app URL with #remote=PKR-XXXXXXXX&s=BASE64SECRET hash
  * 3. Phone scans QR → opens app → auto-connects to host peer
  * 4. Controller signs every command with HMAC-SHA256(secret, payload)
  * 5. Host verifies HMAC — rejects unsigned or tampered messages
@@ -43,10 +43,10 @@ async function getPeerConstructor(): Promise<typeof PeerType> {
 
 /** Alphabet without confusable characters (no I, O, 0, 1) */
 const PEER_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const PEER_ID_LENGTH = 5;
+const PEER_ID_LENGTH = 8;
 const PEER_PREFIX = 'PKR-';
 
-/** Generate a readable peer ID like "PKR-X7K3M" */
+/** Generate a readable peer ID like "PKR-X7K3MN2P" */
 export function generatePeerId(): string {
   let id = '';
   const array = new Uint8Array(PEER_ID_LENGTH);
@@ -64,6 +64,11 @@ export function generatePeerId(): string {
 const SECRET_BYTES = 16;
 /** Max age for a signed message timestamp (30 seconds) */
 const MAX_MESSAGE_AGE_MS = 30_000;
+
+/** Maximum simultaneous controller connections */
+export const MAX_CONTROLLERS = 4;
+/** Maximum simultaneous display connections */
+export const MAX_DISPLAYS = 8;
 
 /** Generate a 16-byte random secret, returned as URL-safe base64 */
 export function generateSecret(): string {
@@ -202,7 +207,7 @@ export function parseRemoteHash(hash: string): RemoteHashResult | null {
   if (!hash.startsWith('#remote=')) return null;
   const rest = hash.slice('#remote='.length).trim();
 
-  // Check for secret parameter: PKR-XXXXX&s=SECRET
+  // Check for secret parameter: PKR-XXXXXXXX&s=SECRET
   const ampIdx = rest.indexOf('&s=');
   let idPart: string;
   let secret: string | null = null;
@@ -215,8 +220,8 @@ export function parseRemoteHash(hash: string): RemoteHashResult | null {
     idPart = rest;
   }
 
-  // Validate format: PKR- followed by 5 alphanumeric chars
-  if (/^PKR-[A-Z2-9]{5}$/.test(idPart)) {
+  // Validate format: PKR- followed by 8 alphanumeric chars
+  if (/^PKR-[A-Z2-9]{8}$/.test(idPart)) {
     return { peerId: idPart, secret };
   }
   return null;
@@ -238,7 +243,7 @@ export function buildDisplayUrl(peerId: string): string {
 export function parseDisplayHash(hash: string): DisplayHashResult | null {
   if (!hash.startsWith('#display=')) return null;
   const peerId = hash.slice('#display='.length);
-  if (!/^PKR-[A-Z2-9]{5}$/.test(peerId)) return null;
+  if (!/^PKR-[A-Z2-9]{8}$/.test(peerId)) return null;
   return { peerId };
 }
 
@@ -476,6 +481,14 @@ export class RemoteHost {
       });
 
       this.peer.on('connection', (conn) => {
+        // Connection limit guard — reject if both pools are full
+        const totalConns = this.controllerConns.size + this.displayConnections.size;
+        if (totalConns >= MAX_CONTROLLERS + MAX_DISPLAYS) {
+          console.warn(`[RemoteHost] Connection rejected — limit reached (${totalConns})`);
+          try { conn.close(); } catch { /* ignore */ }
+          return;
+        }
+
         // Wait for first message to determine role (hello handshake)
         let identified = false;
 
@@ -485,6 +498,11 @@ export class RemoteHost {
             const msg = typeof raw === 'string' ? JSON.parse(raw) : raw;
             if (isHelloMessage(msg) && msg.role === 'display') {
               // Display peer — register and set up close handler
+              if (this.displayConnections.size >= MAX_DISPLAYS) {
+                console.warn(`[RemoteHost] Display connection rejected — limit reached (${this.displayConnections.size})`);
+                try { conn.close(); } catch { /* ignore */ }
+                return;
+              }
               identified = true;
               conn.off('data', onFirstData);
               this.displayConnections.set(conn.peer, conn);
@@ -518,6 +536,11 @@ export class RemoteHost {
             }
             if (isHelloMessage(msg) && msg.role === 'remote') {
               // Remote controller hello — add to controller map
+              if (this.controllerConns.size >= MAX_CONTROLLERS) {
+                console.warn(`[RemoteHost] Controller connection rejected — limit reached (${this.controllerConns.size})`);
+                try { conn.close(); } catch { /* ignore */ }
+                return;
+              }
               identified = true;
               conn.off('data', onFirstData);
               this.controllerConns.set(conn.peer, conn);
@@ -539,6 +562,11 @@ export class RemoteHost {
           } catch { /* not a hello — fall through to remote */ }
 
           // No hello at all → treat as legacy remote controller
+          if (this.controllerConns.size >= MAX_CONTROLLERS) {
+            console.warn(`[RemoteHost] Controller connection rejected — limit reached (${this.controllerConns.size})`);
+            try { conn.close(); } catch { /* ignore */ }
+            return;
+          }
           identified = true;
           conn.off('data', onFirstData);
           this.controllerConns.set(conn.peer, conn);
@@ -559,6 +587,11 @@ export class RemoteHost {
         // Timeout: if no hello within 2s, assume remote controller
         setTimeout(() => {
           if (!identified) {
+            if (this.controllerConns.size >= MAX_CONTROLLERS) {
+              console.warn(`[RemoteHost] Controller connection rejected — limit reached (${this.controllerConns.size})`);
+              try { conn.close(); } catch { /* ignore */ }
+              return;
+            }
             identified = true;
             conn.off('data', onFirstData);
             this.controllerConns.set(conn.peer, conn);

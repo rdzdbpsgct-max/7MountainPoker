@@ -180,7 +180,7 @@ import {
 } from '../src/domain/chips';
 import type { Level, TournamentConfig, TimerState, PayoutConfig, RebuyConfig, Player, League, TournamentResult, Table, GameDay, ExtendedLeagueStanding, PlayerPotInput, PotWinnerAssignment, RegisteredPlayer, ChipDenomination, SeriesStanding } from '../src/domain/types';
 import type { SeriesExport } from '../src/domain/series';
-import { generatePeerId, generateSecret, buildRemoteUrl, parseRemoteHash, buildHmacPayload, signMessage, verifyMessage, RateLimiter, MAX_MESSAGE_SIZE, REMOTE_STATE_CONTRACT_VERSION, persistHostSession, loadHostSession, clearHostSession, buildDisplayUrl, parseDisplayHash, isHelloMessage } from '../src/domain/remote';
+import { generatePeerId, generateSecret, buildRemoteUrl, parseRemoteHash, buildHmacPayload, signMessage, verifyMessage, RateLimiter, MAX_MESSAGE_SIZE, REMOTE_STATE_CONTRACT_VERSION, persistHostSession, loadHostSession, clearHostSession, buildDisplayUrl, parseDisplayHash, isHelloMessage, MAX_CONTROLLERS, MAX_DISPLAYS } from '../src/domain/remote';
 import { serializeColorUpMap, deserializeColorUpMap } from '../src/domain/displayChannel';
 import { detectPlatform, detectDesktopOS } from '../src/domain/platform';
 import { isPresentationApiAvailable, buildPresentationUrl } from '../src/domain/presentationApi';
@@ -5029,14 +5029,10 @@ describe('toggleSeatLock', () => {
 // =============================================================================
 
 describe('generatePeerId', () => {
-  it('generates ID in PKR-XXXXX format', () => {
+  it('generates peer ID with 8-character suffix', () => {
     const id = generatePeerId();
-    expect(id).toMatch(/^PKR-[A-Z2-9]{5}$/);
-  });
-
-  it('has correct length (9 chars total)', () => {
-    const id = generatePeerId();
-    expect(id.length).toBe(9); // "PKR-" (4) + 5
+    expect(id).toMatch(/^PKR-[A-Z2-9]{8}$/);
+    expect(id.length).toBe(12); // "PKR-" (4) + 8 chars
   });
 
   it('does not contain confusable characters (I, O, 0, 1)', () => {
@@ -5053,8 +5049,18 @@ describe('generatePeerId', () => {
     for (let i = 0; i < 100; i++) {
       ids.add(generatePeerId());
     }
-    // With 30^5 = 24,300,000 possibilities, 100 should be unique
+    // With 30^8 = 6.56e11 possibilities, 100 should be unique
     expect(ids.size).toBe(100);
+  });
+});
+
+describe('RemoteHost connection limits', () => {
+  it('exports MAX_CONTROLLERS constant as 4', () => {
+    expect(MAX_CONTROLLERS).toBe(4);
+  });
+
+  it('exports MAX_DISPLAYS constant as 8', () => {
+    expect(MAX_DISPLAYS).toBe(8);
   });
 });
 
@@ -5068,26 +5074,26 @@ describe('REMOTE_STATE_CONTRACT_VERSION', () => {
 
 describe('buildRemoteUrl', () => {
   it('builds a valid URL with #remote= hash', () => {
-    const url = buildRemoteUrl('PKR-ABC23');
-    expect(url).toContain('#remote=PKR-ABC23');
+    const url = buildRemoteUrl('PKR-ABC23DEF');
+    expect(url).toContain('#remote=PKR-ABC23DEF');
     expect(url).toContain(window.location.origin);
   });
 
   it('includes secret in URL when provided', () => {
-    const url = buildRemoteUrl('PKR-ABC23', 'testSecret');
-    expect(url).toContain('#remote=PKR-ABC23&s=testSecret');
+    const url = buildRemoteUrl('PKR-ABC23DEF', 'testSecret');
+    expect(url).toContain('#remote=PKR-ABC23DEF&s=testSecret');
   });
 });
 
 describe('parseRemoteHash', () => {
   it('extracts peer ID from valid hash', () => {
-    expect(parseRemoteHash('#remote=PKR-ABC23')).toEqual({ peerId: 'PKR-ABC23', secret: null });
-    expect(parseRemoteHash('#remote=PKR-ZZZZZ')).toEqual({ peerId: 'PKR-ZZZZZ', secret: null });
+    expect(parseRemoteHash('#remote=PKR-ABC23DEF')).toEqual({ peerId: 'PKR-ABC23DEF', secret: null });
+    expect(parseRemoteHash('#remote=PKR-ZZZZZ999')).toEqual({ peerId: 'PKR-ZZZZZ999', secret: null });
   });
 
   it('extracts peer ID and secret from hash with &s= parameter', () => {
-    const result = parseRemoteHash('#remote=PKR-ABC23&s=dGVzdHNlY3JldA');
-    expect(result).toEqual({ peerId: 'PKR-ABC23', secret: 'dGVzdHNlY3JldA' });
+    const result = parseRemoteHash('#remote=PKR-ABC23DEF&s=dGVzdHNlY3JldA');
+    expect(result).toEqual({ peerId: 'PKR-ABC23DEF', secret: 'dGVzdHNlY3JldA' });
   });
 
   it('returns null for invalid or empty hashes', () => {
@@ -5097,12 +5103,12 @@ describe('parseRemoteHash', () => {
     expect(parseRemoteHash('#remote=invalid')).toBeNull();
     expect(parseRemoteHash('#rc=someOldSDP')).toBeNull();
     // Contains forbidden characters
-    expect(parseRemoteHash('#remote=PKR-IO012')).toBeNull();
+    expect(parseRemoteHash('#remote=PKR-IO012345')).toBeNull();
   });
 
   it('returns null secret when &s= is empty', () => {
-    const result = parseRemoteHash('#remote=PKR-ABC23&s=');
-    expect(result).toEqual({ peerId: 'PKR-ABC23', secret: null });
+    const result = parseRemoteHash('#remote=PKR-ABC23DEF&s=');
+    expect(result).toEqual({ peerId: 'PKR-ABC23DEF', secret: null });
   });
 });
 
@@ -5112,9 +5118,9 @@ describe('Host Session Persistence', () => {
   });
 
   it('round-trips peerId and secret via persistHostSession / loadHostSession', () => {
-    persistHostSession('PKR-ABC23', 'mySecretValue');
+    persistHostSession('PKR-ABC23DEF', 'mySecretValue');
     const loaded = loadHostSession();
-    expect(loaded).toEqual({ peerId: 'PKR-ABC23', secret: 'mySecretValue' });
+    expect(loaded).toEqual({ peerId: 'PKR-ABC23DEF', secret: 'mySecretValue' });
   });
 
   it('returns null when nothing is persisted', () => {
@@ -5122,7 +5128,7 @@ describe('Host Session Persistence', () => {
   });
 
   it('clearHostSession removes persisted data', () => {
-    persistHostSession('PKR-XYZ99', 'anotherSecret');
+    persistHostSession('PKR-XYZ99ABC', 'anotherSecret');
     expect(loadHostSession()).not.toBeNull();
     clearHostSession();
     expect(loadHostSession()).toBeNull();
@@ -6354,42 +6360,42 @@ describe('League Module', () => {
   // ---------------------------------------------------------------------------
 
   describe('remote module — pure functions', () => {
-    it('generatePeerId returns PKR- prefix with 5 alphanumeric chars', () => {
+    it('generatePeerId returns PKR- prefix with 8 alphanumeric chars', () => {
       const id = generatePeerId();
-      expect(id).toMatch(/^PKR-[A-Z2-9]{5}$/);
+      expect(id).toMatch(/^PKR-[A-Z2-9]{8}$/);
     });
 
     it('generatePeerId produces unique IDs', () => {
       const ids = new Set(Array.from({ length: 20 }, () => generatePeerId()));
-      // With 30^5 = 24.3 million possibilities, 20 IDs should all be unique
+      // With 30^8 = 6.56e11 possibilities, 20 IDs should all be unique
       expect(ids.size).toBe(20);
     });
 
     it('buildRemoteUrl includes peer ID as hash parameter', () => {
-      const url = buildRemoteUrl('PKR-ABCDE');
-      expect(url).toContain('#remote=PKR-ABCDE');
+      const url = buildRemoteUrl('PKR-ABCDEFGH');
+      expect(url).toContain('#remote=PKR-ABCDEFGH');
       expect(url).toContain(window.location.origin);
     });
 
     it('buildRemoteUrl includes secret when provided', () => {
-      const url = buildRemoteUrl('PKR-ABCDE', 'mySecret123');
-      expect(url).toContain('#remote=PKR-ABCDE&s=mySecret123');
+      const url = buildRemoteUrl('PKR-ABCDEFGH', 'mySecret123');
+      expect(url).toContain('#remote=PKR-ABCDEFGH&s=mySecret123');
     });
 
     it('parseRemoteHash extracts valid peer ID', () => {
-      expect(parseRemoteHash('#remote=PKR-AB3D5')).toEqual({ peerId: 'PKR-AB3D5', secret: null });
+      expect(parseRemoteHash('#remote=PKR-AB3D5XYZ')).toEqual({ peerId: 'PKR-AB3D5XYZ', secret: null });
     });
 
     it('parseRemoteHash extracts peer ID and secret', () => {
-      const result = parseRemoteHash('#remote=PKR-AB3D5&s=testSecret');
-      expect(result).toEqual({ peerId: 'PKR-AB3D5', secret: 'testSecret' });
+      const result = parseRemoteHash('#remote=PKR-AB3D5XYZ&s=testSecret');
+      expect(result).toEqual({ peerId: 'PKR-AB3D5XYZ', secret: 'testSecret' });
     });
 
     it('parseRemoteHash returns null for invalid format', () => {
       expect(parseRemoteHash('#remote=invalid')).toBeNull();
       expect(parseRemoteHash('#remote=PKR-')).toBeNull();
-      expect(parseRemoteHash('#remote=PKR-ABCDE1')).toBeNull(); // too long
-      expect(parseRemoteHash('#other=PKR-ABCDE')).toBeNull();
+      expect(parseRemoteHash('#remote=PKR-ABCDEFGH9')).toBeNull(); // too long
+      expect(parseRemoteHash('#other=PKR-ABCDEFGH')).toBeNull();
       expect(parseRemoteHash('')).toBeNull();
     });
 
@@ -6403,7 +6409,7 @@ describe('League Module', () => {
     });
 
     it('parseRemoteHash rejects lowercase', () => {
-      expect(parseRemoteHash('#remote=PKR-abcde')).toBeNull();
+      expect(parseRemoteHash('#remote=PKR-abcdefgh')).toBeNull();
     });
   });
 
@@ -6579,27 +6585,27 @@ describe('League Module', () => {
 
 describe('remote — display URL functions', () => {
   it('buildDisplayUrl includes peer ID as hash parameter', () => {
-    const url = buildDisplayUrl('PKR-ABCDE');
-    expect(url).toContain('#display=PKR-ABCDE');
+    const url = buildDisplayUrl('PKR-ABCDEFGH');
+    expect(url).toContain('#display=PKR-ABCDEFGH');
   });
 
   it('buildDisplayUrl uses correct base URL', () => {
-    const url = buildDisplayUrl('PKR-ABCDE');
-    expect(url).toMatch(/^https?:\/\/.+#display=PKR-ABCDE$/);
+    const url = buildDisplayUrl('PKR-ABCDEFGH');
+    expect(url).toMatch(/^https?:\/\/.+#display=PKR-ABCDEFGH$/);
   });
 
   it('parseDisplayHash extracts valid peer ID', () => {
-    expect(parseDisplayHash('#display=PKR-AB3D5')).toEqual({ peerId: 'PKR-AB3D5' });
+    expect(parseDisplayHash('#display=PKR-AB3D5XYZ')).toEqual({ peerId: 'PKR-AB3D5XYZ' });
   });
 
   it('parseDisplayHash returns null for invalid format', () => {
     expect(parseDisplayHash('#display=invalid')).toBeNull();
     expect(parseDisplayHash('#display=')).toBeNull();
-    expect(parseDisplayHash('#remote=PKR-AB3D5')).toBeNull();
+    expect(parseDisplayHash('#remote=PKR-AB3D5XYZ')).toBeNull();
   });
 
   it('parseDisplayHash returns null for missing prefix', () => {
-    expect(parseDisplayHash('#PKR-AB3D5')).toBeNull();
+    expect(parseDisplayHash('#PKR-AB3D5XYZ')).toBeNull();
     expect(parseDisplayHash('')).toBeNull();
   });
 });
@@ -7504,12 +7510,12 @@ describe('Presentation API', () => {
   });
 
   it('buildPresentationUrl includes display hash', () => {
-    const url = buildPresentationUrl('PKR-12345');
-    expect(url).toContain('#display=PKR-12345');
+    const url = buildPresentationUrl('PKR-AB3D5XYZ');
+    expect(url).toContain('#display=PKR-AB3D5XYZ');
   });
 
   it('buildPresentationUrl uses current origin', () => {
-    const url = buildPresentationUrl('PKR-99999');
+    const url = buildPresentationUrl('PKR-XYZ99ABC');
     expect(url).toMatch(/^https?:\/\//);
   });
 });
