@@ -17,7 +17,7 @@ import { ErrorBoundary, SectionErrorBoundary } from '../src/components/ErrorBoun
 import { useTimer } from '../src/hooks/useTimer';
 import { useConfirmDialog } from '../src/hooks/useConfirmDialog';
 import { useVoiceAnnouncements } from '../src/hooks/useVoiceAnnouncements';
-import type { TournamentConfig, TournamentResult, Level, Settings, RebuyConfig, Player, PayoutConfig, AddOnConfig, BountyConfig, ChipDenomination, TimerState } from '../src/domain/types';
+import type { TournamentConfig, TournamentResult, Level, Settings, RebuyConfig, Player, PayoutConfig, AddOnConfig, BountyConfig, ChipDenomination, TimerState, TournamentEvent } from '../src/domain/types';
 import { defaultConfig, defaultSettings } from '../src/domain/logic';
 import { ConfigEditor } from '../src/components/ConfigEditor';
 import { SettingsPanel } from '../src/components/SettingsPanel';
@@ -1324,5 +1324,42 @@ describe('PayoutEditor', () => {
       <PayoutEditor payout={payout} onChange={() => {}} currency="USD" />
     );
     expect(container.textContent).toContain('$');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// EventLog
+// ---------------------------------------------------------------------------
+
+import { EventLog } from '../src/components/EventLog';
+
+describe('EventLog', () => {
+  it('renders empty state when no events', () => {
+    renderWithProviders(<EventLog events={[]} players={[]} onClose={() => {}} />);
+    expect(screen.getByText(/keine Events|no events/i)).toBeTruthy();
+  });
+
+  it('renders event list', () => {
+    const events: TournamentEvent[] = [
+      { id: 'e1', type: 'tournament_started', timestamp: Date.now(), levelIndex: 0, data: {} },
+      { id: 'e2', type: 'player_eliminated', timestamp: Date.now(), levelIndex: 2, data: { playerId: 'p1', placement: 3 } },
+    ];
+    const players: Player[] = [{ id: 'p1', name: 'Alice', status: 'eliminated', placement: 3, rebuys: 0, addOn: false, knockouts: 0, eliminatedBy: null }];
+    renderWithProviders(<EventLog events={events} players={players} onClose={() => {}} />);
+    expect(screen.getByText(/Alice/)).toBeTruthy();
+  });
+
+  it('filters by player events', () => {
+    const events: TournamentEvent[] = [
+      { id: 'e1', type: 'tournament_started', timestamp: Date.now(), levelIndex: 0, data: {} },
+      { id: 'e2', type: 'player_eliminated', timestamp: Date.now(), levelIndex: 2, data: { playerId: 'p1', placement: 3 } },
+    ];
+    const players: Player[] = [{ id: 'p1', name: 'Alice', status: 'eliminated', placement: 3, rebuys: 0, addOn: false, knockouts: 0, eliminatedBy: null }];
+    renderWithProviders(<EventLog events={events} players={players} onClose={() => {}} />);
+    // Click player filter
+    const playerFilter = screen.getByText(/spieler|players/i);
+    fireEvent.click(playerFilter);
+    // Tournament started should be filtered out
+    expect(screen.queryByText(/gestartet|started/i)).toBeFalsy();
   });
 });
