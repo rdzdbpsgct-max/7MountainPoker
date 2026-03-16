@@ -132,6 +132,7 @@ function playWithWebAudio(files: string[], basePath: string): Promise<void> {
         if (resolved) return;
         resolved = true;
         scheduledSources = [];
+        gainNode.disconnect();
         if (!cancelRequested) resolve();
       };
 

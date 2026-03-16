@@ -2716,7 +2716,7 @@ describe('Tournament History persistence', () => {
     expect(remaining[0].name).toBe('T2');
   });
 
-  it('caps history at 200 entries', () => {
+  it('caps history at MAX_HISTORY entries', () => {
     const levels: Level[] = [{ id: '1', type: 'level', durationSeconds: 600, smallBlind: 25, bigBlind: 50 }];
     const config = makeConfig({
       name: 'Cap',
@@ -2728,13 +2728,13 @@ describe('Tournament History persistence', () => {
       ],
       payout: { mode: 'percent', entries: [{ place: 1, value: 100 }] },
     });
-    for (let i = 0; i < 205; i++) {
+    for (let i = 0; i < 105; i++) {
       saveTournamentResult(buildTournamentResult({ ...config, name: `T${i}` }, 600, 1));
     }
     const history = loadTournamentHistory();
-    expect(history).toHaveLength(200);
+    expect(history).toHaveLength(100);
     // Most recent should be first
-    expect(history[0].name).toBe('T204');
+    expect(history[0].name).toBe('T104');
   });
 
   it('clearTournamentHistory removes all', () => {

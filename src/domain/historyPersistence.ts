@@ -1,12 +1,12 @@
 import type { TournamentResult } from './types';
 import { loadPlayerDatabase, savePlayerDatabase, syncPlayersToDatabase } from './playerDatabase';
-import { getCached, setCached, deleteCachedItem } from './storage';
+import { getCached, setCached, deleteCachedItem, MAX_HISTORY_ENTRIES } from './storage';
 
 // ---------------------------------------------------------------------------
 // Tournament History (backed by IndexedDB cache layer)
 // ---------------------------------------------------------------------------
 
-export const MAX_HISTORY = 200;
+export const MAX_HISTORY = MAX_HISTORY_ENTRIES;
 
 /** Save a tournament result to history (prepend, trim to MAX_HISTORY). */
 export function saveTournamentResult(result: TournamentResult): void {

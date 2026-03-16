@@ -21,18 +21,18 @@ permissions:
   id-token: write
 
 concurrency:
-  group: 'pages'
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
@@ -41,7 +41,7 @@ jobs:
         run: npm ci
 
       - name: Security audit
-        run: npm audit --audit-level=high || true
+        run: npm audit --audit-level=high --omit=dev
 
       - name: Lint
         run: npm run lint
@@ -56,10 +56,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
@@ -81,10 +81,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
@@ -113,10 +113,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
@@ -139,10 +139,10 @@ jobs:
     needs: [quality, e2e]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
@@ -164,9 +164,10 @@ jobs:
           MAIN_BUNDLE=$(ls -S dist/assets/index-*.js 2>/dev/null | head -1)
           if [ -n "$MAIN_BUNDLE" ]; then
             MAIN_SIZE=$(wc -c < "$MAIN_BUNDLE" | tr -d ' ')
-            MAX_SIZE=520000
+            MAX_SIZE=670000
             if [ "$MAIN_SIZE" -gt "$MAX_SIZE" ]; then
-              echo "::warning::Main bundle exceeds ${MAX_SIZE} bytes (actual: ${MAIN_SIZE} bytes)"
+              echo "::error::Main bundle exceeds budget: ${MAIN_SIZE} bytes > ${MAX_SIZE} bytes"
+              exit 1
             fi
           fi
 

@@ -37,6 +37,9 @@ export default defineConfig({
             || id.includes('/node_modules/idb/')) {
             return 'vendor-utils';
           }
+          if (id.includes('/node_modules/jspdf/') || id.includes('/node_modules/jspdf-autotable/')) {
+            return 'vendor-pdf';
+          }
         },
       },
     },
@@ -85,7 +88,7 @@ export default defineConfig({
             options: {
               cacheName: 'audio-cache',
               expiration: {
-                maxEntries: 500,
+                maxEntries: 650,
                 maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
               },
             },

@@ -217,6 +217,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                 type="text"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
+                maxLength={100}
                 className="w-full bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:outline-none"
               />
             </div>
@@ -229,6 +230,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                 value={venue}
                 onChange={(e) => setVenue(e.target.value)}
                 placeholder={t('league.editor.venuePlaceholder')}
+                maxLength={100}
                 className="w-full bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:outline-none"
               />
             </div>
@@ -258,6 +260,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddPlayer(); }}
               list="editor-registered-players"
               placeholder={t('league.editor.addPlayerPlaceholder')}
+              maxLength={50}
               className="flex-1 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:outline-none"
             />
             <button
@@ -405,6 +408,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              maxLength={100}
               rows={2}
               className="w-full bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:outline-none resize-none"
               placeholder={t('league.editor.notesPlaceholder')}

@@ -147,7 +147,7 @@ function App() {
     if (mode !== 'game') return;
     const update = () => setClockTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     update();
-    const id = setInterval(update, 1000);
+    const id = setInterval(update, 30_000);
     return () => clearInterval(id);
   }, [mode]);
 

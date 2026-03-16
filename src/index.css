@@ -157,7 +157,7 @@ body {
   background-image: var(--bg-pattern, none);
   background-attachment: fixed;
   color: #111827;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
