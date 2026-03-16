@@ -3,6 +3,7 @@ import type { CustomAudioFile, CustomAudioMapping } from '../domain/types';
 import {
   CUSTOMIZABLE_ANNOUNCEMENTS,
   MAX_AUDIO_FILE_SIZE,
+  MAX_CUSTOM_AUDIO_FILES,
   ACCEPTED_AUDIO_TYPES,
   loadCustomAudioFiles,
   saveCustomAudioFile,
@@ -52,6 +53,11 @@ export function CustomAudioEditor({ onClose }: Props) {
   useEffect(clearError, [clearError]);
 
   const handleFileUpload = useCallback(async (fileList: FileList) => {
+    const currentFiles = loadCustomAudioFiles();
+    if (currentFiles.length >= MAX_CUSTOM_AUDIO_FILES) {
+      setError('customAudio.errorMaxFiles');
+      return;
+    }
     for (const file of Array.from(fileList)) {
       if (file.size > MAX_AUDIO_FILE_SIZE) {
         setError('customAudio.errorTooLarge');

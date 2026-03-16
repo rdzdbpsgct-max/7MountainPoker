@@ -70,7 +70,7 @@ export function LeagueSettings({ league, onClose, onSaved }: Props) {
       const copy = [...prev];
       const target = direction === 'up' ? idx - 1 : idx + 1;
       if (target < 0 || target >= copy.length) return prev;
-      [copy[idx], copy[target]] = [copy[target], copy[idx]];
+      [copy[idx], copy[target]] = [copy[target]!, copy[idx]!];
       return copy;
     });
   }, []);

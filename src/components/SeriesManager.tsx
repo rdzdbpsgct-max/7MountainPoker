@@ -395,7 +395,7 @@ function SeriesEntry({
                         value={entry.points}
                         onChange={(v) => {
                           const entries = [...series.pointSystem.entries];
-                          entries[i] = { ...entries[i], points: Math.max(0, v) };
+                          entries[i] = { ...entries[i]!, points: Math.max(0, v) };
                           onUpdate({ ...series, pointSystem: { entries } });
                         }}
                         min={0}

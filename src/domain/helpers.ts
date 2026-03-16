@@ -5,19 +5,19 @@
 let idCounter = 0;
 /** Generates a unique level ID using timestamp and incrementing counter. */
 export function generateId(): string {
-  return `lvl_${Date.now()}_${idCounter++}`;
+  return `lvl_${Date.now()}_${idCounter++}_${Math.random().toString(36).slice(2, 6)}`;
 }
 
 let playerIdCounter = 0;
 /** Generates a unique player ID using timestamp and incrementing counter. */
 export function generatePlayerId(): string {
-  return `player_${Date.now()}_${playerIdCounter++}`;
+  return `player_${Date.now()}_${playerIdCounter++}_${Math.random().toString(36).slice(2, 6)}`;
 }
 
 let chipIdCounter = 0;
 /** Generates a unique chip denomination ID using timestamp and incrementing counter. */
 export function generateChipId(): string {
-  return `chip_${Date.now()}_${chipIdCounter++}`;
+  return `chip_${Date.now()}_${chipIdCounter++}_${Math.random().toString(36).slice(2, 6)}`;
 }
 
 // ---------------------------------------------------------------------------

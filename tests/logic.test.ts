@@ -7527,34 +7527,34 @@ describe('Presentation API', () => {
 // ---------------------------------------------------------------------------
 describe('ICM Calculator', () => {
   describe('computeIcmEquity', () => {
-    it('returns zeros for empty inputs', () => {
-      expect(computeIcmEquity([], [])).toEqual([]);
-      expect(computeIcmEquity([1000], [])).toEqual([0]);
+    it('returns zeros for empty inputs', async () => {
+      expect(await computeIcmEquity([], [])).toEqual([]);
+      expect(await computeIcmEquity([1000], [])).toEqual([0]);
     });
 
-    it('single player gets all payouts', () => {
-      const equities = computeIcmEquity([5000], [100, 50, 25]);
+    it('single player gets all payouts', async () => {
+      const equities = await computeIcmEquity([5000], [100, 50, 25]);
       expect(equities[0]).toBeCloseTo(175, 0);
     });
 
-    it('equal stacks produce equal equity', () => {
-      const equities = computeIcmEquity([5000, 5000], [100, 50]);
+    it('equal stacks produce equal equity', async () => {
+      const equities = await computeIcmEquity([5000, 5000], [100, 50]);
       expect(equities[0]).toBeCloseTo(equities[1], 2);
       expect(equities[0]).toBeCloseTo(75, 0); // each gets (100+50)/2
     });
 
-    it('chip leader has higher equity but not proportional to chips', () => {
+    it('chip leader has higher equity but not proportional to chips', async () => {
       // Classic ICM: 70% chips ≠ 70% equity due to non-linear payout
-      const equities = computeIcmEquity([7000, 3000], [100, 50]);
+      const equities = await computeIcmEquity([7000, 3000], [100, 50]);
       expect(equities[0]).toBeGreaterThan(equities[1]);
       // Chip leader has 70% of chips but < 70% of total prize
       expect(equities[0]).toBeLessThan(105); // < 70% of 150
       expect(equities[0]).toBeGreaterThan(75); // > 50% of 150
     });
 
-    it('3-player known ICM values', () => {
+    it('3-player known ICM values', async () => {
       // Classic example: 5000/3000/2000 stacks, payouts 50/30/20
-      const equities = computeIcmEquity([5000, 3000, 2000], [50, 30, 20]);
+      const equities = await computeIcmEquity([5000, 3000, 2000], [50, 30, 20]);
       const total = equities.reduce((a, b) => a + b, 0);
       expect(total).toBeCloseTo(100, 0); // total payouts preserved
       // Chip leader gets most
@@ -7562,24 +7562,24 @@ describe('ICM Calculator', () => {
       expect(equities[1]).toBeGreaterThan(equities[2]);
     });
 
-    it('ignores zero-stack players (eliminated)', () => {
-      const equities = computeIcmEquity([5000, 0, 3000], [100, 50]);
+    it('ignores zero-stack players (eliminated)', async () => {
+      const equities = await computeIcmEquity([5000, 0, 3000], [100, 50]);
       expect(equities[1]).toBe(0);
       expect(equities[0] + equities[2]).toBeCloseTo(150, 0);
     });
 
-    it('total equity equals total payouts', () => {
+    it('total equity equals total payouts', async () => {
       const stacks = [8000, 5000, 4000, 3000];
       const payouts = [200, 120, 80, 40];
-      const equities = computeIcmEquity(stacks, payouts);
+      const equities = await computeIcmEquity(stacks, payouts);
       const total = equities.reduce((a, b) => a + b, 0);
       expect(total).toBeCloseTo(440, 0);
     });
 
-    it('more players than payout places', () => {
+    it('more players than payout places', async () => {
       const stacks = [4000, 3000, 2000, 1000];
       const payouts = [100, 50]; // only 2 paid places
-      const equities = computeIcmEquity(stacks, payouts);
+      const equities = await computeIcmEquity(stacks, payouts);
       const total = equities.reduce((a, b) => a + b, 0);
       expect(total).toBeCloseTo(150, 0);
       // All players have some equity (even unpaid positions matter)
@@ -7588,16 +7588,16 @@ describe('ICM Calculator', () => {
   });
 
   describe('computeIcmDeal', () => {
-    it('returns structured results with percentages', () => {
-      const results = computeIcmDeal([6000, 4000], [100, 50]);
+    it('returns structured results with percentages', async () => {
+      const results = await computeIcmDeal([6000, 4000], [100, 50]);
       expect(results).toHaveLength(2);
       expect(results[0].stackPercent).toBeCloseTo(60, 0);
       expect(results[1].stackPercent).toBeCloseTo(40, 0);
       expect(results[0].equityPercent + results[1].equityPercent).toBeCloseTo(100, 0);
     });
 
-    it('handles all-zero stacks', () => {
-      const results = computeIcmDeal([0, 0], [100, 50]);
+    it('handles all-zero stacks', async () => {
+      const results = await computeIcmDeal([0, 0], [100, 50]);
       expect(results[0].equity).toBe(0);
       expect(results[1].equity).toBe(0);
     });

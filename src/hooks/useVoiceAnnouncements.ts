@@ -248,6 +248,9 @@ export function useVoiceAnnouncements({
     }
   }, [config]);
 
+  const fireAlertRef = useRef(fireAlert);
+  useEffect(() => { fireAlertRef.current = fireAlert; }, [fireAlert]);
+
   // Reset fired alerts on level change
   const prevLevelForAlertsRef = useRef(timerState.currentLevelIndex);
   useEffect(() => {
@@ -275,7 +278,7 @@ export function useVoiceAnnouncements({
         prevActivePlayers: activePlayerCount,
       })) {
         firedAlertsRef.current.add(alert.id);
-        fireAlert(alert, idx, activePlayerCount);
+        fireAlertRef.current(alert, idx, activePlayerCount);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -296,7 +299,7 @@ export function useVoiceAnnouncements({
         prevActivePlayers: activePlayerCount,
       })) {
         firedAlertsRef.current.add(alert.id);
-        fireAlert(alert, idx, activePlayerCount);
+        fireAlertRef.current(alert, idx, activePlayerCount);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -322,7 +325,7 @@ export function useVoiceAnnouncements({
         prevActivePlayers: prev,
       })) {
         firedAlertsRef.current.add(alert.id);
-        fireAlert(alert, idx, activePlayerCount);
+        fireAlertRef.current(alert, idx, activePlayerCount);
       }
     }
     prevActiveForAlertsRef.current = activePlayerCount;

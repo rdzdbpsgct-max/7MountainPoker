@@ -39,15 +39,15 @@ export function HeadToHeadMatrix({ matrix }: Props) {
   const sortedIndices = useMemo(() => {
     const indices = rawPlayers.map((_, i) => i);
     if (sortMode === 'alpha') {
-      indices.sort((a, b) => rawPlayers[a].localeCompare(rawPlayers[b]));
+      indices.sort((a, b) => rawPlayers[a]!.localeCompare(rawPlayers[b]!));
     }
     // 'meetings' keeps the original order (already sorted by total meetings)
     return indices;
   }, [rawPlayers, sortMode]);
 
-  const players = sortedIndices.map((i) => rawPlayers[i]);
+  const players = sortedIndices.map((i) => rawPlayers[i]!);
   const reorderedMatrix = sortedIndices.map((i) =>
-    sortedIndices.map((j) => rawMatrix[i][j]),
+    sortedIndices.map((j) => rawMatrix[i]![j]!),
   );
 
   if (rawPlayers.length === 0) {
@@ -100,7 +100,7 @@ export function HeadToHeadMatrix({ matrix }: Props) {
                 >
                   <span className="block truncate">{rowName}</span>
                 </td>
-                {reorderedMatrix[i].map((entry, j) => {
+                {reorderedMatrix[i]!.map((entry, j) => {
                   const isDiag = i === j;
                   const isHovered = hoveredCell?.row === i && hoveredCell?.col === j;
                   return (

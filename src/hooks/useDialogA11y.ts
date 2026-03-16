@@ -44,8 +44,8 @@ export function useDialogA11y(onClose: () => void) {
         );
         if (focusableElements.length === 0) return;
 
-        const first = focusableElements[0];
-        const last = focusableElements[focusableElements.length - 1];
+        const first = focusableElements[0]!;
+        const last = focusableElements[focusableElements.length - 1]!;
 
         if (e.shiftKey) {
           // Shift+Tab: if on first element, wrap to last

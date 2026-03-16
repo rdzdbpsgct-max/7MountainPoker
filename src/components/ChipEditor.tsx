@@ -21,7 +21,7 @@ interface Props {
 function sortedChipConfig(config: ChipConfig): ChipConfig {
   const sorted = [...config.denominations].sort((a, b) => a.value - b.value);
   // Only create new object if order actually changed
-  const changed = sorted.some((d, i) => d.id !== config.denominations[i].id);
+  const changed = sorted.some((d, i) => d.id !== config.denominations[i]!.id);
   return changed ? { ...config, denominations: sorted } : config;
 }
 
@@ -37,7 +37,7 @@ export function ChipEditor({ chips, onChange, levels }: Props) {
   const toggle = () => {
     const newEnabled = !chips.enabled;
     if (newEnabled && chips.denominations.length === 0) {
-      emitChange(applyChipPreset(chipPresets[1]));
+      emitChange(applyChipPreset(chipPresets[1]!));
     } else {
       emitChange({ ...chips, enabled: newEnabled });
     }
@@ -130,10 +130,10 @@ export function ChipEditor({ chips, onChange, levels }: Props) {
                              transition-colors text-left"
                 >
                   <span className="text-gray-900 dark:text-white font-medium text-xs">
-                    {t(`chipEditor.preset${presetKeys[i]}` as const)}
+                    {t(`chipEditor.preset${presetKeys[i]!}` as const)}
                   </span>
                   <span className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">
-                    {t(`chipEditor.preset${presetKeys[i]}Desc` as const)}
+                    {t(`chipEditor.preset${presetKeys[i]!}Desc` as const)}
                   </span>
                 </button>
               ))}
@@ -292,7 +292,7 @@ function ColorUpScheduleEditor({
     const opts: { index: number; label: string }[] = [];
     let playCount = 0;
     for (let i = 0; i < levels.length; i++) {
-      const lvl = levels[i];
+      const lvl = levels[i]!;
       if (lvl.type === 'level') {
         playCount++;
         opts.push({ index: i, label: t('chipEditor.levelLabel', { n: playCount }) });
@@ -443,7 +443,7 @@ function AddColorUpRow({
     // Select next available denom
     const remaining = sorted.filter((d) => d.id !== selectedDenom);
     if (remaining.length > 0) {
-      setSelectedDenom(remaining[0].id);
+      setSelectedDenom(remaining[0]!.id);
     }
   };
 

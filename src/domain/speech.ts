@@ -95,7 +95,7 @@ function findVoice(lang: Language): SpeechSynthesisVoice | null {
   if (femaleAny) return femaleAny;
   const localAny = langVoices.find(v => v.localService);
   if (localAny) return localAny;
-  return langVoices[0];
+  return langVoices[0] ?? null;
 }
 
 function ensureVoice(): void {

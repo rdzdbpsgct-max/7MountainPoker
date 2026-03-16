@@ -227,7 +227,7 @@ export function TournamentFinished({
             {standings.map((player, idx) => {
               const isPaid = payoutMap.has(player.finalPlace);
               const amount = payoutMap.get(player.finalPlace);
-              const showDivider = idx > 0 && !isPaid && payoutMap.has(standings[idx - 1].finalPlace);
+              const showDivider = idx > 0 && !isPaid && payoutMap.has(standings[idx - 1]!.finalPlace);
               const rebuyCost = rebuy.enabled ? rebuy.rebuyCost : 0;
               const addOnCost = addOn.enabled && player.addOn ? addOn.cost : 0;
               const totalPaid = buyIn + player.rebuys * rebuyCost + addOnCost;

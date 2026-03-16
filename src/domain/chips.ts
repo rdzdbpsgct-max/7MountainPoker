@@ -79,7 +79,7 @@ export function applyChipPreset(preset: ChipPreset): ChipConfig {
 }
 
 export function defaultChipConfig(): ChipConfig {
-  const preset = applyChipPreset(chipPresets[1]); // 5-color preset, disabled by default
+  const preset = applyChipPreset(chipPresets[1]!); // 5-color preset, disabled by default
   return { ...preset, enabled: false };
 }
 
@@ -136,7 +136,7 @@ function isDenominationNeeded(
 
   for (const val of values) {
     if (val <= 0) continue;
-    if (val % nextHigher !== 0) return true;
+    if (val % nextHigher! !== 0) return true;
   }
   return false;
 }
@@ -147,7 +147,7 @@ function isDenominationNeeded(
  */
 function findNextBreak(levels: Level[], fromIndex: number): number | null {
   for (let i = fromIndex; i < levels.length; i++) {
-    if (levels[i].type === 'break') return i;
+    if (levels[i]!.type === 'break') return i;
   }
   return null;
 }
@@ -172,7 +172,7 @@ export function computeColorUps(
     for (let levelIdx = 0; levelIdx < levels.length; levelIdx++) {
       const futureValues: number[] = [];
       for (let j = levelIdx; j < levels.length; j++) {
-        const lvl = levels[j];
+        const lvl = levels[j]!;
         if (lvl.type === 'level') {
           if (lvl.smallBlind) futureValues.push(lvl.smallBlind);
           if (lvl.bigBlind) futureValues.push(lvl.bigBlind);

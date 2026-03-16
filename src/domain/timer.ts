@@ -35,7 +35,7 @@ export function advanceLevel(
   }
   return {
     currentLevelIndex: nextIndex,
-    remainingSeconds: levels[nextIndex].durationSeconds,
+    remainingSeconds: levels[nextIndex]!.durationSeconds,
     status: 'stopped',
     startedAt: null,
     remainingAtStart: null,
@@ -53,7 +53,7 @@ export function previousLevel(
   const prevIndex = Math.max(0, state.currentLevelIndex - 1);
   return {
     currentLevelIndex: prevIndex,
-    remainingSeconds: levels[prevIndex].durationSeconds,
+    remainingSeconds: levels[prevIndex]!.durationSeconds,
     status: 'stopped',
     startedAt: null,
     remainingAtStart: null,
@@ -72,7 +72,7 @@ export function resetCurrentLevel(
   return {
     ...state,
     currentLevelIndex: clampedIndex,
-    remainingSeconds: levels[clampedIndex].durationSeconds,
+    remainingSeconds: levels[clampedIndex]!.durationSeconds,
     status: 'stopped',
     startedAt: null,
     remainingAtStart: null,
@@ -83,7 +83,7 @@ export function resetCurrentLevel(
 export function restartTournament(levels: Level[]): TimerState {
   return {
     currentLevelIndex: 0,
-    remainingSeconds: levels.length > 0 ? levels[0].durationSeconds : 0,
+    remainingSeconds: levels.length > 0 ? levels[0]!.durationSeconds : 0,
     status: 'stopped',
     startedAt: null,
     remainingAtStart: null,
@@ -102,10 +102,10 @@ export function computeTournamentElapsedSeconds(
 ): number {
   let elapsed = 0;
   for (let i = 0; i < currentLevelIndex; i++) {
-    elapsed += levels[i].durationSeconds;
+    elapsed += levels[i]!.durationSeconds;
   }
   if (currentLevelIndex < levels.length) {
-    elapsed += levels[currentLevelIndex].durationSeconds - remainingSeconds;
+    elapsed += levels[currentLevelIndex]!.durationSeconds - remainingSeconds;
   }
   return Math.max(0, elapsed);
 }
@@ -117,7 +117,7 @@ export function computeEstimatedRemainingSeconds(
 ): number {
   let remaining = remainingSeconds;
   for (let i = currentLevelIndex + 1; i < levels.length; i++) {
-    remaining += levels[i].durationSeconds;
+    remaining += levels[i]!.durationSeconds;
   }
   return Math.max(0, remaining);
 }

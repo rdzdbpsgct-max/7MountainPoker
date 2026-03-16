@@ -32,7 +32,7 @@ export function movePlayer(players: Player[], fromIndex: number, direction: -1 |
   const toIndex = fromIndex + direction;
   if (toIndex < 0 || toIndex >= players.length) return players;
   const result = [...players];
-  [result[fromIndex], result[toIndex]] = [result[toIndex], result[fromIndex]];
+  [result[fromIndex], result[toIndex]] = [result[toIndex]!, result[fromIndex]!];
   return result;
 }
 
@@ -43,7 +43,7 @@ export function shufflePlayers(players: Player[]): { players: Player[]; dealerIn
   const result = [...players];
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
+    [result[i], result[j]] = [result[j]!, result[i]!];
   }
   const dealerIndex = Math.floor(Math.random() * result.length);
   return { players: result, dealerIndex };
@@ -57,7 +57,7 @@ export function advanceDealer(players: Player[], currentDealerIndex: number): nu
   if (n === 0) return 0;
   for (let i = 1; i <= n; i++) {
     const candidate = (currentDealerIndex + i) % n;
-    if (players[candidate].status === 'active') return candidate;
+    if (players[candidate]!.status === 'active') return candidate;
   }
   return currentDealerIndex;
 }

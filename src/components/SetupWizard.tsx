@@ -37,11 +37,11 @@ export function SetupWizard({ onComplete, onSkip }: Props) {
   const isLast = stepIndex === STEPS.length - 1;
 
   const goNext = useCallback(() => {
-    if (!isLast) setStep(STEPS[stepIndex + 1]);
+    if (!isLast) setStep(STEPS[stepIndex + 1]!);
   }, [stepIndex, isLast]);
 
   const goBack = useCallback(() => {
-    if (!isFirst) setStep(STEPS[stepIndex - 1]);
+    if (!isFirst) setStep(STEPS[stepIndex - 1]!);
   }, [stepIndex, isFirst]);
 
   // Duration estimates

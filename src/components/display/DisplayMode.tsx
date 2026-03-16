@@ -227,7 +227,7 @@ export function DisplayMode({
       setActiveSecondary((prev) => {
         const screens = screensRef.current;
         const idx = screens.indexOf(prev);
-        return screens[(idx + 1) % screens.length];
+        return screens[(idx + 1) % screens.length]!;
       });
     }, rotationIntervalMs);
     return () => clearInterval(id);
@@ -241,14 +241,14 @@ export function DisplayMode({
         setActiveSecondary((prev) => {
           const screens = screensRef.current;
           const idx = screens.indexOf(prev);
-          return screens[(idx + 1) % screens.length];
+          return screens[(idx + 1) % screens.length]!;
         });
       } else if (e.code === 'ArrowLeft' || e.code === 'ArrowUp') {
         e.preventDefault();
         setActiveSecondary((prev) => {
           const screens = screensRef.current;
           const idx = screens.indexOf(prev);
-          return screens[(idx - 1 + screens.length) % screens.length];
+          return screens[(idx - 1 + screens.length) % screens.length]!;
         });
       } else if (e.code === 'KeyT' || e.code === 'Escape') {
         e.preventDefault();

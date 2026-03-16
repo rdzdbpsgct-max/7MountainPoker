@@ -5,6 +5,9 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CSP Note: 'unsafe-inline' is required for the theme-detection and loading-text
+         inline scripts below, and for Tailwind 4's inline style injection.
+         TODO: Replace with sha256 hashes for production hardening. -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' wss://*.peerjs.com https://*.peerjs.com https://stun.l.google.com:19302 https://va.vercel-scripts.com https://*.ingest.sentry.io; media-src 'self'; img-src 'self' data: blob:; font-src 'self'; worker-src 'self'; frame-ancestors 'none';" />
     <meta name="theme-color" content="#111827" />
     <meta name="description" content="Poker tournament timer for home games" />

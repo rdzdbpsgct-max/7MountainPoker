@@ -67,7 +67,7 @@ export function findLowestAvailableSeat(table: Table): number | null {
 export function findHighestOccupiedSeat(table: Table, players: Player[]): Seat | null {
   const activeIds = new Set(players.filter(p => p.status === 'active').map(p => p.id));
   for (let i = table.seats.length - 1; i >= 0; i--) {
-    const seat = table.seats[i];
+    const seat = table.seats[i]!;
     if (seat.playerId !== null && activeIds.has(seat.playerId)) {
       return seat;
     }
@@ -132,12 +132,12 @@ export function distributePlayersToTables(playerIds: string[], tables: Table[]):
   let playerIdx = 0;
   let tableIdx = 0;
   while (playerIdx < playerIds.length) {
-    const table = activeUpdated[tableIdx % activeUpdated.length];
+    const table = activeUpdated[tableIdx % activeUpdated.length]!;
     const seatNum = findLowestAvailableSeat(table);
     if (seatNum !== null) {
       const seatIdx = table.seats.findIndex(s => s.seatNumber === seatNum);
       if (seatIdx >= 0) {
-        table.seats[seatIdx] = { ...table.seats[seatIdx], playerId: playerIds[playerIdx] };
+        table.seats[seatIdx] = { ...table.seats[seatIdx]!, playerId: playerIds[playerIdx]! };
         playerIdx++;
       }
     }
@@ -275,13 +275,13 @@ export function balanceTables(tables: Table[], players: Player[]): { tables: Tab
     if (counts.length < 2) break;
 
     counts.sort((a, b) => b.active - a.active); // desc
-    const max = counts[0].active;
-    const min = counts[counts.length - 1].active;
+    const max = counts[0]!.active;
+    const min = counts[counts.length - 1]!.active;
 
     if (max - min <= 1) break; // balanced
 
-    const fromTable = counts[0].table;
-    const toTable = counts[counts.length - 1].table;
+    const fromTable = counts[0]!.table;
+    const toTable = counts[counts.length - 1]!.table;
 
     // Find highest occupied seat by active player at source
     const sourceSeat = findHighestOccupiedSeatInTable(fromTable, activeIds);
@@ -296,11 +296,11 @@ export function balanceTables(tables: Table[], players: Player[]): { tables: Tab
 
     // Remove from source seat
     const fromSeatIdx = fromTable.seats.findIndex(s => s.seatNumber === sourceSeat.seatNumber);
-    if (fromSeatIdx >= 0) fromTable.seats[fromSeatIdx] = { ...fromTable.seats[fromSeatIdx], playerId: null };
+    if (fromSeatIdx >= 0) fromTable.seats[fromSeatIdx] = { ...fromTable.seats[fromSeatIdx]!, playerId: null };
 
     // Place at target seat
     const toSeatIdx = toTable.seats.findIndex(s => s.seatNumber === targetSeatNum);
-    if (toSeatIdx >= 0) toTable.seats[toSeatIdx] = { ...toTable.seats[toSeatIdx], playerId: movedId };
+    if (toSeatIdx >= 0) toTable.seats[toSeatIdx] = { ...toTable.seats[toSeatIdx]!, playerId: movedId };
 
     moves.push({
       playerId: movedId,
@@ -326,7 +326,7 @@ export function balanceTables(tables: Table[], players: Player[]): { tables: Tab
 /** Internal helper — find highest occupied seat by an active player ID in a set */
 function findHighestOccupiedSeatInTable(table: Table, activeIds: Set<string>): Seat | null {
   for (let i = table.seats.length - 1; i >= 0; i--) {
-    const seat = table.seats[i];
+    const seat = table.seats[i]!;
     if (seat.playerId !== null && activeIds.has(seat.playerId)) {
       return seat;
     }
@@ -392,8 +392,8 @@ export function dissolveTable(
 
   // Round-robin distribute players to remaining tables
   for (let i = 0; i < playersToMove.length; i++) {
-    const { playerId, seatNumber: fromSeat } = playersToMove[i];
-    const targetTable = remainingTables[i % remainingTables.length];
+    const { playerId, seatNumber: fromSeat } = playersToMove[i]!;
+    const targetTable = remainingTables[i % remainingTables.length]!;
     const targetSeatNum = findLowestAvailableSeat(targetTable);
     if (targetSeatNum === null) {
       // No seat available — track skipped player
@@ -404,7 +404,7 @@ export function dissolveTable(
 
     // Seat at target
     const seatIdx = targetTable.seats.findIndex(s => s.seatNumber === targetSeatNum);
-    if (seatIdx >= 0) targetTable.seats[seatIdx] = { ...targetTable.seats[seatIdx], playerId };
+    if (seatIdx >= 0) targetTable.seats[seatIdx] = { ...targetTable.seats[seatIdx]!, playerId };
 
     const movedPlayer = playerMap.get(playerId);
     moves.push({
@@ -463,7 +463,7 @@ export function mergeToFinalTable(
   const activeTables = updated.filter(t => t.status === 'active');
   if (activeTables.length <= 1) return { tables: updated, moves, unseated };
 
-  const finalTable = activeTables[0];
+  const finalTable = activeTables[0]!;
   const activeIds = new Set(players.filter(p => p.status === 'active').map(p => p.id));
   const playerMap = new Map(players.map(p => [p.id, p]));
 
@@ -494,7 +494,7 @@ export function mergeToFinalTable(
       console.warn(`[tables] mergeToFinalTable: player ${playerId} could not be seated at Final Table (capacity exceeded)`);
       continue;
     }
-    finalTable.seats[seatIdx] = { ...finalTable.seats[seatIdx], playerId };
+    finalTable.seats[seatIdx] = { ...finalTable.seats[seatIdx]!, playerId };
 
     // Only create move if player was NOT already at the final table
     if (fromTable.id !== finalTable.id) {
@@ -506,7 +506,7 @@ export function mergeToFinalTable(
         fromSeat,
         toTableId: finalTable.id,
         toTableName: 'Final Table',
-        toSeat: finalTable.seats[seatIdx].seatNumber,
+        toSeat: finalTable.seats[seatIdx]!.seatNumber,
         reason: 'final-table',
         timestamp: Date.now(),
       });
@@ -590,7 +590,7 @@ export function shufflePlayersToTables(playerIds: string[], tables: Table[]): Ta
   const shuffled = [...playerIds];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
   }
   return distributePlayersToTables(shuffled, tables);
 }
@@ -617,11 +617,11 @@ export function advanceTableDealer(table: Table, players: Player[]): Table {
   }
 
   if (table.dealerSeat === null) {
-    return { ...table, dealerSeat: occupiedSeats[0].seatNumber };
+    return { ...table, dealerSeat: occupiedSeats[0]!.seatNumber };
   }
 
   // Find next occupied seat after current dealer
   const currentIdx = occupiedSeats.findIndex(s => s.seatNumber === table.dealerSeat);
   const nextIdx = (currentIdx + 1) % occupiedSeats.length;
-  return { ...table, dealerSeat: occupiedSeats[nextIdx].seatNumber };
+  return { ...table, dealerSeat: occupiedSeats[nextIdx]!.seatNumber };
 }

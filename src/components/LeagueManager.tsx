@@ -328,7 +328,7 @@ function LeagueEntry({
                         value={entry.points}
                         onChange={(v) => {
                           const entries = [...league.pointSystem.entries];
-                          entries[i] = { ...entries[i], points: Math.max(0, v) };
+                          entries[i] = { ...entries[i]!, points: Math.max(0, v) };
                           onUpdate({ ...league, pointSystem: { entries } });
                         }}
                         min={0}

@@ -168,7 +168,7 @@ export function TournamentTimeline({ onClose, events, levels, tournamentName }: 
                           {getEventDescription(event)}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {formatTime(elapsed)} · {levels[event.levelIndex] ? getLevelLabel(levels[event.levelIndex], event.levelIndex, levels, t) : `#${event.levelIndex + 1}`}
+                          {formatTime(elapsed)} · {levels[event.levelIndex] ? getLevelLabel(levels[event.levelIndex]!, event.levelIndex, levels, t) : `#${event.levelIndex + 1}`}
                         </p>
                       </div>
                     </div>

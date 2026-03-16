@@ -71,7 +71,7 @@ export function computeSidePots(stacks: number[]): SidePot[] {
   let previousLevel = 0;
 
   for (let i = 0; i < sorted.length; i++) {
-    const currentStack = sorted[i];
+    const currentStack = sorted[i]!;
     if (currentStack <= previousLevel) continue; // skip duplicate levels
 
     const contribution = currentStack - previousLevel;
@@ -136,7 +136,7 @@ export function calculateSidePots(players: PlayerPotInput[]): SidePotCalculation
   let previousLevel = 0;
 
   for (let levelIdx = 0; levelIdx < uniqueLevels.length; levelIdx++) {
-    const currentLevel = uniqueLevels[levelIdx];
+    const currentLevel = uniqueLevels[levelIdx]!;
     const contribution = currentLevel - previousLevel;
     if (contribution <= 0) continue;
 
@@ -235,7 +235,7 @@ export function resolvePotWinners(
 
     if (validWinners.length === 1) {
       // Single winner takes full pot
-      const entry = payoutMap.get(validWinners[0]);
+      const entry = payoutMap.get(validWinners[0]!);
       if (entry) {
         entry.payout += pot.amount;
         entry.perPot.push({ potIndex: pot.index, amount: pot.amount });
@@ -247,7 +247,7 @@ export function resolvePotWinners(
 
       for (let i = 0; i < validWinners.length; i++) {
         const amount = i === 0 ? share + remainder : share;
-        const entry = payoutMap.get(validWinners[i]);
+        const entry = payoutMap.get(validWinners[i]!);
         if (entry) {
           entry.payout += amount;
           entry.perPot.push({ potIndex: pot.index, amount });
@@ -258,7 +258,7 @@ export function resolvePotWinners(
         oddChips.push({
           potIndex: pot.index,
           remainder,
-          awardedTo: validWinners[0],
+          awardedTo: validWinners[0]!,
         });
       }
     }
@@ -612,7 +612,7 @@ export function formatLeagueAsText(league: League, standings: LeagueStanding[]):
   lines.push(`\u2660 ${league.name}`);
   lines.push('');
   for (let i = 0; i < standings.length; i++) {
-    const s = standings[i];
+    const s = standings[i]!;
     const medal = i === 0 ? '\u{1F3C6}' : i === 1 ? '\u{1F948}' : i === 2 ? '\u{1F949}' : `${i + 1}.`;
     lines.push(`${medal} ${s.name} — ${s.points} Pts (${s.tournaments} T, ${s.wins} W)`);
   }
@@ -634,7 +634,7 @@ export function formatLeagueAsCSV(standings: LeagueStanding[]): string {
 export function drawMysteryBounty(pool: number[]): { amount: number; remainingPool: number[] } {
   if (pool.length === 0) return { amount: 0, remainingPool: [] };
   const idx = Math.floor(Math.random() * pool.length);
-  const amount = pool[idx];
+  const amount = pool[idx]!;
   const remainingPool = [...pool.slice(0, idx), ...pool.slice(idx + 1)];
   return { amount, remainingPool };
 }
@@ -648,8 +648,8 @@ export function decodeResultFromQR(encoded: string): TournamentResult | null {
     const parts = encoded.split('|');
     if (parts.length < 11) return null;
 
-    const name = parts[0];
-    const date = parts[1];
+    const name = parts[0]!;
+    const date = parts[1]!;
     const playerCount = Number(parts[2]);
     const buyIn = Number(parts[3]);
     const prizePool = Number(parts[4]);
@@ -685,7 +685,7 @@ export function decodeResultFromQR(encoded: string): TournamentResult | null {
         return null;
       }
       const totalCost = buyIn + rebuyCount * buyIn + (hasAddOn ? buyIn : 0);
-      const bountyEarned = bountyAmount > 0 ? knockoutsNum * bountyAmount : 0;
+      const bountyEarned = 0;
       return {
         name: pName,
         place: placeNum,

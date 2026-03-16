@@ -52,7 +52,7 @@ export function generatePeerId(): string {
   const array = new Uint8Array(PEER_ID_LENGTH);
   crypto.getRandomValues(array);
   for (let i = 0; i < PEER_ID_LENGTH; i++) {
-    id += PEER_ALPHABET[array[i] % PEER_ALPHABET.length];
+    id += PEER_ALPHABET[array[i]! % PEER_ALPHABET.length];
   }
   return PEER_PREFIX + id;
 }

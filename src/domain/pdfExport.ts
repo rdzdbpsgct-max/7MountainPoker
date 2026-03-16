@@ -89,8 +89,10 @@ export async function exportTournamentResultAsPdf(
   const maxRows = Math.max(leftCol.length, rightCol.length);
 
   for (let i = 0; i < maxRows; i++) {
-    if (leftCol[i]) doc.text(leftCol[i], margin, y);
-    if (rightCol[i]) doc.text(rightCol[i], margin + colWidth, y);
+    const left = leftCol[i];
+    const right = rightCol[i];
+    if (left) doc.text(left, margin, y);
+    if (right) doc.text(right, margin + colWidth, y);
     y += 5;
   }
   y += 6;

@@ -21,7 +21,7 @@ export function LeaguePlayerDetail({ playerName, gameDays, onClose }: Props) {
   );
 
   const totalGames = stats.pointsHistory.length;
-  const totalPoints = totalGames > 0 ? stats.pointsHistory[totalGames - 1].cumulative : 0;
+  const totalPoints = totalGames > 0 ? stats.pointsHistory[totalGames - 1]!.cumulative : 0;
 
   // Sort head-to-head by most games played together
   const headToHeadSorted = useMemo(() => {

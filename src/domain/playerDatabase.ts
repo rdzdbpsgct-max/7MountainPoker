@@ -20,11 +20,13 @@ export function addRegisteredPlayer(name: string): RegisteredPlayer {
   const db = loadPlayerDatabase();
   const normalized = name.trim();
   // Check for duplicate (case-insensitive)
-  const existing = db.find((p) => p.name.toLowerCase() === normalized.toLowerCase());
-  if (existing) {
-    existing.lastPlayedAt = new Date().toISOString();
-    setCached('players', db);
-    return existing;
+  const existingIndex = db.findIndex((p) => p.name.toLowerCase() === normalized.toLowerCase());
+  if (existingIndex !== -1) {
+    const updated: RegisteredPlayer = { ...db[existingIndex]!, lastPlayedAt: new Date().toISOString() };
+    const updatedDb = [...db];
+    updatedDb[existingIndex] = updated;
+    setCached('players', updatedDb);
+    return updated;
   }
   const player: RegisteredPlayer = {
     id: `rp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,

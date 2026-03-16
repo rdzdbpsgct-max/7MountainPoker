@@ -42,6 +42,9 @@ export type AnnouncementKey = typeof CUSTOMIZABLE_ANNOUNCEMENTS[number];
 /** Maximum file size for uploaded audio files: 5 MB */
 export const MAX_AUDIO_FILE_SIZE = 5 * 1024 * 1024;
 
+/** Maximum number of custom audio files allowed */
+export const MAX_CUSTOM_AUDIO_FILES = 20;
+
 /** Accepted MIME types for audio uploads */
 export const ACCEPTED_AUDIO_TYPES = [
   'audio/mpeg',

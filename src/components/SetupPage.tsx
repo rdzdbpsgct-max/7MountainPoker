@@ -163,7 +163,7 @@ export function SetupPage({
       const tables: Table[] = [];
       for (let i = 0; i < count; i++) {
         if (i < existing.length) {
-          tables.push(existing[i]);
+          tables.push(existing[i]!);
         } else {
           tables.push(createTable(t('multiTable.tableName', { n: i + 1 }), 10));
         }

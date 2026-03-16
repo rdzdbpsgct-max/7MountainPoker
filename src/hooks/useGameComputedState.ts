@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { TournamentConfig, TournamentEvent, ChipDenomination } from '../domain/types';
 import type { TournamentResult } from '../domain/types';
 import {
@@ -170,10 +170,22 @@ export function useGameComputedState({
     return config.players.find((p) => p.status === 'active') ?? null;
   }, [tournamentFinished, config.players]);
 
-  const finishedResult = useMemo(() => {
-    if (!tournamentFinished) return null;
-    return buildTournamentResult(config, tournamentElapsed, currentPlayLevel, tournamentEvents);
-  }, [tournamentFinished, config, tournamentElapsed, currentPlayLevel, tournamentEvents]);
+  // Capture snapshot values at the moment the tournament finishes so that the
+  // finishedResult memo doesn't recompute on every timer tick.
+  const [finishedResult, setFinishedResult] = useState<TournamentResult | null>(null);
+  const finishedConfigRef = useRef(config);
+  useEffect(() => { finishedConfigRef.current = config; });
+
+  useEffect(() => {
+    if (tournamentFinished && !finishedResult) {
+      setFinishedResult(
+        buildTournamentResult(finishedConfigRef.current, tournamentElapsed, currentPlayLevel, tournamentEvents),
+      );
+    }
+    if (!tournamentFinished && finishedResult) {
+      setFinishedResult(null);
+    }
+  }, [tournamentFinished, finishedResult, tournamentElapsed, currentPlayLevel, tournamentEvents]);
 
   const startErrors = useMemo(() => collectStartErrors(config, t), [config, t]);
 

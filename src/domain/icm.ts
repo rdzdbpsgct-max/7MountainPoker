@@ -11,7 +11,7 @@
  * For N ≤ 10 active players, uses exact recursive computation.
  * For N > 10, uses Monte Carlo approximation (10,000 simulations).
  */
-export function computeIcmEquity(stacks: number[], payouts: number[]): number[] {
+export async function computeIcmEquity(stacks: number[], payouts: number[]): Promise<number[]> {
   if (stacks.length === 0 || payouts.length === 0) return stacks.map(() => 0);
 
   const activeIndices = stacks.map((s, i) => ({ s, i })).filter(({ s }) => s > 0);
@@ -20,7 +20,7 @@ export function computeIcmEquity(stacks: number[], payouts: number[]): number[] 
   // Single player gets all payouts combined (shouldn't happen in practice)
   if (activeIndices.length === 1) {
     const result = stacks.map(() => 0);
-    result[activeIndices[0].i] = payouts.reduce((a, b) => a + b, 0);
+    result[activeIndices[0]!.i] = payouts.reduce((a, b) => a + b, 0);
     return result;
   }
 
@@ -31,13 +31,14 @@ export function computeIcmEquity(stacks: number[], payouts: number[]): number[] 
   if (activeIndices.length <= 10) {
     activeEquities = exactIcm(activeStacks, payouts, totalChips);
   } else {
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
     activeEquities = monteCarloIcm(activeStacks, payouts, totalChips, 10_000);
   }
 
   // Map back to original indices
   const result = stacks.map(() => 0);
   activeIndices.forEach(({ i }, ai) => {
-    result[i] = activeEquities[ai];
+    result[i] = activeEquities[ai]!;
   });
   return result;
 }
@@ -57,9 +58,9 @@ function exactIcm(stacks: number[], payouts: number[], totalChips: number): numb
 
     for (let i = 0; i < n; i++) {
       if (!(remaining & (1 << i))) continue;
-      const p = (stacks[i] / remainingChips) * probability;
-      equities[i] += p * payouts[place];
-      recurse(place + 1, remaining & ~(1 << i), p, remainingChips - stacks[i]);
+      const p = (stacks[i]! / remainingChips) * probability;
+      equities[i]! += p * payouts[place]!;
+      recurse(place + 1, remaining & ~(1 << i), p, remainingChips - stacks[i]!);
     }
   }
 
@@ -88,21 +89,22 @@ function monteCarloIcm(stacks: number[], payouts: number[], totalChips: number, 
       let roll = Math.random() * remChips;
       let winner = -1;
       for (const idx of remaining) {
-        roll -= stacks[idx];
+        roll -= stacks[idx]!;
         if (roll <= 0) {
           winner = idx;
           break;
         }
       }
-      if (winner === -1) winner = [...remaining][remaining.size - 1]; // fallback
+      if (winner === -1) winner = [...remaining][remaining.size - 1]!; // fallback
       finishOrder.push(winner);
       remaining.delete(winner);
-      remChips -= stacks[winner];
+      remChips -= stacks[winner]!;
     }
 
     // Assign payouts based on finish order
     for (let place = 0; place < finishOrder.length && place < payouts.length; place++) {
-      equities[finishOrder[place]] += payouts[place];
+      const idx = finishOrder[place]!;
+      equities[idx] = (equities[idx] ?? 0) + payouts[place]!;
     }
   }
 
@@ -122,19 +124,19 @@ export interface IcmResult {
   equityPercent: number;
 }
 
-export function computeIcmDeal(
+export async function computeIcmDeal(
   stacks: number[],
   payouts: number[],
-): IcmResult[] {
+): Promise<IcmResult[]> {
   const totalChips = stacks.reduce((a, b) => a + b, 0);
   const totalPrize = payouts.reduce((a, b) => a + b, 0);
-  const equities = computeIcmEquity(stacks, payouts);
+  const equities = await computeIcmEquity(stacks, payouts);
 
   return stacks.map((stack, i) => ({
     playerIndex: i,
     stack,
     stackPercent: totalChips > 0 ? (stack / totalChips) * 100 : 0,
-    equity: equities[i],
-    equityPercent: totalPrize > 0 ? (equities[i] / totalPrize) * 100 : 0,
+    equity: equities[i]!,
+    equityPercent: totalPrize > 0 ? (equities[i]! / totalPrize) * 100 : 0,
   }));
 }

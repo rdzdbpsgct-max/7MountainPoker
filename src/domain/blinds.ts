@@ -158,7 +158,7 @@ export function generateBlindStructure(params: GenerateBlindParams): Level[] {
   const playLevels: Level[] = [];
   let lastBB = 0;
 
-  for (const refBB of BB_SEQUENCES[speed]) {
+  for (const refBB of BB_SEQUENCES[speed]!) {
     const rawBB = round(refBB * scale);
     if (rawBB <= lastBB) continue; // skip duplicates after rounding
     const sb = round(rawBB / 2);
@@ -309,7 +309,7 @@ function generateBlindStructureWithDuration(
   const playLevels: Level[] = [];
   let lastBB = 0;
 
-  for (const refBB of BB_SEQUENCES[speed]) {
+  for (const refBB of BB_SEQUENCES[speed]!) {
     const rawBB = round(refBB * scale);
     if (rawBB <= lastBB) continue;
     const sb = round(rawBB / 2);
@@ -370,7 +370,7 @@ export function computeLiveRemainingDuration(
 
   let totalSeconds = remainingCurrentLevelSeconds;
   for (let i = currentLevelIndex + 1; i < levels.length; i++) {
-    totalSeconds += levels[i].durationSeconds;
+    totalSeconds += levels[i]!.durationSeconds;
   }
 
   const playerFactor = Math.max(0.3, Math.min(2.0, activePlayers / 9));
@@ -487,10 +487,10 @@ export function computeHistoricalDurationEstimate(
   const mid = Math.floor(perPlayer.length / 2);
   const median =
     perPlayer.length % 2 === 1
-      ? perPlayer[mid]
-      : (perPlayer[mid - 1] + perPlayer[mid]) / 2;
+      ? perPlayer[mid]!
+      : (perPlayer[mid - 1]! + perPlayer[mid]!) / 2;
 
-  const estimateSeconds = Math.round(median * playerCount);
+  const estimateSeconds = Math.round(median! * playerCount);
 
   // Confidence based on sample size
   let confidence: DurationConfidence;

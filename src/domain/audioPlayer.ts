@@ -43,7 +43,7 @@ function trimTrailingSilence(ctx: AudioContext, buffer: AudioBuffer): AudioBuffe
   for (let ch = 0; ch < channels; ch++) {
     const data = buffer.getChannelData(ch);
     for (let i = data.length - 1; i >= 0; i--) {
-      if (Math.abs(data[i]) > threshold) {
+      if (Math.abs(data[i]!) > threshold) {
         if (i > lastSample) lastSample = i;
         break;
       }
@@ -62,12 +62,12 @@ function trimTrailingSilence(ctx: AudioContext, buffer: AudioBuffer): AudioBuffe
     const dst = trimmed.getChannelData(ch);
     // Copy data up to lastSample
     for (let i = 0; i < Math.min(lastSample + 1, trimmedLength); i++) {
-      dst[i] = src[i];
+      dst[i] = src[i]!;
     }
     // Fade out the padding region
     for (let i = lastSample + 1; i < trimmedLength; i++) {
       const fadePos = (i - lastSample) / fadeSamples;
-      dst[i] = src[i] * (1 - fadePos);
+      dst[i] = src[i]! * (1 - fadePos);
     }
   }
 
@@ -115,12 +115,12 @@ function playWithWebAudio(files: string[], basePath: string): Promise<void> {
 
       for (let i = 0; i < buffers.length; i++) {
         const source = ctx.createBufferSource();
-        source.buffer = buffers[i];
+        source.buffer = buffers[i] ?? null;
         source.connect(gainNode);
         scheduledSources.push(source);
 
         source.start(startTime);
-        startTime += buffers[i].duration;
+        startTime += buffers[i]!.duration;
       }
 
       // Resolve when the last buffer finishes (guard against cancelled sources
@@ -136,7 +136,7 @@ function playWithWebAudio(files: string[], basePath: string): Promise<void> {
         if (!cancelRequested) resolve();
       };
 
-      lastSource.onended = safeResolve;
+      if (lastSource) lastSource.onended = safeResolve;
 
       // Safety timeout: if onended never fires (browser bug), force resolve
       setTimeout(safeResolve, totalDuration * 1000 + 2000);

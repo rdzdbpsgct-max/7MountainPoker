@@ -7,11 +7,13 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import App from './App.tsx'
 import { initStorage } from './domain/storage'
 import { trackSessionStarted } from './domain/monetizationTelemetry'
+import { parseDisplayHash } from './domain/remote'
 
 const hash = window.location.hash;
 const isLocalDisplayWindow = hash === '#display';
-const isRemoteDisplayWindow = hash.startsWith('#display=');
-const remoteDisplayPeerId = isRemoteDisplayWindow ? hash.slice('#display='.length) : null;
+const displayHashResult = parseDisplayHash(hash);
+const isRemoteDisplayWindow = displayHashResult !== null;
+const remoteDisplayPeerId = displayHashResult ? displayHashResult.peerId : null;
 
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
 if (sentryDsn && import.meta.env.PROD && !isLocalDisplayWindow && !isRemoteDisplayWindow) {
@@ -68,8 +70,6 @@ function renderApp() {
     );
   }
 
-  trackSessionStarted();
-
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <ErrorBoundary>
@@ -96,4 +96,12 @@ function renderApp() {
 
 // Initialize IndexedDB storage before mounting React.
 // Typically completes in <50ms. Falls back to localStorage if unavailable.
-initStorage().then(renderApp).catch(renderApp)
+initStorage()
+  .then(() => {
+    trackSessionStarted();
+    renderApp();
+  })
+  .catch((err) => {
+    console.warn('[storage] init failed:', err);
+    renderApp();
+  });

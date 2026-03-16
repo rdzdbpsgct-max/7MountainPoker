@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { computeIcmDeal } from '../domain/logic';
+import type { IcmResult } from '../domain/logic';
 import type { Player, PayoutConfig } from '../domain/types';
 import { useTranslation } from '../i18n';
 import { useDialogA11y } from '../hooks/useDialogA11y';
@@ -49,12 +50,18 @@ export function IcmCalculator({ onClose, players, payout, prizePool }: Props) {
     return payout.entries.map((e) => e.value);
   }, [payout, prizePool]);
 
-  // Compute ICM
-  const icmResults = useMemo(() => {
-    if (stacks.every((s) => s === 0)) return null;
-    if (payoutAmounts.length === 0) return null;
-    return computeIcmDeal(stacks, payoutAmounts);
-  }, [stacks, payoutAmounts]);
+  // Compute ICM (async)
+  const hasValidInputs = !stacks.every((s) => s === 0) && payoutAmounts.length > 0;
+  const [icmResultsRaw, setIcmResultsRaw] = useState<IcmResult[] | null>(null);
+  useEffect(() => {
+    if (!hasValidInputs) return;
+    let cancelled = false;
+    computeIcmDeal(stacks, payoutAmounts).then((results) => {
+      if (!cancelled) setIcmResultsRaw(results);
+    });
+    return () => { cancelled = true; };
+  }, [stacks, payoutAmounts, hasValidInputs]);
+  const icmResults = hasValidInputs ? icmResultsRaw : null;
 
   const totalChips = stacks.reduce((a, b) => a + b, 0);
   const totalPayout = payoutAmounts.reduce((a, b) => a + b, 0);
@@ -118,7 +125,7 @@ export function IcmCalculator({ onClose, players, payout, prizePool }: Props) {
                   </span>
                   <div className="flex-1">
                     <NumberStepper
-                      value={stacks[i]}
+                      value={stacks[i]!}
                       onChange={(v) => handleStackChange(i, v)}
                       min={0}
                       step={1000}

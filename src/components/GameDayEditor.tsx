@@ -31,7 +31,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
   const registeredPlayers = useMemo(() => registeredPlayersDb.map((p) => p.name).sort(), [registeredPlayersDb]);
 
   const [date, setDate] = useState(() =>
-    editingGameDay?.date ?? new Date().toISOString().split('T')[0],
+    editingGameDay?.date ?? new Date().toISOString().split('T')[0]!,
   );
   const [label, setLabel] = useState(() => {
     if (editingGameDay?.label) return editingGameDay.label;
@@ -101,7 +101,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
     if (index === 0) return;
     setParticipants((prev) => {
       const copy = [...prev];
-      [copy[index - 1], copy[index]] = [copy[index], copy[index - 1]];
+      [copy[index - 1], copy[index]] = [copy[index]!, copy[index - 1]!];
       return copy.map((p, i) => ({ ...p, place: i + 1 }));
     });
   }, []);
@@ -110,7 +110,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
     setParticipants((prev) => {
       if (index >= prev.length - 1) return prev;
       const copy = [...prev];
-      [copy[index], copy[index + 1]] = [copy[index + 1], copy[index]];
+      [copy[index], copy[index + 1]] = [copy[index + 1]!, copy[index]!];
       return copy.map((p, i) => ({ ...p, place: i + 1 }));
     });
   }, []);

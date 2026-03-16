@@ -55,14 +55,14 @@ export class UndoStack {
   /** Label of the action that would be undone. */
   get undoLabel(): string | null {
     return this.undoEntries.length > 0
-      ? this.undoEntries[this.undoEntries.length - 1].actionKey
+      ? this.undoEntries[this.undoEntries.length - 1]!.actionKey
       : null;
   }
 
   /** Label of the action that would be redone. */
   get redoLabel(): string | null {
     return this.redoEntries.length > 0
-      ? this.redoEntries[this.redoEntries.length - 1].actionKey
+      ? this.redoEntries[this.redoEntries.length - 1]!.actionKey
       : null;
   }
 
@@ -86,7 +86,7 @@ export class UndoStack {
    */
   undo(currentState: UndoEntry): [UndoStack, UndoEntry] | null {
     if (this.undoEntries.length === 0) return null;
-    const entry = this.undoEntries[this.undoEntries.length - 1];
+    const entry = this.undoEntries[this.undoEntries.length - 1]!;
     const newUndo = this.undoEntries.slice(0, -1);
     const newRedo = [...this.redoEntries, currentState];
     return [new UndoStack(newUndo, newRedo), entry];
@@ -99,7 +99,7 @@ export class UndoStack {
    */
   redo(currentState: UndoEntry): [UndoStack, UndoEntry] | null {
     if (this.redoEntries.length === 0) return null;
-    const entry = this.redoEntries[this.redoEntries.length - 1];
+    const entry = this.redoEntries[this.redoEntries.length - 1]!;
     const newRedo = this.redoEntries.slice(0, -1);
     const newUndo = [...this.undoEntries, currentState];
     return [new UndoStack(newUndo, newRedo), entry];

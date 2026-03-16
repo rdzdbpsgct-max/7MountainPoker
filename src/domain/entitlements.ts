@@ -47,7 +47,7 @@ function parseTier(value: unknown): AppTier | null {
 }
 
 function readDefaultTierFromEnv(): AppTier {
-  const fromEnv = parseTier((import.meta as ImportMeta).env?.VITE_APP_TIER);
+  const fromEnv = parseTier(import.meta.env.VITE_APP_TIER);
   // Default is premium to preserve current behavior until explicit rollout.
   return fromEnv ?? 'premium';
 }

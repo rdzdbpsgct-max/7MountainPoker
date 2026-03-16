@@ -157,7 +157,7 @@ function App() {
     if (!config.rebuy.enabled || config.rebuy.limitType !== 'levels') return -1;
     let playCount = 0;
     for (let i = 0; i < config.levels.length; i++) {
-      if (config.levels[i].type === 'level') {
+      if (config.levels[i]!.type === 'level') {
         playCount++;
         if (playCount === config.rebuy.levelLimit) return i;
       }
@@ -264,7 +264,7 @@ function App() {
         }
         return p;
       });
-      if (updated.some((p, i) => p.name !== prev.players[i].name)) {
+      if (updated.some((p, i) => p.name !== prev.players[i]!.name)) {
         return { ...prev, players: updated };
       }
       return prev;
@@ -795,7 +795,7 @@ function App() {
                   switchToGame();
                   return;
                 }
-                showToast(quickStartErrors[0]);
+                showToast(quickStartErrors[0]!);
               }
               setMode('setup');
             }}

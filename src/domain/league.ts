@@ -156,12 +156,12 @@ export function computeHeadToHeadMatrix(
   for (const gd of gameDays) {
     const participants = gd.participants;
     for (let i = 0; i < participants.length; i++) {
-      const pi = participants[i];
+      const pi = participants[i]!;
       const keyI = normalizePlayerName(pi.name);
       if (!nameMap.has(keyI)) nameMap.set(keyI, pi.name);
 
       for (let j = i + 1; j < participants.length; j++) {
-        const pj = participants[j];
+        const pj = participants[j]!;
         const keyJ = normalizePlayerName(pj.name);
         if (!nameMap.has(keyJ)) nameMap.set(keyJ, pj.name);
 
@@ -216,7 +216,7 @@ export function computeHeadToHeadMatrix(
         row.push(null);
         continue;
       }
-      const entry = meetingsMap.get(pairKey(playerKeys[i], playerKeys[j]));
+      const entry = meetingsMap.get(pairKey(playerKeys[i]!, playerKeys[j]!));
       if (!entry || entry.meetings === 0) {
         row.push({ wins: 0, losses: 0, meetings: 0, winRate: null });
       } else {
@@ -264,8 +264,8 @@ export function computeEloRatings(
     const participants = gd.participants;
     for (let i = 0; i < participants.length; i++) {
       for (let j = i + 1; j < participants.length; j++) {
-        const pi = participants[i];
-        const pj = participants[j];
+        const pi = participants[i]!;
+        const pj = participants[j]!;
         if (pi.place === pj.place) continue; // tie — skip
 
         const winnerKey = pi.place < pj.place ? normalizePlayerName(pi.name) : normalizePlayerName(pj.name);
@@ -304,7 +304,7 @@ export function computeWeightedPoints(
 
   for (let i = 0; i < total; i++) {
     const weight = Math.pow(decayFactor, total - 1 - i);
-    for (const p of sorted[i].participants) {
+    for (const p of sorted[i]!.participants) {
       const key = normalizePlayerName(p.name);
       const pts = pointMap.get(p.place) ?? p.points;
       result.set(key, (result.get(key) ?? 0) + pts * weight);
@@ -431,7 +431,7 @@ export function computeExtendedStandings(
 
   // Assign ranks
   for (let i = 0; i < standings.length; i++) {
-    standings[i].rank = i + 1;
+    standings[i]!.rank = i + 1;
   }
 
   return standings;
@@ -456,7 +456,7 @@ export function applyTiebreaker(
   const groups: ExtendedLeagueStanding[][] = [];
   let currentGroup: ExtendedLeagueStanding[] = [];
   for (const s of preSorted) {
-    if (currentGroup.length === 0 || currentGroup[0].points === s.points) {
+    if (currentGroup.length === 0 || currentGroup[0]!.points === s.points) {
       currentGroup.push(s);
     } else {
       groups.push(currentGroup);
@@ -521,7 +521,7 @@ export function applyTiebreaker(
 
   // Replace standings in-place
   for (let i = 0; i < sorted.length; i++) {
-    standings[i] = sorted[i];
+    standings[i] = sorted[i]!;
   }
   return standings;
 }
@@ -589,7 +589,7 @@ export function createSeason(name: string): Season {
   return {
     id: `season_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     name,
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: new Date().toISOString().split('T')[0]!,
   };
 }
 
@@ -746,13 +746,13 @@ export function decodeLeagueStandingsFromQR(hash: string): { leagueName: string;
     if (!leagueName || !playersStr) return null;
     const standings = playersStr.split(';').filter(Boolean).map((entry) => {
       const [rank, name, points, tournaments, wins, netBalance] = entry.split(':');
-      const rankNum = parseInt(rank, 10);
+      const rankNum = parseInt(rank ?? '', 10);
       // Player names may be URL-encoded
       const decodedName = decodeURIComponent(name ?? '');
-      const pointsNum = parseInt(points, 10);
-      const tournamentsNum = parseInt(tournaments, 10);
-      const winsNum = parseInt(wins, 10);
-      const balanceNum = parseFloat(netBalance);
+      const pointsNum = parseInt(points ?? '', 10);
+      const tournamentsNum = parseInt(tournaments ?? '', 10);
+      const winsNum = parseInt(wins ?? '', 10);
+      const balanceNum = parseFloat(netBalance ?? '');
       if (!decodedName || [rankNum, pointsNum, tournamentsNum, winsNum, balanceNum].some(isNaN)) {
         return null;
       }

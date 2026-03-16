@@ -98,7 +98,7 @@ function PlayerManagerInner({ players, dealerIndex, onChange, multiTableEnabled,
     const dealerPlayerId = players[dealerIndex]?.id;
     const result = [...players];
     const [dragged] = result.splice(draggedIndex, 1);
-    result.splice(dropIndex, 0, dragged);
+    result.splice(dropIndex, 0, dragged!);
     const newDealerIndex = dealerPlayerId
       ? result.findIndex((p) => p.id === dealerPlayerId)
       : 0;

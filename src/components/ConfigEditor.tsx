@@ -80,7 +80,7 @@ export function ConfigEditor({ config, onChange, anteEnabled }: Props) {
   };
 
   const duplicateLevel = (index: number) => {
-    const dup = { ...config.levels[index], id: generateId() };
+    const dup: Level = { ...config.levels[index]!, id: generateId() };
     const newLevels = [...config.levels];
     newLevels.splice(index + 1, 0, dup);
     onChange({ ...config, levels: newLevels });
@@ -95,7 +95,7 @@ export function ConfigEditor({ config, onChange, anteEnabled }: Props) {
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= config.levels.length) return;
     const newLevels = [...config.levels];
-    [newLevels[index], newLevels[newIndex]] = [newLevels[newIndex], newLevels[index]];
+    [newLevels[index], newLevels[newIndex]] = [newLevels[newIndex]!, newLevels[index]!];
     onChange({ ...config, levels: newLevels });
   };
 

@@ -115,6 +115,8 @@ export function useRemoteHostBridge({
   remainingSecondsRef.current = timerState.remainingSeconds;
   const tournamentElapsedRef = useRef(tournamentElapsed);
   tournamentElapsedRef.current = tournamentElapsed;
+  const averageStackRef = useRef(averageStack);
+  useEffect(() => { averageStackRef.current = averageStack; });
 
   const handleRemoteCommand = useCallback((cmd: RemoteCommand) => {
     switch (cmd.action) {
@@ -232,7 +234,7 @@ export function useRemoteHostBridge({
         config.addOn.enabled ? config.addOn.cost : undefined,
       );
       const avgStackBB = bigBlind && bigBlind > 0
-        ? computeAverageStackInBB(averageStack, bigBlind)
+        ? computeAverageStackInBB(averageStackRef.current, bigBlind)
         : 0;
 
       host.sendState({
@@ -287,7 +289,6 @@ export function useRemoteHostBridge({
     rebuyActive,
     addOnWindowOpen,
     bountyEnabled,
-    averageStack,
     isItm,
     settings.soundEnabled,
     t,

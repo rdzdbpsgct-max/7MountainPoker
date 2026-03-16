@@ -34,7 +34,7 @@ export function LeagueView({ onStartTournament }: Props) {
   const [leagues, setLeagues] = useState<League[]>(() => loadLeagues());
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(() => {
     const list = loadLeagues();
-    return list.length > 0 ? list[0].id : null;
+    return list.length > 0 ? list[0]!.id : null;
   });
   const [activeTab, setActiveTab] = useState<Tab>('standings');
   const [isCreating, setIsCreating] = useState(false);
@@ -75,7 +75,7 @@ export function LeagueView({ onStartTournament }: Props) {
   const currencySymbol = useMemo(() => {
     const currencies = gameDays.map(gd => gd.currency).filter(Boolean) as Currency[];
     if (currencies.length === 0) return '€';
-    return CURRENCY_SYMBOLS[currencies[0]] ?? '€';
+    return CURRENCY_SYMBOLS[currencies[0]!] ?? '€';
   }, [gameDays]);
 
   const activeSeason = useMemo(
@@ -108,7 +108,7 @@ export function LeagueView({ onStartTournament }: Props) {
     const updated = loadLeagues();
     setLeagues(updated);
     if (selectedLeagueId === id) {
-      setSelectedLeagueId(updated.length > 0 ? updated[0].id : null);
+      setSelectedLeagueId(updated.length > 0 ? updated[0]!.id : null);
     }
     setConfirmDeleteId(null);
   }, [selectedLeagueId]);
@@ -150,7 +150,7 @@ export function LeagueView({ onStartTournament }: Props) {
       playerName: correctionPlayer.trim(),
       points: correctionPoints,
       reason: correctionReason.trim() || 'Manual correction',
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split('T')[0]!,
     };
     const updated: League = {
       ...selectedLeague,
