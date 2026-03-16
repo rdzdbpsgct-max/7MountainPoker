@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.9.0
+**Version**: 6.9.1
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1191 tests, single run)
+npm run test         # Vitest run (1195 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -343,7 +343,7 @@ public/
 - **Re-Entry Mode**: Players can re-enter after elimination (new ID, same person). `reEnterPlayer()` in players.ts. `reEntryEnabled/maxReEntries` in RebuyConfig. Re-entry button on eliminated players. Auto-seat at smallest table.
 - **Seat Locking**: Lock individual seats at multi-table setup. `Seat.locked` property. `toggleSeatLock()` in tables.ts. Locked seats skipped during distribution and balancing.
 - **Druckbare Ergebnisse**: Tournament results printable from TournamentFinished screen via PrintView.
-- **Remote Control (PeerJS)**: Smartphone remote control via PeerJS (WebRTC data channel with cloud-brokered signaling). One-scan flow: host generates peer ID (`PKR-XXXXX`), QR code contains app URL with `#remote=` hash, phone scans → opens app → auto-connects. `RemoteHost` + `RemoteController` classes in `remote.ts`. `RemoteControl.tsx` with host QR modal + touch-optimized fullscreen controller UI (play/pause/next/prev/dealer/sound/call-the-clock + **player management**: collapsible player section with elimination, rebuy, add-on buttons). Bounty-aware eliminator-picker (touch-button grid). `RemotePlayerInfo` compact protocol (~35 bytes/player). `useRemoteControl` hook manages state, `useRemoteHostBridge` bridges commands to tournament actions. Auto-reconnect (3 attempts, exponential backoff). Wake Lock on controller. Keepalive pings every 10s. Lazy-loaded ~14KB chunk.
+- **Remote Control (PeerJS)**: Smartphone remote control via PeerJS (WebRTC data channel with cloud-brokered signaling). One-scan flow: host generates peer ID (`PKR-XXXXXXXX`), QR code contains app URL with `#remote=` hash, phone scans → opens app → auto-connects. `RemoteHost` + `RemoteController` classes in `remote.ts`. `RemoteControl.tsx` with host QR modal + touch-optimized fullscreen controller UI (play/pause/next/prev/dealer/sound/call-the-clock + **player management**: collapsible player section with elimination, rebuy, add-on buttons). Bounty-aware eliminator-picker (touch-button grid). `RemotePlayerInfo` compact protocol (~35 bytes/player). `useRemoteControl` hook manages state, `useRemoteHostBridge` bridges commands to tournament actions. Auto-reconnect (3 attempts, exponential backoff). Wake Lock on controller. Keepalive pings every 10s. Lazy-loaded ~14KB chunk.
 - **App.tsx Refactoring**: Extracted `useKeyboardShortcuts` (72 lines) and `useTournamentActions` (317 lines) hooks. App.tsx reduced from ~1543 to ~1300 lines.
 - **UI Integration Tests**: 95 component tests via `@testing-library/react` in `tests/components.test.tsx` covering 17 components/hooks (NumberStepper, CollapsibleSection, CollapsibleSubSection, PrintView, CallTheClock, BubbleIndicator, RebuyStatus, ChevronIcon, LanguageSwitcher, ThemeSwitcher, ErrorBoundary, useTimer, useConfirmDialog, LoadingFallback, ConfigEditor, SettingsPanel, PlayerPanel).
 - **Offline-first**: Core functionality works offline. PeerJS signaling server required only for Remote Control pairing
@@ -367,7 +367,7 @@ public/
 
 ## Testing
 
-- **1191 tests** across 17 test files + 1 setup file
+- **1195 tests** across 17 test files + 1 setup file
 - Core files: `logic.test.ts` (665), `components.test.tsx` (98), `edge-cases.test.ts` (88), `sound-speech.test.ts` (56), `integration.test.ts` (36), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (26), `display-channel.test.ts` (14), `entitlements.test.ts` (8), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service, event log, break controls
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
@@ -405,6 +405,14 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.9.1 — Currency Propagation, PeerJS Hardening & CSP
+
+- **SharedResultView Currency**: 4 hardkodierte `t('unit.eur')` durch `result.currency ?? 'EUR'` mit `CURRENCY_SYMBOLS`-Lookup ersetzt. Geteilte Turnierergebnisse zeigen jetzt die korrekte Währung.
+- **Currency in GameDay + Liga-Finanzen**: `currency?: Currency` zu `GameDay`-Interface hinzugefügt. Automatische Propagation über `createGameDayFromResult()`. Alle Liga-Finanz-Komponenten (`LeagueFinances`, `LeagueGameDays`, `LeagueStandingsTable`, `GameDayEditor`) nutzen `currencySymbol`-Prop statt hardkodiertem `€`. Fallback `'EUR'` für alte Daten.
+- **PeerJS Hardening**: `PEER_ID_LENGTH` von 5 → 8 (32⁸ = 1,1 Billionen Kombinationen). Verbindungslimits: `MAX_CONTROLLERS = 4`, `MAX_DISPLAYS = 8` — überzählige Verbindungen werden mit Close + Console.warn abgewiesen. `parseRemoteHash`/`parseDisplayHash` Regex aktualisiert. Alte 5-Zeichen-URLs funktionieren weiterhin.
+- **CSP für GitHub Pages**: CSP-Meta-Tag in `index.html` mit `vercel.json` synchronisiert — `worker-src 'self'` und `frame-ancestors 'none'` hinzugefügt.
+- **4 neue Tests** — **1195 Tests gesamt** (17 Testdateien)
 
 ### v6.9.0 — Tournament Event Log & Break Controls Polish
 

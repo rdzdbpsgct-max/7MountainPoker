@@ -5,6 +5,18 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.9.1] – 2026-03-16
+
+### Currency Propagation, PeerJS Hardening & CSP
+
+- **SharedResultView Currency**: Geteilte Turnierergebnisse zeigen jetzt die korrekte Währung statt hardkodiertem EUR. `CURRENCY_SYMBOLS`-Lookup mit `result.currency ?? 'EUR'` Fallback.
+- **Currency in GameDay + Liga-Finanzen**: `currency?: Currency` Feld in `GameDay`-Interface. Automatische Propagation über `createGameDayFromResult()`. Liga-Finanz-Komponenten nutzen `currencySymbol`-Prop statt `€`. Rückwärtskompatibel via EUR-Fallback.
+- **PeerJS Hardening**: Peer-ID-Länge von 5 → 8 Zeichen (1,1 Billionen statt 33 Millionen Kombinationen). Verbindungslimits: max 4 Controller + 8 Displays gleichzeitig.
+- **CSP für GitHub Pages**: CSP-Meta-Tag in `index.html` synchronisiert mit `vercel.json` — `worker-src 'self'` und `frame-ancestors 'none'` ergänzt.
+- **4 neue Tests** — **1195 Tests gesamt**
+
+---
+
 ## [6.9.0] – 2026-03-16
 
 ### Tournament Event Log & Break Controls Polish
