@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { TournamentSeries, SeriesStanding, TournamentConfig } from '../domain/types';
+import type { TournamentSeries, SeriesStanding, TournamentConfig, TournamentResult } from '../domain/types';
 import {
   loadAllSeries,
   saveSeries,
@@ -11,6 +11,7 @@ import {
   formatSeriesStandingsAsCSV,
   exportSeriesToJSON,
   parseSeriesFile,
+  saveTournamentResult,
 } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { ChevronIcon } from './ChevronIcon';
@@ -133,6 +134,14 @@ export function SeriesManager({ onClose, currentConfig, onLinkSeries }: Props) {
         if (data) {
           // Import: save series + results
           saveSeries(data.series);
+          // After importing the series, also save any embedded results to history
+          if (data.results && Array.isArray(data.results)) {
+            for (const result of data.results) {
+              if (result && typeof result === 'object' && result.id) {
+                saveTournamentResult(result as TournamentResult);
+              }
+            }
+          }
           setSeriesList(loadAllSeries());
           setImportSuccess(true);
           setTimeout(() => setImportSuccess(false), 3000);

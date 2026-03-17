@@ -315,7 +315,7 @@ function App() {
 
   // Warn user if checkpoint could not be restored due to schema version mismatch
   useEffect(() => {
-    const handler = () => showToast(t('checkpoint.incompatible' as Parameters<typeof t>[0]), 'warning');
+    const handler = () => showToast(t('checkpoint.incompatible' as Parameters<typeof t>[0]));
     window.addEventListener('checkpoint-schema-mismatch', handler);
     return () => window.removeEventListener('checkpoint-schema-mismatch', handler);
   }, [t]);

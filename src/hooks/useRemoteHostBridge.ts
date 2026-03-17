@@ -96,25 +96,25 @@ export function useRemoteHostBridge({
 }: UseRemoteHostBridgeParams) {
   // Keep stable refs for player callbacks (avoid re-creating handleRemoteCommand on every player change)
   const playersRef = useRef(config.players);
-  playersRef.current = config.players;
+  useEffect(() => { playersRef.current = config.players; });
   const eliminateRef = useRef(onEliminatePlayer);
-  eliminateRef.current = onEliminatePlayer;
+  useEffect(() => { eliminateRef.current = onEliminatePlayer; });
   const rebuyRef = useRef(onUpdatePlayerRebuys);
-  rebuyRef.current = onUpdatePlayerRebuys;
+  useEffect(() => { rebuyRef.current = onUpdatePlayerRebuys; });
   const addOnRef = useRef(onUpdatePlayerAddOn);
-  addOnRef.current = onUpdatePlayerAddOn;
+  useEffect(() => { addOnRef.current = onUpdatePlayerAddOn; });
   const appendEventRef = useRef(onAppendEvent);
-  appendEventRef.current = onAppendEvent;
+  useEffect(() => { appendEventRef.current = onAppendEvent; });
 
   const currentLevelIndexRef = useRef(timerState.currentLevelIndex);
-  currentLevelIndexRef.current = timerState.currentLevelIndex;
+  useEffect(() => { currentLevelIndexRef.current = timerState.currentLevelIndex; });
 
   // Refs for values that change every tick — excluded from useEffect deps to avoid
   // interval teardown, but the interval must read the CURRENT value (not stale closure).
   const remainingSecondsRef = useRef(timerState.remainingSeconds);
-  remainingSecondsRef.current = timerState.remainingSeconds;
+  useEffect(() => { remainingSecondsRef.current = timerState.remainingSeconds; });
   const tournamentElapsedRef = useRef(tournamentElapsed);
-  tournamentElapsedRef.current = tournamentElapsed;
+  useEffect(() => { tournamentElapsedRef.current = tournamentElapsed; });
   const averageStackRef = useRef(averageStack);
   useEffect(() => { averageStackRef.current = averageStack; });
 
@@ -276,7 +276,6 @@ export function useRemoteHostBridge({
         remoteStateIntervalRef.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- ref updates in render are intentional (latest-ref pattern)
   }, [
     mode,
     timerState.status,

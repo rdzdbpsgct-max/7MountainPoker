@@ -11,7 +11,7 @@ export default defineConfig({
   build: {
     // Support older iPads (iPadOS 15+) — Vite 7 defaults to safari16
     target: ['es2020', 'safari14'],
-    sourcemap: 'hidden',
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -34,10 +34,8 @@ export default defineConfig({
           }
           if (id.includes('/node_modules/peerjs/')) return 'vendor-peerjs';
           if (id.includes('/node_modules/qrcode.react/')) return 'vendor-qrcode';
-          if (id.includes('/node_modules/html-to-image/')
-            || id.includes('/node_modules/idb/')) {
-            return 'vendor-utils';
-          }
+          if (id.includes('/node_modules/idb/')) return 'vendor-idb';
+          if (id.includes('/node_modules/html-to-image/')) return 'vendor-screenshot';
           if (id.includes('/node_modules/jspdf/') || id.includes('/node_modules/jspdf-autotable/')) {
             return 'vendor-pdf';
           }
@@ -81,7 +79,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,mp3}'],
         runtimeCaching: [
           {
             urlPattern: /\.mp3$/,
@@ -89,7 +87,7 @@ export default defineConfig({
             options: {
               cacheName: 'audio-cache',
               expiration: {
-                maxEntries: 650,
+                maxEntries: 800,
                 maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
               },
             },

@@ -191,32 +191,34 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
   const nextLevel = useCallback(() => {
     initAudio(); initAudioContext(); initSpeech(); // Unlock AudioContext + Speech from user gesture
     clearTick();
-    lastCountdownSecRef.current = null;
-    levelEndAudioPlayedRef.current = false;
-    const now = Date.now();
     setTimerState((prev) => {
+      // Reset refs inside updater to avoid render-phase mutations
+      lastCountdownSecRef.current = null;
+      levelEndAudioPlayedRef.current = false;
+      const now = Date.now();
       const next = advanceLevel(prev, levels);
       if (next.remainingSeconds > 0) {
         return { ...next, status: 'running', startedAt: now, remainingAtStart: next.remainingSeconds };
       }
       return next;
     });
-  }, [levels, clearTick, tick]);
+  }, [levels, clearTick]);
 
   const previousLevel = useCallback(() => {
     initAudio(); initAudioContext(); initSpeech(); // Unlock AudioContext + Speech from user gesture
     clearTick();
-    lastCountdownSecRef.current = null;
-    levelEndAudioPlayedRef.current = false;
-    const now = Date.now();
     setTimerState((prev) => {
+      // Reset refs inside updater to avoid render-phase mutations
+      lastCountdownSecRef.current = null;
+      levelEndAudioPlayedRef.current = false;
+      const now = Date.now();
       const next = prevLevel(prev, levels);
       if (next.remainingSeconds > 0) {
         return { ...next, status: 'running', startedAt: now, remainingAtStart: next.remainingSeconds };
       }
       return next;
     });
-  }, [levels, clearTick, tick]);
+  }, [levels, clearTick]);
 
   const resetLevel = useCallback(() => {
     clearTick();

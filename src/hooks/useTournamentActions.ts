@@ -260,6 +260,10 @@ export function useTournamentActions({
   const lastPlacementRef = useRef<number | null>(null);
 
   const eliminatePlayer = useCallback((playerId: string, eliminatedBy: string | null) => {
+    // pushUndo is called BEFORE startTransition intentionally: it captures the
+    // pre-mutation state via pushUndoRef (synced every render), which always
+    // points to the latest App.tsx pushUndoSnapshot callback. This is correct
+    // for undo — we snapshot state BEFORE the change, not inside the transition.
     pushUndo('undo.actions.eliminate');
     pendingTableMovesRef.current = [];
     pendingDissolutionRef.current = null;

@@ -134,6 +134,8 @@ jobs:
         run: npm run test:e2e:cross
 
   pages-build:
+    # Required secrets:
+    #   VITE_SENTRY_DSN — Sentry DSN for error reporting (optional, monitoring disabled if not set)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [quality, e2e]
@@ -154,6 +156,8 @@ jobs:
         run: npm run build
         env:
           VITE_BASE_PATH: /7MountainPoker/
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_RELEASE: ${{ github.sha }}
 
       - name: Bundle size check
         run: |
