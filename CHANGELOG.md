@@ -5,6 +5,16 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.9.4] – 2026-03-17
+
+### Type Safety & Voice Test Coverage
+
+- **`exactOptionalPropertyTypes` aktiviert**: TypeScript-Compiler-Flag aktiviert — 71 Type-Errors in 33 Dateien behoben. Verhindert `undefined`-Zuweisung an optionale Properties. Fix-Strategie: konsistente Typweiterung (`field?: T` → `field?: T | undefined`) ohne Logik-Änderungen.
+- **useVoiceAnnouncements vollständig getestet**: 11 neue Tests decken Color-Up-Ansagen, Rebuy/Add-On-Übergänge, Elimination+Bounty, Timer-Pause bei Turnierende, Spieleranzahl-Meilensteine, 5-Minuten-Warnung-Edge-Case und Break-Over ab.
+- **11 neue Tests** — **1221 Tests gesamt**
+
+---
+
 ## [6.9.3] – 2026-03-17
 
 ### Re-Audit: 58 Findings in 6 Batches behoben

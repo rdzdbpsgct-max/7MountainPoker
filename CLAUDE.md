@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.9.3
+**Version**: 6.9.4
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1210 tests, single run)
+npm run test         # Vitest run (1221 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -192,7 +192,7 @@ src/
 
 tests/
 ├── logic.test.ts                # 530+ unit tests for domain logic + PeerJS remote control + undo/redo + ICM + cloud export
-├── components.test.tsx          # 98 UI component tests (NumberStepper, CollapsibleSection, PrintView, CallTheClock, BubbleIndicator, RebuyStatus, ChevronIcon, CollapsibleSubSection, LanguageSwitcher, ThemeSwitcher, ErrorBoundary, useTimer, useConfirmDialog, LoadingFallback, ConfigEditor, SettingsPanel, PlayerPanel, TournamentLog)
+├── components.test.tsx          # 109 UI component tests (NumberStepper, CollapsibleSection, PrintView, CallTheClock, BubbleIndicator, RebuyStatus, ChevronIcon, CollapsibleSubSection, LanguageSwitcher, ThemeSwitcher, ErrorBoundary, useTimer, useConfirmDialog, LoadingFallback, ConfigEditor, SettingsPanel, PlayerPanel, TournamentLog)
 ├── edge-cases.test.ts           # 88 edge case tests (timer, blinds, players, multi-table, format, tournament, validation, helpers)
 ├── sound-speech.test.ts         # 54 sound effects + speech announcement tests
 ├── integration.test.ts          # 36 cross-module integration tests (checkpoint, timer, config compat, tournament flow)
@@ -379,8 +379,8 @@ public/
 
 ## Testing
 
-- **1210 tests** across 17 test files + 1 setup file
-- Core files: `logic.test.ts` (665), `components.test.tsx` (98), `edge-cases.test.ts` (88), `sound-speech.test.ts` (56), `integration.test.ts` (36), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (26), `display-channel.test.ts` (14), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service, event log, break controls
+- **1221 tests** across 17 test files + 1 setup file
+- Core files: `logic.test.ts` (665), `components.test.tsx` (109), `edge-cases.test.ts` (88), `sound-speech.test.ts` (56), `integration.test.ts` (36), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (26), `display-channel.test.ts` (14), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service, event log, break controls
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -417,6 +417,12 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.9.4 — Type Safety & Voice Test Coverage
+
+- **exactOptionalPropertyTypes aktiviert**: TypeScript-Compiler-Flag aktiviert — 71 Type-Errors in 33 Dateien behoben. Verhindert `undefined`-Zuweisung an optionale Properties, fängt subtile Bugs zur Compile-Zeit ab. Fix-Strategie: konsistente Typweiterung (`field?: T` → `field?: T | undefined`).
+- **useVoiceAnnouncements vollständig getestet**: 11 neue Tests für Color-Up-Ansagen, Rebuy/Add-On-Übergänge, Timer-Pause-Edge-Cases, Spieleranzahl-Meilensteine und Break-Over.
+- **11 neue Tests** — **1221 Tests gesamt**
 
 ### v6.9.3 — Re-Audit: 58 Findings behoben (Stabilität, Sicherheit, Performance)
 
