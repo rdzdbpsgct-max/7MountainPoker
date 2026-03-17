@@ -8,8 +8,8 @@ interface Props {
   players: Player[];
   dealerIndex: number;
   onChange: (players: Player[], dealerIndex: number) => void;
-  multiTableEnabled?: boolean;
-  onShuffleToTables?: () => void;
+  multiTableEnabled?: boolean | undefined;
+  onShuffleToTables?: (() => void) | undefined;
 }
 
 /**

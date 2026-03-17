@@ -2,10 +2,10 @@ export interface Level {
   id: string;
   type: 'level' | 'break';
   durationSeconds: number;
-  smallBlind?: number;
-  bigBlind?: number;
-  ante?: number;
-  label?: string;
+  smallBlind?: number | undefined;
+  bigBlind?: number | undefined;
+  ante?: number | undefined;
+  label?: string | undefined;
 }
 
 export interface Player {
@@ -17,17 +17,17 @@ export interface Player {
   placement: number | null;
   eliminatedBy: string | null;
   knockouts: number;
-  chips?: number;
+  chips?: number | undefined;
   /** Number of re-entries this player has used */
-  reEntryCount?: number;
+  reEntryCount?: number | undefined;
   /** Original player ID when this is a re-entry instance */
-  originalPlayerId?: string;
+  originalPlayerId?: string | undefined;
   /** Epoch ms when this player was eliminated */
-  eliminatedAt?: number;
+  eliminatedAt?: number | undefined;
   /** Timestamps (epoch ms) of each rebuy taken */
-  rebuyTimestamps?: number[];
+  rebuyTimestamps?: number[] | undefined;
   /** Cumulative bounty earned (mystery bounties may vary per knockout) */
-  bountyEarned?: number;
+  bountyEarned?: number | undefined;
 }
 
 export type PayoutMode = 'percent' | 'euro';
@@ -69,13 +69,13 @@ export interface RebuyConfig {
   /** Chips received per rebuy (defaults to startingChips) */
   rebuyChips: number;
   /** Max rebuys per player (undefined = unlimited) */
-  maxRebuysPerPlayer?: number;
+  maxRebuysPerPlayer?: number | undefined;
   /** When true, rebuy money is tracked as a separate pot instead of adding to prize pool */
-  separatePot?: boolean;
+  separatePot?: boolean | undefined;
   /** When true, eliminated players can re-enter the tournament with a fresh buy-in */
-  reEntryEnabled?: boolean;
+  reEntryEnabled?: boolean | undefined;
   /** Maximum number of re-entries per player (undefined = unlimited) */
-  maxReEntries?: number;
+  maxReEntries?: number | undefined;
 }
 
 export interface AddOnConfig {
@@ -90,7 +90,7 @@ export interface BountyConfig {
   enabled: boolean;
   amount: number;
   type: 'fixed' | 'mystery';
-  mysteryPool?: number[];
+  mysteryPool?: number[] | undefined;
 }
 
 export interface ChipDenomination {
@@ -145,11 +145,11 @@ export interface TournamentConfig {
   buyIn: number;
   currency: Currency;
   startingChips: number;
-  lateRegistration?: LateRegistrationConfig;
-  leagueId?: string;
-  seriesId?: string;
-  multiTable?: MultiTableConfig;
-  tables?: Table[];
+  lateRegistration?: LateRegistrationConfig | undefined;
+  leagueId?: string | undefined;
+  seriesId?: string | undefined;
+  multiTable?: MultiTableConfig | undefined;
+  tables?: Table[] | undefined;
 }
 
 export type DisplayScreenId =
@@ -183,21 +183,21 @@ export interface Settings {
   /** Call-the-Clock countdown duration in seconds. Default: 30. */
   callTheClockSeconds: number;
   /** Background image/pattern. Default: 'none'. */
-  backgroundImage?: BackgroundImage;
+  backgroundImage?: BackgroundImage | undefined;
   /** User-defined custom alerts/announcements. */
-  customAlerts?: AlertConfig[];
+  customAlerts?: AlertConfig[] | undefined;
   /** Which secondary screens to show in TV Display Mode. undefined = all enabled. */
-  displayScreens?: DisplayScreenConfig[];
+  displayScreens?: DisplayScreenConfig[] | undefined;
   /** Rotation interval for TV Display Mode secondary screens in seconds. Default: 15. */
-  displayRotationInterval?: number;
+  displayRotationInterval?: number | undefined;
   /** Display layout for TV mode. Default: 'standard'. */
-  displayLayout?: DisplayLayout;
+  displayLayout?: DisplayLayout | undefined;
 }
 
 export interface TournamentCheckpoint {
   version: 1;
   /** Schema version for checkpoint compatibility checks. Bumped when checkpoint shape changes. */
-  schemaVersion?: number;
+  schemaVersion?: number | undefined;
   config: TournamentConfig;
   settings: Settings;
   timer: {
@@ -206,7 +206,7 @@ export interface TournamentCheckpoint {
   };
   savedAt: string; // ISO timestamp
   /** Tournament event log (optional, populated from v6.5.0+) */
-  events?: TournamentEvent[];
+  events?: TournamentEvent[] | undefined;
 }
 
 export interface RegisteredPlayer {
@@ -238,22 +238,22 @@ export interface TournamentResult {
   bountyEnabled: boolean;
   bountyAmount: number;
   /** Tournament currency for display. Defaults to EUR for old results. */
-  currency?: Currency;
+  currency?: Currency | undefined;
   rebuyEnabled: boolean;
   totalRebuys: number;
   addOnEnabled: boolean;
   totalAddOns: number;
   elapsedSeconds: number;
   levelsPlayed: number;
-  leagueId?: string;
+  leagueId?: string | undefined;
   /** Cost per rebuy in EUR (fallback: buyIn for old results) */
-  rebuyCost?: number;
+  rebuyCost?: number | undefined;
   /** Cost per add-on in EUR (fallback: buyIn for old results) */
-  addOnCost?: number;
+  addOnCost?: number | undefined;
   /** Separate rebuy pot amount (only set when RebuyConfig.separatePot is true) */
-  rebuyPot?: number;
+  rebuyPot?: number | undefined;
   /** Full event log for the tournament (optional, populated from v6.5.0+) */
-  events?: TournamentEvent[];
+  events?: TournamentEvent[] | undefined;
 }
 
 export interface PlayerStat {
@@ -282,7 +282,7 @@ export interface Season {
   id: string;
   name: string;           // e.g. "Saison 2025/26"
   startDate: string;      // ISO date
-  endDate?: string;       // ISO date, undefined = ongoing
+  endDate?: string | undefined;       // ISO date, undefined = ongoing
 }
 
 export type TiebreakerCriterion = 'avgPlace' | 'wins' | 'headToHead' | 'lastResult' | 'cashes';
@@ -339,23 +339,23 @@ export interface League {
   pointSystem: PointSystem;
   createdAt: string; // ISO timestamp
   /** Optional tournament defaults stored with this league */
-  defaultConfig?: Partial<TournamentConfig>;
+  defaultConfig?: Partial<TournamentConfig> | undefined;
   /** League seasons for grouping game days */
-  seasons?: Season[];
+  seasons?: Season[] | undefined;
   /** Currently active season ID */
-  activeSeasonId?: string;
+  activeSeasonId?: string | undefined;
   /** Tiebreaker configuration for equal points */
-  tiebreaker?: TiebreakerConfig;
+  tiebreaker?: TiebreakerConfig | undefined;
   /** Manual point corrections (bonus/penalty) */
-  corrections?: LeagueCorrection[];
+  corrections?: LeagueCorrection[] | undefined;
   /** Ranking algorithm for standings computation */
-  rankingAlgorithm?: RankingAlgorithm;
+  rankingAlgorithm?: RankingAlgorithm | undefined;
   /** ELO configuration (only used when rankingAlgorithm === 'elo') */
-  eloConfig?: EloConfig;
+  eloConfig?: EloConfig | undefined;
   /** Weighted points config (only used when rankingAlgorithm === 'weightedPoints') */
-  weightedPointsConfig?: WeightedPointsConfig;
+  weightedPointsConfig?: WeightedPointsConfig | undefined;
   /** Minimum game days to appear in standings (absolute count) */
-  minParticipation?: number;
+  minParticipation?: number | undefined;
 }
 
 export interface LeagueStanding {
@@ -380,11 +380,11 @@ export interface ExtendedLeagueStanding extends LeagueStanding {
   /** 1-based rank in standings */
   rank: number;
   /** ELO rating (set when rankingAlgorithm === 'elo') */
-  eloRating?: number;
+  eloRating?: number | undefined;
   /** Weighted points (set when rankingAlgorithm === 'weightedPoints') */
-  weightedPoints?: number;
+  weightedPoints?: number | undefined;
   /** Whether player meets minimum participation threshold */
-  meetsMinParticipation?: boolean;
+  meetsMinParticipation?: boolean | undefined;
 }
 
 export interface GameDayParticipant {
@@ -398,27 +398,27 @@ export interface GameDayParticipant {
   /** payout - buyIn - rebuyCost - addOnCost */
   netBalance: number;
   /** When true, this player is a guest and may be excluded from overall standings */
-  isGuest?: boolean;
+  isGuest?: boolean | undefined;
   /** Optional link to RegisteredPlayer for stable identity */
-  registeredPlayerId?: string;
+  registeredPlayerId?: string | undefined;
 }
 
 export interface GameDay {
   id: string;
   leagueId: string;
-  seasonId?: string;
+  seasonId?: string | undefined;
   date: string;           // ISO date
-  label?: string;         // e.g. "Spieltag 5"
+  label?: string | undefined;         // e.g. "Spieltag 5"
   /** Link to the automatically saved TournamentResult */
-  tournamentResultId?: string;
+  tournamentResultId?: string | undefined;
   participants: GameDayParticipant[];
   totalPrizePool: number;
   totalBuyIns: number;
   /** totalBuyIns - totalPrizePool (cash balance for this game day) */
   cashBalance: number;
-  currency?: Currency;
-  notes?: string;
-  venue?: string;
+  currency?: Currency | undefined;
+  notes?: string | undefined;
+  venue?: string | undefined;
 }
 
 export type TableStatus = 'active' | 'dissolved';
@@ -429,7 +429,7 @@ export interface Seat {
   /** Player ID occupying this seat, or null if empty */
   playerId: string | null;
   /** When true, this seat cannot be assigned to players during distribution/balancing */
-  locked?: boolean;
+  locked?: boolean | undefined;
 }
 
 export interface Table {
@@ -544,11 +544,11 @@ export interface AlertConfig {
   enabled: boolean;
   trigger: AlertTrigger;
   /** For 'level_start': which level (0-based) */
-  levelIndex?: number;
+  levelIndex?: number | undefined;
   /** For 'time_remaining': seconds before level end */
-  secondsBefore?: number;
+  secondsBefore?: number | undefined;
   /** For 'player_count': target count */
-  playerCount?: number;
+  playerCount?: number | undefined;
   /** Template with {level}, {bigBlind}, {smallBlind}, {ante}, {players} */
   text: string;
   voice: boolean;
@@ -638,7 +638,7 @@ export interface TournamentSeries {
   id: string;
   name: string;
   startDate: string;          // ISO date
-  endDate?: string;           // ISO date
+  endDate?: string | undefined;           // ISO date
   /** Ordered list of linked TournamentResult IDs */
   tournamentIds: string[];
   /** Point system — reuses the same PointSystem type as leagues */
@@ -646,8 +646,8 @@ export interface TournamentSeries {
   /** How "Player of the Series" is determined */
   rankingMode: SeriesRankingMode;
   /** Minimum tournaments played to qualify for standings */
-  minTournaments?: number;
-  notes?: string;
+  minTournaments?: number | undefined;
+  notes?: string | undefined;
   createdAt: string;          // ISO timestamp
 }
 

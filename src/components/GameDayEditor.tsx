@@ -6,7 +6,7 @@ import { useDialogA11y } from '../hooks/useDialogA11y';
 
 interface Props {
   league: League;
-  editingGameDay?: GameDay;
+  editingGameDay?: GameDay | undefined;
   onClose: () => void;
   onSaved: () => void;
   currencySymbol: string;

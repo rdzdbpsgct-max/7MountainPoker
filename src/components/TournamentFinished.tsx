@@ -18,8 +18,8 @@ interface Props {
   addOn: AddOnConfig;
   tournamentResult: TournamentResult | null;
   onBackToSetup: () => void;
-  currency?: Currency;
-  events?: TournamentEvent[];
+  currency?: Currency | undefined;
+  events?: TournamentEvent[] | undefined;
 }
 
 export function TournamentFinished({

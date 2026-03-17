@@ -58,8 +58,8 @@ const CTC_SECONDS = new Set([
 // ---------------------------------------------------------------------------
 
 type QueueItem =
-  | { mode: 'audio'; files: string[]; fallbackText?: string; fallbackOptions?: { rate?: number; pitch?: number; volume?: number } }
-  | { mode: 'speech'; text: string; options?: { rate?: number; pitch?: number; volume?: number } };
+  | { mode: 'audio'; files: string[]; fallbackText?: string | undefined; fallbackOptions?: { rate?: number | undefined; pitch?: number | undefined; volume?: number | undefined } | undefined }
+  | { mode: 'speech'; text: string; options?: { rate?: number | undefined; pitch?: number | undefined; volume?: number | undefined } | undefined };
 
 let speechQueue: QueueItem[] = [];
 let isSpeaking = false;
@@ -175,7 +175,7 @@ function processQueue(): void {
 
 function speakUtterance(
   text: string,
-  options: { rate?: number; pitch?: number; volume?: number } | undefined,
+  options: { rate?: number | undefined; pitch?: number | undefined; volume?: number | undefined } | undefined,
   onDone: () => void,
 ): void {
   try {

@@ -12,7 +12,7 @@ export type AppFeature =
 
 export interface EntitlementState {
   tier: AppTier;
-  overrides?: Partial<Record<AppFeature, boolean>>;
+  overrides?: Partial<Record<AppFeature, boolean>> | undefined;
 }
 
 const STORAGE_KEY = 'poker-timer-entitlements';

@@ -23,8 +23,8 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "noUncheckedIndexedAccess": true
-    // "exactOptionalPropertyTypes": true — deferred: 70 errors across App.tsx, display/, GameDayEditor, LeagueManager, LeagueSettings, BlindGenerator, BountyEditor, SeriesManager, etc. Most are `field?: T` receiving `T | undefined` from spreads/lookups. Requires systematic type annotation updates.
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true
   },
   "include": ["src"]
 }

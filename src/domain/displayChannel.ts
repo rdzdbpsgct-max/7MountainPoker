@@ -24,9 +24,9 @@ import type {
 export interface DisplayStatePayload {
   timerState: TimerState;
   levels: Level[];
-  chipConfig?: ChipConfig;
+  chipConfig?: ChipConfig | undefined;
   /** Serialized colorUpMap — Map cannot be structured-cloned reliably across browsers */
-  colorUpSchedule?: { levelIndex: number; denoms: ChipDenomination[] }[];
+  colorUpSchedule?: { levelIndex: number; denoms: ChipDenomination[] }[] | undefined;
   tournamentName: string;
   activePlayerCount: number;
   totalPlayerCount: number;
@@ -42,20 +42,20 @@ export interface DisplayStatePayload {
   bounty: BountyConfig;
   averageStack: number;
   tournamentElapsed: number;
-  tables?: Table[];
-  showDealerBadges?: boolean;
-  leagueName?: string;
-  leagueStandings?: ExtendedLeagueStanding[];
+  tables?: Table[] | undefined;
+  showDealerBadges?: boolean | undefined;
+  leagueName?: string | undefined;
+  leagueStandings?: ExtendedLeagueStanding[] | undefined;
   /** Side pot calculator data for TV display (only present when calculator is active) */
-  sidePotData?: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] };
+  sidePotData?: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] | undefined } | undefined;
   /** Which secondary screens to show (user-configured). undefined = all enabled. */
-  displayScreens?: DisplayScreenConfig[];
+  displayScreens?: DisplayScreenConfig[] | undefined;
   /** Rotation interval in seconds. undefined = default 15. */
-  displayRotationInterval?: number;
+  displayRotationInterval?: number | undefined;
   /** Display layout variant. undefined = 'standard'. */
-  displayLayout?: DisplayLayout;
+  displayLayout?: DisplayLayout | undefined;
   /** Currency code for display. undefined = 'EUR'. */
-  currency?: Currency;
+  currency?: Currency | undefined;
 }
 
 // ---------------------------------------------------------------------------

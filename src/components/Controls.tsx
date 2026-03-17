@@ -9,26 +9,26 @@ interface Props {
   onPrevious: () => void;
   onReset: () => void;
   onRestart: () => void;
-  isBreak?: boolean;
-  onSkipBreak?: () => void;
-  onExtendBreak?: (seconds: number) => void;
-  hideSecondaryControls?: boolean;
-  cleanView?: boolean;
-  onToggleCleanView?: () => void;
-  lastHandActive?: boolean;
-  onLastHand?: () => void;
-  handForHandActive?: boolean;
-  onHandForHand?: () => void;
-  onNextHand?: () => void;
-  showHandForHand?: boolean;
-  callTheClockSeconds?: number;
-  onCallTheClock?: () => void;
-  canUndo?: boolean;
-  canRedo?: boolean;
-  onUndo?: () => void;
-  onRedo?: () => void;
-  undoLabel?: string | null;
-  redoLabel?: string | null;
+  isBreak?: boolean | undefined;
+  onSkipBreak?: (() => void) | undefined;
+  onExtendBreak?: ((seconds: number) => void) | undefined;
+  hideSecondaryControls?: boolean | undefined;
+  cleanView?: boolean | undefined;
+  onToggleCleanView?: (() => void) | undefined;
+  lastHandActive?: boolean | undefined;
+  onLastHand?: (() => void) | undefined;
+  handForHandActive?: boolean | undefined;
+  onHandForHand?: (() => void) | undefined;
+  onNextHand?: (() => void) | undefined;
+  showHandForHand?: boolean | undefined;
+  callTheClockSeconds?: number | undefined;
+  onCallTheClock?: (() => void) | undefined;
+  canUndo?: boolean | undefined;
+  canRedo?: boolean | undefined;
+  onUndo?: (() => void) | undefined;
+  onRedo?: (() => void) | undefined;
+  undoLabel?: string | null | undefined;
+  redoLabel?: string | null | undefined;
 }
 
 export const Controls = memo(function Controls({

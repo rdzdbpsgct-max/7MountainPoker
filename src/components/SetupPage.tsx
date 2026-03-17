@@ -49,8 +49,8 @@ interface Props {
   onSwitchToGame: () => void;
   onConfirm: (title: string, message: string, confirmLabel: string, onConfirm: () => void) => void;
   startErrors: string[];
-  canUseMultiTable?: boolean;
-  onOpenFeatureGate?: (feature: AppFeature) => void;
+  canUseMultiTable?: boolean | undefined;
+  onOpenFeatureGate?: ((feature: AppFeature) => void) | undefined;
 }
 
 export function SetupPage({

@@ -5,8 +5,8 @@ import { useTranslation } from '../../i18n';
 interface Props {
   players: Player[];
   dealerIndex: number;
-  tables?: Table[];
-  showDealerBadges?: boolean;
+  tables?: Table[] | undefined;
+  showDealerBadges?: boolean | undefined;
 }
 
 function TableCard({

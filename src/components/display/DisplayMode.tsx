@@ -20,14 +20,14 @@ type SecondaryScreen = 'players' | 'stats' | 'payout' | 'schedule' | 'chips' | '
 interface Props {
   timerState: TimerState;
   levels: Level[];
-  chipConfig?: ChipConfig;
-  colorUpMap?: Map<number, ChipDenomination[]>;
+  chipConfig?: ChipConfig | undefined;
+  colorUpMap?: Map<number, ChipDenomination[]> | undefined;
   tournamentName: string;
   activePlayerCount: number;
   totalPlayerCount: number;
   isBubble: boolean;
   isLastHand: boolean;
-  isHandForHand?: boolean;
+  isHandForHand?: boolean | undefined;
   onExit: () => void;
   players: Player[];
   dealerIndex: number;
@@ -38,15 +38,15 @@ interface Props {
   bounty: BountyConfig;
   averageStack: number;
   tournamentElapsed: number;
-  tables?: Table[];
-  showDealerBadges?: boolean;
-  leagueName?: string;
-  leagueStandings?: ExtendedLeagueStanding[];
-  sidePotData?: SidePotDisplayData;
-  displayScreens?: DisplayScreenConfig[];
-  displayRotationInterval?: number;
-  displayLayout?: DisplayLayout;
-  currency?: Currency;
+  tables?: Table[] | undefined;
+  showDealerBadges?: boolean | undefined;
+  leagueName?: string | undefined;
+  leagueStandings?: ExtendedLeagueStanding[] | undefined;
+  sidePotData?: SidePotDisplayData | undefined;
+  displayScreens?: DisplayScreenConfig[] | undefined;
+  displayRotationInterval?: number | undefined;
+  displayLayout?: DisplayLayout | undefined;
+  currency?: Currency | undefined;
 }
 
 // Removed static ROTATION_INTERVAL — now configurable via props

@@ -21,7 +21,7 @@ interface UseDisplayBridgeParams {
   lastHandActive: boolean;
   handForHandActive: boolean;
   showDealerBadges: boolean;
-  sidePotData: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] } | null;
+  sidePotData: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] | undefined } | null;
   showCallTheClock: boolean;
   /** Remote host ref for PeerJS display session */
   remoteHostRef: React.RefObject<RemoteHost | null>;

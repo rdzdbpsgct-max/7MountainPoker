@@ -16,11 +16,11 @@ interface HostProps {
   /** Peer ID of the running host */
   peerId: string;
   /** HMAC secret for authentication */
-  secret?: string;
+  secret?: string | undefined;
   /** Current host connection status */
   status: HostStatus | null;
   /** Number of connected controller peers */
-  controllerCount?: number;
+  controllerCount?: number | undefined;
   onClose: () => void;
 }
 

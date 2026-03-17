@@ -291,11 +291,11 @@ export interface RemoteCommand {
     | 'addOnPlayer'
     | 'skipBreak'
     | 'extendBreak';
-  payload?: Record<string, unknown>;
+  payload?: Record<string, unknown> | undefined;
   /** HMAC-SHA256 signature (hex) — required when secret is configured */
-  hmac?: string;
+  hmac?: string | undefined;
   /** Timestamp (ms since epoch) — used for HMAC replay protection */
-  ts?: number;
+  ts?: number | undefined;
 }
 
 /** Compact player info sent in RemoteState (short field names for message size) */
@@ -325,32 +325,32 @@ export interface RemoteState {
     levelLabel: string;
     smallBlind: number;
     bigBlind: number;
-    ante?: number;
+    ante?: number | undefined;
     activePlayerCount: number;
     totalPlayerCount: number;
     isBubble: boolean;
-    tournamentName?: string;
-    soundEnabled?: boolean;
+    tournamentName?: string | undefined;
+    soundEnabled?: boolean | undefined;
     /** Compact player list for remote player management */
-    players?: RemotePlayerInfo[];
+    players?: RemotePlayerInfo[] | undefined;
     /** Whether bounty is enabled (controller needs for eliminator selection) */
-    bountyEnabled?: boolean;
+    bountyEnabled?: boolean | undefined;
     /** Whether rebuy phase is currently active */
-    rebuyActive?: boolean;
+    rebuyActive?: boolean | undefined;
     /** Whether add-on window is currently open */
-    addOnWindowOpen?: boolean;
+    addOnWindowOpen?: boolean | undefined;
     /** Prize pool in currency units */
-    prizePool?: number;
+    prizePool?: number | undefined;
     /** Average stack in big blinds (1 decimal) */
-    avgStackBB?: number;
+    avgStackBB?: number | undefined;
     /** Tournament elapsed time in seconds */
-    elapsedSeconds?: number;
+    elapsedSeconds?: number | undefined;
     /** Next level description, e.g. "Level 5: 200/400" or "Pause 10 Min" */
-    nextLevelLabel?: string;
+    nextLevelLabel?: string | undefined;
     /** Whether current level is a break */
-    isBreak?: boolean;
+    isBreak?: boolean | undefined;
     /** Whether players are in the money */
-    isItm?: boolean;
+    isItm?: boolean | undefined;
   };
 }
 
@@ -381,11 +381,11 @@ export type ControllerStatus = 'connecting' | 'connected' | 'reconnecting' | 'er
 export interface RemoteHostCallbacks {
   onCommand: (cmd: RemoteCommand) => void;
   onStatusChange: (status: HostStatus) => void;
-  onError?: (error: string) => void;
-  onDisplayCountChange?: (count: number) => void;
-  onControllerCountChange?: (count: number) => void;
+  onError?: ((error: string) => void) | undefined;
+  onDisplayCountChange?: ((count: number) => void) | undefined;
+  onControllerCountChange?: ((count: number) => void) | undefined;
   /** Called when a new display peer connects — host should push full DisplayMessage */
-  onDisplayConnected?: () => void;
+  onDisplayConnected?: (() => void) | undefined;
 }
 
 export interface RemoteHostOptions {
@@ -855,7 +855,7 @@ export class RemoteHost {
 export interface RemoteControllerCallbacks {
   onState: (state: RemoteState['data']) => void;
   onStatusChange: (status: ControllerStatus) => void;
-  onError?: (error: string) => void;
+  onError?: ((error: string) => void) | undefined;
   /** Called when a state update has a different contract version than expected */
   onVersionMismatch?: (remoteVersion: number) => void;
 }

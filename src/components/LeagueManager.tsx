@@ -262,8 +262,8 @@ function LeagueEntry({
   onCopyText: () => void;
   onDownloadCSV: () => void;
   onExportJSON: () => void;
-  onSaveConfig?: () => void;
-  savedConfig?: boolean;
+  onSaveConfig?: (() => void) | undefined;
+  savedConfig?: boolean | undefined;
 }) {
   const { t, language } = useTranslation();
 

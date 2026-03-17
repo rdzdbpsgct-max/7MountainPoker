@@ -21,7 +21,7 @@ interface Props {
   tournamentElapsed: number;
   activePlayerCount: number;
   totalPlayerCount: number;
-  currency?: Currency;
+  currency?: Currency | undefined;
 }
 
 export function StatsScreen({

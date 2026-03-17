@@ -14,13 +14,13 @@ export type MonetizationEventName =
   | 'session_started';
 
 export interface MonetizationEventPayload {
-  feature?: AppFeature;
-  requiredTier?: AppTier;
-  currentTier?: AppTier;
-  previousTier?: AppTier;
-  mode?: 'setup' | 'game' | 'league';
-  lostFeatures?: number;
-  gainedFeatures?: number;
+  feature?: AppFeature | undefined;
+  requiredTier?: AppTier | undefined;
+  currentTier?: AppTier | undefined;
+  previousTier?: AppTier | undefined;
+  mode?: 'setup' | 'game' | 'league' | undefined;
+  lostFeatures?: number | undefined;
+  gainedFeatures?: number | undefined;
 }
 
 interface MonetizationCounterState {

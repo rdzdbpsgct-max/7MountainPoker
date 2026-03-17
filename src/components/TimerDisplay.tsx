@@ -8,12 +8,12 @@ interface Props {
   levels: Level[];
   largeDisplay: boolean;
   countdownEnabled: boolean;
-  onScrub?: (seconds: number) => void;
-  onScrubEnd?: () => void;
-  chipConfig?: ChipConfig;
-  colorUpMap?: Map<number, ChipDenomination[]>;
-  cleanView?: boolean;
-  anteMode?: AnteMode;
+  onScrub?: ((seconds: number) => void) | undefined;
+  onScrubEnd?: (() => void) | undefined;
+  chipConfig?: ChipConfig | undefined;
+  colorUpMap?: Map<number, ChipDenomination[]> | undefined;
+  cleanView?: boolean | undefined;
+  anteMode?: AnteMode | undefined;
 }
 
 function NextLevelInfo({ levels, currentLevelIndex, largeDisplay }: { levels: Level[]; currentLevelIndex: number; largeDisplay: boolean }) {
@@ -56,7 +56,7 @@ function ScrubSlider({
   duration: number;
   isBreak: boolean;
   onScrub: (seconds: number) => void;
-  onScrubEnd?: () => void;
+  onScrubEnd?: (() => void) | undefined;
   ariaLabel: string;
 }) {
   const scrubFromEvent = useCallback(

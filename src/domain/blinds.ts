@@ -136,9 +136,9 @@ export interface GenerateBlindParams {
   startingChips: number;
   speed: BlindSpeed;
   anteEnabled: boolean;
-  anteMode?: AnteMode;
+  anteMode?: AnteMode | undefined;
   /** Smallest chip denomination -- when provided, all blind values snap to its multiples. */
-  smallestChip?: number;
+  smallestChip?: number | undefined;
 }
 
 /**
@@ -220,8 +220,8 @@ export interface GenerateByEndTimeParams {
   targetMinutes: number;
   playerCount: number;
   anteEnabled: boolean;
-  anteMode?: AnteMode;
-  smallestChip?: number;
+  anteMode?: AnteMode | undefined;
+  smallestChip?: number | undefined;
 }
 
 /**

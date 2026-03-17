@@ -10,7 +10,7 @@ interface Params {
   tournamentFinished: boolean;
   bubbleActive: boolean;
   inTheMoney: boolean;
-  winnerName?: string;
+  winnerName?: string | undefined;
   pause: () => void;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }

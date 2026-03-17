@@ -10,7 +10,7 @@ interface Props {
   rebuy: RebuyConfig;
   addOn: AddOnConfig;
   isBubble: boolean;
-  currency?: Currency;
+  currency?: Currency | undefined;
 }
 
 export function PayoutScreen({

@@ -80,7 +80,7 @@ export interface GameModeActions {
   onClearStacks: () => void;
   onAddLatePlayer: () => void;
   onReEntryPlayer: (playerId: string) => void;
-  onSidePotResultChange: (data: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] } | null) => void;
+  onSidePotResultChange: (data: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] | undefined } | null) => void;
   onSkipBreak: () => void;
   onExtendBreak: (seconds: number) => void;
   onResetLevel: () => void;
@@ -109,10 +109,10 @@ interface Props {
   state: GameModeState;
   ui: GameModeUiState;
   actions: GameModeActions;
-  undo?: GameModeUndoState;
-  canUseSidePot?: boolean;
-  canUseMultiTable?: boolean;
-  onOpenFeatureGate?: (feature: AppFeature) => void;
+  undo?: GameModeUndoState | undefined;
+  canUseSidePot?: boolean | undefined;
+  canUseMultiTable?: boolean | undefined;
+  onOpenFeatureGate?: ((feature: AppFeature) => void) | undefined;
 }
 
 export function GameModeContainer({ config, settings, timer, state, ui, actions, undo, canUseSidePot, canUseMultiTable, onOpenFeatureGate }: Props) {

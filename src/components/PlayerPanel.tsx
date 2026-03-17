@@ -27,20 +27,20 @@ interface Props {
   onEliminatePlayer: (playerId: string, eliminatedBy: string | null) => void;
   onReinstatePlayer: (playerId: string) => void;
   onAdvanceDealer: () => void;
-  showDealerBadges?: boolean;
-  onToggleDealerBadges?: () => void;
-  onUpdateStack?: (playerId: string, chips: number) => void;
-  onInitStacks?: () => void;
-  onClearStacks?: () => void;
-  lateRegOpen?: boolean;
-  onAddLatePlayer?: () => void;
-  onReEntryPlayer?: (playerId: string) => void;
-  tables?: Table[];
-  onSidePotResultChange?: (data: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] } | null) => void;
-  onShowPayoutOverlay?: () => void;
-  currency?: Currency;
-  canUseSidePot?: boolean;
-  onOpenFeatureGate?: (feature: AppFeature) => void;
+  showDealerBadges?: boolean | undefined;
+  onToggleDealerBadges?: (() => void) | undefined;
+  onUpdateStack?: ((playerId: string, chips: number) => void) | undefined;
+  onInitStacks?: (() => void) | undefined;
+  onClearStacks?: (() => void) | undefined;
+  lateRegOpen?: boolean | undefined;
+  onAddLatePlayer?: (() => void) | undefined;
+  onReEntryPlayer?: ((playerId: string) => void) | undefined;
+  tables?: Table[] | undefined;
+  onSidePotResultChange?: ((data: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] | undefined } | null) => void) | undefined;
+  onShowPayoutOverlay?: (() => void) | undefined;
+  currency?: Currency | undefined;
+  canUseSidePot?: boolean | undefined;
+  onOpenFeatureGate?: ((feature: AppFeature) => void) | undefined;
 }
 
 export const PlayerPanel = memo(function PlayerPanel({

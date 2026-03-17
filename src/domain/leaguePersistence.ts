@@ -64,7 +64,7 @@ export interface LeagueExport {
   version: 1 | 2;
   league: League;
   results: TournamentResult[];
-  gameDays?: GameDay[];
+  gameDays?: GameDay[] | undefined;
   exportedAt: string;
 }
 

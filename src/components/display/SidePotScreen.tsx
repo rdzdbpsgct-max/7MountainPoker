@@ -5,7 +5,7 @@ export interface SidePotDisplayData {
   pots: PotResult[];
   total: number;
   /** Per-player payouts (only present when winners are fully resolved) */
-  payouts?: PlayerPayout[];
+  payouts?: PlayerPayout[] | undefined;
 }
 
 interface Props {

@@ -8,7 +8,7 @@ import { isPresentationApiAvailable, startPresentation } from '../domain/present
 
 interface Props {
   sessionId: string | null;
-  secret?: string;
+  secret?: string | undefined;
   displayCount: number;
   controllerCount: number;
   localTVActive: boolean;

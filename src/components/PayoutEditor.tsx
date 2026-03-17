@@ -9,10 +9,10 @@ import { NumberStepper } from './NumberStepper';
 interface Props {
   payout: PayoutConfig;
   onChange: (payout: PayoutConfig) => void;
-  maxPlaces?: number;
-  prizePool?: number;
-  currency?: Currency;
-  playerCount?: number;
+  maxPlaces?: number | undefined;
+  prizePool?: number | undefined;
+  currency?: Currency | undefined;
+  playerCount?: number | undefined;
 }
 
 export function PayoutEditor({ payout, onChange, maxPlaces = 20, prizePool, currency, playerCount }: Props) {

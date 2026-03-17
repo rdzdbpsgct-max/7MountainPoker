@@ -13,9 +13,9 @@ type SidePotMode = 'quick' | 'advanced';
 interface Props {
   onClose: () => void;
   /** Called when pot calculation results change (for TV display integration) */
-  onResultChange?: (data: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] } | null) => void;
+  onResultChange?: ((data: { pots: PotResult[]; total: number; payouts?: PlayerPayout[] | undefined } | null) => void) | undefined;
   /** Active tournament players — enables Quick Mode when provided with stacks */
-  tournamentPlayers?: Player[];
+  tournamentPlayers?: Player[] | undefined;
 }
 
 const DEFAULT_INVESTED = 1000;
