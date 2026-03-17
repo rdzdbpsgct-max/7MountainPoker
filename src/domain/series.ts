@@ -1,6 +1,7 @@
 import type { TournamentSeries, SeriesStanding, TournamentResult, PointSystem } from './types';
 import { generateId } from './helpers';
 import { getCached, setCachedItem, deleteCachedItem } from './storage';
+import { csvSafe } from './tournament';
 
 // ---------------------------------------------------------------------------
 // Default Point System (same as leagues)
@@ -229,7 +230,7 @@ export function formatSeriesStandingsAsCSV(
   const headers = ['Rank', 'Name', 'Points', 'Tournaments', 'Wins', 'Cashes', 'Avg Place', 'Best Place', 'Cost', 'Payout', 'Net Balance', 'KO', 'Qualified'];
   const rows = standings.map(s => [
     s.rank,
-    `"${s.name}"`,
+    csvSafe(s.name),
     s.points,
     s.tournaments,
     s.wins,

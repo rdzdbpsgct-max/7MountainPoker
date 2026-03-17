@@ -102,6 +102,10 @@ export function useTournamentActions({
     setConfig((prev) => {
       const player = prev.players.find((p) => p.id === playerId);
       const diff = player ? newCount - player.rebuys : 0;
+      // Log one event per rebuy added (inside updater to avoid stale closure)
+      for (let i = 0; i < diff; i++) {
+        onAppendEventRef.current(createEvent('rebuy_taken', currentLevelIndexRef.current, { playerId }));
+      }
       return {
         ...prev,
         players: prev.players.map((p) => {
@@ -120,13 +124,7 @@ export function useTournamentActions({
         }),
       };
     });
-    // Log one event per rebuy added
-    const player = config.players.find((p) => p.id === playerId);
-    const diff = player ? newCount - player.rebuys : 0;
-    for (let i = 0; i < diff; i++) {
-      onAppendEvent(createEvent('rebuy_taken', currentLevelIndex, { playerId }));
-    }
-  }, [setConfig, pushUndo, config.players, currentLevelIndex, onAppendEvent]);
+  }, [setConfig, pushUndo]);
 
   // --- Add-on update handler ---
   const updatePlayerAddOn = useCallback((playerId: string, hasAddOn: boolean) => {
@@ -292,7 +290,8 @@ export function useTournamentActions({
           return { ...p, status: 'eliminated' as const, placement: actualPlacement, eliminatedBy, eliminatedAt: Date.now(), chips: p.chips !== undefined ? 0 : undefined };
         }
         if (eliminatedBy && p.id === eliminatedBy) {
-          return { ...p, knockouts: p.knockouts + 1 };
+          const bountyInc = updatedBounty.enabled ? (updatedBounty.amount ?? 0) : 0;
+          return { ...p, knockouts: p.knockouts + 1, bountyEarned: (p.bountyEarned ?? 0) + bountyInc };
         }
         return p;
       });

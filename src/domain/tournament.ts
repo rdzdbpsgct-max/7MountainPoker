@@ -388,7 +388,7 @@ export function buildTournamentResult(
   }
 
   // Aggregate re-entry groups into single player results
-  const aggregated: { name: string; bestPlace: number; isActive: boolean; totalRebuys: number; hasAddOn: boolean; totalKnockouts: number; totalBuyIns: number }[] = [];
+  const aggregated: { name: string; bestPlace: number; isActive: boolean; totalRebuys: number; hasAddOn: boolean; totalKnockouts: number; totalBuyIns: number; totalBountyEarned: number }[] = [];
   for (const group of reEntryGroups.values()) {
     const bestInstance = group.reduce((best, p) => {
       if (p.status === 'active') return p;
@@ -407,6 +407,7 @@ export function buildTournamentResult(
       hasAddOn: group.some((p) => p.addOn),
       totalKnockouts: group.reduce((sum, p) => sum + p.knockouts, 0),
       totalBuyIns: group.length, // Each entry costs one buy-in
+      totalBountyEarned: group.reduce((sum, p) => sum + (p.bountyEarned ?? 0), 0),
     });
   }
 
@@ -424,7 +425,9 @@ export function buildTournamentResult(
     const totalCost = p.totalBuyIns * config.buyIn
       + p.totalRebuys * (config.rebuy.enabled ? config.rebuy.rebuyCost : config.buyIn)
       + (p.hasAddOn ? (config.addOn.enabled ? config.addOn.cost : config.buyIn) : 0);
-    const bountyEarned = config.bounty.enabled ? p.totalKnockouts * config.bounty.amount : 0;
+    const bountyEarned = config.bounty.enabled
+      ? (config.bounty.type === 'mystery' ? p.totalBountyEarned : p.totalKnockouts * config.bounty.amount)
+      : 0;
     return {
       name: p.name,
       place,
@@ -622,7 +625,7 @@ export function formatLeagueAsText(league: League, standings: LeagueStanding[]):
 export function formatLeagueAsCSV(standings: LeagueStanding[]): string {
   const header = 'Rank,Name,Points,Tournaments,Wins,Cashes,AvgPlace,BestPlace';
   const rows = standings.map((s, i) =>
-    [i + 1, `"${s.name}"`, s.points, s.tournaments, s.wins, s.cashes, s.avgPlace, s.bestPlace].join(','),
+    [i + 1, csvSafe(s.name), s.points, s.tournaments, s.wins, s.cashes, s.avgPlace, s.bestPlace].join(','),
   );
   return [header, ...rows].join('\n');
 }

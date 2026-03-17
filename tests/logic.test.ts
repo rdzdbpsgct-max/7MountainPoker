@@ -3145,6 +3145,28 @@ describe('formatResultAsCSV', () => {
     expect(lines[2]).toContain('"Bob"');
     expect(lines).toHaveLength(3);
   });
+
+  it('escapes formula injection in player names', () => {
+    const result = {
+      id: 'test-id',
+      name: 'Test',
+      date: '2026-01-15T20:00:00.000Z',
+      playerCount: 2,
+      buyIn: 10,
+      prizePool: 20,
+      players: [
+        { name: '=CMD|calc|A1', place: 1, payout: 20, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: 10 },
+        { name: 'Normal Player', place: 2, payout: 0, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: -10 },
+      ],
+      bountyEnabled: false, bountyAmount: 0,
+      rebuyEnabled: false, totalRebuys: 0,
+      addOnEnabled: false, totalAddOns: 0,
+      elapsedSeconds: 900, levelsPlayed: 2,
+    };
+    const csv = formatResultAsCSV(result);
+    expect(csv).toContain("'=CMD");
+    expect(csv).not.toMatch(/^=CMD/m);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -7939,5 +7961,46 @@ describe('HMAC security', () => {
   it('buildHmacPayload without payload matches format with empty trailing', () => {
     const payload = buildHmacPayload('toggle', 1234567890);
     expect(payload).toBe('command:toggle:1234567890:');
+  });
+});
+
+describe('Remote HMAC security', () => {
+  it('signMessage produces 64-char hex string', async () => {
+    const key = await crypto.subtle.importKey(
+      'raw', new Uint8Array(32), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'],
+    );
+    const sig = await signMessage(key, 'test-payload');
+    expect(sig).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('verifyMessage accepts valid signature', async () => {
+    const key = await crypto.subtle.importKey(
+      'raw', new Uint8Array(32), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'],
+    );
+    const payload = buildHmacPayload('toggle', 1234567890);
+    const sig = await signMessage(key, payload);
+    expect(await verifyMessage(key, payload, sig)).toBe(true);
+  });
+
+  it('verifyMessage rejects tampered signature', async () => {
+    const key = await crypto.subtle.importKey(
+      'raw', new Uint8Array(32), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'],
+    );
+    const payload = buildHmacPayload('toggle', 1234567890);
+    const sig = await signMessage(key, payload);
+    const tampered = sig.slice(0, -2) + '00';
+    expect(await verifyMessage(key, payload, tampered)).toBe(false);
+  });
+
+  it('verifyMessage rejects non-hex signature', async () => {
+    const key = await crypto.subtle.importKey(
+      'raw', new Uint8Array(32), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'],
+    );
+    expect(await verifyMessage(key, 'test', 'not-hex')).toBe(false);
+  });
+
+  it('buildHmacPayload sorts payload keys', () => {
+    const result = buildHmacPayload('eliminatePlayer', 123, { playerId: 'p1', eliminatorId: 'p2' });
+    expect(result.indexOf('eliminatorId')).toBeLessThan(result.indexOf('playerId'));
   });
 });

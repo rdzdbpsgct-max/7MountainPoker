@@ -778,11 +778,14 @@ describe('useTournamentActions', () => {
       const config = makeConfig({
         players: [makePlayer({ id: 'p1', rebuys: 0 })],
       });
-      const { result, onAppendEvent } = renderActions(config, 1);
+      const { result, onAppendEvent, applyUpdate } = renderActions(config, 1);
 
       act(() => {
         result.current.updatePlayerRebuys('p1', 1);
       });
+
+      // Event logging now happens inside the setConfig updater — run it
+      applyUpdate(config);
 
       expect(onAppendEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -797,11 +800,14 @@ describe('useTournamentActions', () => {
       const config = makeConfig({
         players: [makePlayer({ id: 'p1', rebuys: 0 })],
       });
-      const { result, onAppendEvent } = renderActions(config, 1);
+      const { result, onAppendEvent, applyUpdate } = renderActions(config, 1);
 
       act(() => {
         result.current.updatePlayerRebuys('p1', 3);
       });
+
+      // Event logging now happens inside the setConfig updater — run it
+      applyUpdate(config);
 
       const rebuyCalls = onAppendEvent.mock.calls.filter(
         (call: unknown[]) => (call[0] as { type: string }).type === 'rebuy_taken',

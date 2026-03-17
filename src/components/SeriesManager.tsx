@@ -11,7 +11,7 @@ import {
   formatSeriesStandingsAsCSV,
   exportSeriesToJSON,
   parseSeriesFile,
-  saveTournamentResult,
+  saveTournamentResults,
 } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { ChevronIcon } from './ChevronIcon';
@@ -136,10 +136,11 @@ export function SeriesManager({ onClose, currentConfig, onLinkSeries }: Props) {
           saveSeries(data.series);
           // After importing the series, also save any embedded results to history
           if (data.results && Array.isArray(data.results)) {
-            for (const result of data.results) {
-              if (result && typeof result === 'object' && result.id) {
-                saveTournamentResult(result as TournamentResult);
-              }
+            const validResults = data.results.filter(
+              (result): result is TournamentResult => result != null && typeof result === 'object' && typeof result.id === 'string',
+            );
+            if (validResults.length > 0) {
+              saveTournamentResults(validResults);
             }
           }
           setSeriesList(loadAllSeries());

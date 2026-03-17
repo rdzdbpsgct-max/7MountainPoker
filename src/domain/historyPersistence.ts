@@ -19,6 +19,14 @@ export function saveTournamentResult(result: TournamentResult): void {
   syncPlayersToDatabase(result.players.map((p) => p.name));
 }
 
+/** Save multiple tournament results to history in a single batch (prepend, trim to MAX_HISTORY). */
+export function saveTournamentResults(results: TournamentResult[]): void {
+  const history = [...getCached('history')];
+  history.unshift(...results);
+  if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+  setCached('history', history);
+}
+
 /** Load all tournament history from storage cache. */
 export function loadTournamentHistory(): TournamentResult[] {
   return getCached('history');

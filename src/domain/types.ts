@@ -26,6 +26,8 @@ export interface Player {
   eliminatedAt?: number;
   /** Timestamps (epoch ms) of each rebuy taken */
   rebuyTimestamps?: number[];
+  /** Cumulative bounty earned (mystery bounties may vary per knockout) */
+  bountyEarned?: number;
 }
 
 export type PayoutMode = 'percent' | 'euro';
