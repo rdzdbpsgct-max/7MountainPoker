@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.9.2
+**Version**: 6.9.3
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1199 tests, single run)
+npm run test         # Vitest run (1210 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -379,7 +379,7 @@ public/
 
 ## Testing
 
-- **1199 tests** across 17 test files + 1 setup file
+- **1210 tests** across 17 test files + 1 setup file
 - Core files: `logic.test.ts` (665), `components.test.tsx` (98), `edge-cases.test.ts` (88), `sound-speech.test.ts` (56), `integration.test.ts` (36), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (26), `display-channel.test.ts` (14), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service, event log, break controls
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
@@ -417,6 +417,26 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.9.3 — Re-Audit: 58 Findings behoben (Stabilität, Sicherheit, Performance)
+
+- **Input-Validierung**: maxLength/max auf allen Text-/Zahlenfeldern, QR-Decode-Limits, Audio-Dateiname-Truncation
+- **ESLint**: `no-console` → error, `no-floating-promises` aktiviert, 32 Violations behoben
+- **HMAC gehärtet**: Payload-Signatur, Fail-Closed-Guard, Hex-Validierung, Schema-Validierung
+- **CSP**: `unsafe-inline` → SHA-256-Hashes, HSTS-Header
+- **Kritisch**: Turnierergebnis nur einmal gebaut, Platzierung Concurrent-Mode-sicher
+- **Speicher**: Persist-Failure-Warnung, Migration-Flag-Timing, Fallback-Stores
+- **Performance**: `useMemo` GameModeContainer-Actions, `React.memo` AppHeader, Checkpoint-Debounce-Fix
+- **Security**: Prototype-Pollution-Schutz, CSV-Injection-Escaping, Audio-Magic-Byte-Validierung
+- **Remote**: Display-Peer-Flag, Ref-basierte Deps, Remote-State-Guard
+- **Voice**: Stale-Closure-Fix via Refs in 3 Effects
+- **Timer**: `tick`-Dependency entfernt, Ref-Mutationen in Updater
+- **CI**: Actions SHA-gepinnt, E2E an Quality gekoppelt, Sentry-Env-Vars
+- **TypeScript**: Target ES2020 (Safari 14 Alignment)
+- **PWA**: MP3-Precaching (653 Einträge), idb/screenshot Chunk-Split
+- **Mystery Bounty**: Per-Spieler bountyEarned
+- **SectionErrorBoundary**: Max 3 Retries
+- **11 neue Tests** — **1210 Tests gesamt**
 
 ### v6.9.2 — Premium-Readiness: Gate-Infrastruktur vervollständigt
 

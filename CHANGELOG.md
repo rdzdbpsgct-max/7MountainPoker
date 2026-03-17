@@ -5,6 +5,56 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.9.3] – 2026-03-17
+
+### Re-Audit: 58 Findings in 6 Batches behoben
+
+**Phase 1 — Quick Wins:**
+- **Input-Validierung**: `maxLength={100}` auf Turnier-/Liga-/Serien-Namen, `max` auf Zahlenfeldern im GameDayEditor, QR-Decode-Längenlimits, Audio-Dateiname-Truncation
+- **ESLint verschärft**: `no-console` auf `error`, `@typescript-eslint/no-floating-promises` aktiviert, 32 Floating-Promise-Verletzungen behoben
+- **HMAC gehärtet**: Payload in Signatur, Fail-Closed-Guard, Hex-Vorvalidierung, Kommando-Schema-Validierung
+- **CSS/HTML**: `animate-slide-up` Utility, `background-attachment: scroll` auf Mobile, `<html lang>` Pre-Hydration
+- **ErrorBoundary**: Sentry-Import nur bei konfiguriertem DSN
+- **Remote Deps**: `config.buyIn/rebuy/addOn` in Broadcast-Dependencies
+
+**Phase 2 — Kritische Fixes:**
+- **Turnierergebnis**: Einmal via `finishedResult` aus `useGameComputedState` gebaut (nicht doppelt)
+- **Platzierung**: `computeNextPlacement` innerhalb `setConfig`-Updater (Concurrent-Mode-sicher)
+
+**Phase 3 — Hohe Priorität:**
+- **CSP**: `unsafe-inline` durch SHA-256-Hashes ersetzt, HSTS-Header hinzugefügt
+- **Speicher**: Warnung bei Persist-Fehler, Migration-Flag nach Schreiboperationen
+- **Performance**: `useMemo` für GameModeContainer-Actions, `React.memo` auf AppHeader
+- **Checkpoint**: Toast bei Schema-Mismatch, Storage-Fallback für series/audio Stores
+- **Remote Security**: `identified`-Flag in allen Limit-Branches
+- **Prototype Pollution**: Explizite Feldextraktion statt Spread in Config-Parsing
+- **Voice**: Refs statt Closures für mode/alerts/seconds/levels in Effects
+- **Checkpoint Debounce**: `remainingSeconds` aus Dependencies entfernt
+
+**Phase 4 — Mittlere Priorität:**
+- **PWA**: MP3-Precaching (653 Einträge), idb/screenshot Chunk-Split
+- **Sourcemaps**: Deaktiviert bis Sentry-Upload konfiguriert
+- **Timer**: `tick` aus Dependencies entfernt, Ref-Mutationen in Updater
+- **CI**: `VITE_SENTRY_DSN` + `VITE_RELEASE` in Build, Actions SHA-gepinnt, E2E an Quality-Job gekoppelt
+- **TypeScript**: Target ES2020 (passend zu Vite safari14)
+- **Mystery Bounty**: Per-Spieler `bountyEarned` statt Fixed-Amount
+- **CSV-Injection**: `csvSafe()` auf Liga- und Serien-Exports
+- **Rebuy Event**: Diff-Berechnung innerhalb `setConfig`-Updater
+
+**Phase 5 — Niedrige Priorität:**
+- **Audio**: Magic-Byte-Validierung bei Upload (MP3/WAV/OGG/M4A)
+- **SectionErrorBoundary**: Max 3 Retries, dann permanenter Fehler
+- **Wizard**: Timeout-Cleanup via Ref
+- **TickerBanner**: Initiale Kopien auf 5 (CLS-Fix)
+- **Tests**: SectionErrorBoundary + collectStartErrors
+
+**Deferred (4 Findings):** exactOptionalPropertyTypes (70 Fehler), useVoiceAnnouncements Tests, IDB Schema-Versioning, Undo Table-Moves
+
+- **11 neue Tests** — **1210 Tests gesamt** (17 Testdateien)
+- **58 von 62 Findings behoben**, 4 architekturelle Items deferred
+
+---
+
 ## [6.9.2] – 2026-03-16
 
 ### Premium-Readiness: Gate-Infrastruktur vervollständigt
