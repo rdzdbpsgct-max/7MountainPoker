@@ -5,6 +5,7 @@ import {
   MAX_AUDIO_FILE_SIZE,
   MAX_CUSTOM_AUDIO_FILES,
   ACCEPTED_AUDIO_TYPES,
+  isValidAudioFile,
   loadCustomAudioFiles,
   saveCustomAudioFile,
   deleteCustomAudioFile,
@@ -68,6 +69,10 @@ export function CustomAudioEditor({ onClose }: Props) {
         continue;
       }
       const arrayBuffer = await file.arrayBuffer();
+      if (!isValidAudioFile(arrayBuffer)) {
+        setError('customAudio.errorUnsupported');
+        continue;
+      }
       const audioFile: CustomAudioFile = {
         id: generateId(),
         name: file.name.slice(0, 100),

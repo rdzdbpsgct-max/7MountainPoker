@@ -67,7 +67,7 @@ const TickerBanner = memo(function TickerBanner({ items }: { items: string[] }) 
   const trackRef = useRef<HTMLDivElement>(null);
   const singleSetRef = useRef<HTMLDivElement>(null);
   const widthRef = useRef(0);
-  const [copies, setCopies] = useState(3);
+  const [copies, setCopies] = useState(5);
 
   // Measure content width and compute needed copies (before paint)
   useLayoutEffect(() => {

@@ -54,11 +54,16 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-/** Compact inline error boundary — wraps lazy-loaded sections within a page */
-export class SectionErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false };
+interface SectionState {
+  hasError: boolean;
+  retryCount: number;
+}
 
-  static getDerivedStateFromError(): State {
+/** Compact inline error boundary — wraps lazy-loaded sections within a page */
+export class SectionErrorBoundary extends Component<Props, SectionState> {
+  state: SectionState = { hasError: false, retryCount: 0 };
+
+  static getDerivedStateFromError(): Partial<SectionState> {
     return { hasError: true };
   }
 
@@ -73,6 +78,15 @@ export class SectionErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      if (this.state.retryCount >= 3) {
+        return (
+          <div className="flex items-center justify-center p-8 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              This section could not be loaded. Please reload the page.
+            </p>
+          </div>
+        );
+      }
       return (
         <div className="flex items-center justify-center p-8 text-center">
           <div className="space-y-2">
@@ -80,7 +94,7 @@ export class SectionErrorBoundary extends Component<Props, State> {
               Failed to load this section.
             </p>
             <button
-              onClick={() => this.setState({ hasError: false })}
+              onClick={() => this.setState((prev) => ({ hasError: false, retryCount: prev.retryCount + 1 }))}
               className="px-4 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm transition-colors"
             >
               Retry

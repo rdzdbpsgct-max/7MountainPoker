@@ -1363,3 +1363,50 @@ describe('TournamentLog', () => {
     expect(screen.queryByText(/gestartet|started/i)).toBeFalsy();
   });
 });
+
+// ---------------------------------------------------------------------------
+// SectionErrorBoundary
+// ---------------------------------------------------------------------------
+
+describe('SectionErrorBoundary', () => {
+  it('shows retry button on error', () => {
+    // Suppress console.error for expected error
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const ThrowOnce = () => { throw new Error('test'); };
+    const { getByText } = render(
+      <SectionErrorBoundary>
+        <ThrowOnce />
+      </SectionErrorBoundary>
+    );
+    expect(getByText(/failed to load/i)).toBeTruthy();
+    expect(getByText('Retry')).toBeTruthy();
+    spy.mockRestore();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// collectStartErrors (startValidation)
+// ---------------------------------------------------------------------------
+
+import { collectStartErrors } from '../src/domain/startValidation';
+
+describe('collectStartErrors', () => {
+  it('returns error for 0 players', () => {
+    const config = { ...defaultConfig(), players: [] };
+    const errors = collectStartErrors(config, (k: string) => k);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('returns no errors for valid config', () => {
+    const config = {
+      ...defaultConfig(),
+      players: [
+        { id: 'p1', name: 'Alice', status: 'active' as const, placement: null, rebuys: 0, addOn: false, knockouts: 0, eliminatedBy: null },
+        { id: 'p2', name: 'Bob', status: 'active' as const, placement: null, rebuys: 0, addOn: false, knockouts: 0, eliminatedBy: null },
+        { id: 'p3', name: 'Charlie', status: 'active' as const, placement: null, rebuys: 0, addOn: false, knockouts: 0, eliminatedBy: null },
+      ],
+    };
+    const errors = collectStartErrors(config, (k: string) => k);
+    expect(errors.length).toBe(0);
+  });
+});

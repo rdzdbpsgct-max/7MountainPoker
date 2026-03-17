@@ -39,6 +39,24 @@ export const CUSTOMIZABLE_ANNOUNCEMENTS = [
 
 export type AnnouncementKey = typeof CUSTOMIZABLE_ANNOUNCEMENTS[number];
 
+/** Audio file magic bytes for format validation */
+const AUDIO_MAGIC_BYTES: Array<{ prefix: number[]; offset?: number; name: string }> = [
+  { prefix: [0xFF, 0xFB], name: 'mp3-sync' },
+  { prefix: [0xFF, 0xF3], name: 'mp3-sync-v2' },
+  { prefix: [0xFF, 0xF2], name: 'mp3-sync-v2.5' },
+  { prefix: [0x49, 0x44, 0x33], name: 'mp3-id3' },
+  { prefix: [0x52, 0x49, 0x46, 0x46], name: 'wav' },
+  { prefix: [0x4F, 0x67, 0x67, 0x53], name: 'ogg' },
+  { prefix: [0x66, 0x74, 0x79, 0x70], offset: 4, name: 'mp4/m4a' },
+];
+
+export function isValidAudioFile(data: ArrayBuffer): boolean {
+  const bytes = new Uint8Array(data.slice(0, 12));
+  return AUDIO_MAGIC_BYTES.some(({ prefix, offset = 0 }) =>
+    prefix.every((b, i) => bytes[offset + i] === b)
+  );
+}
+
 /** Maximum file size for uploaded audio files: 5 MB */
 export const MAX_AUDIO_FILE_SIZE = 5 * 1024 * 1024;
 

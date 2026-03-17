@@ -230,6 +230,14 @@ function App() {
   }, [undoStack, config.players, config.tables, tournamentEvents, config.dealerIndex, setConfig, setTournamentEvents]);
 
   // Clear undo stack when entering game mode (fresh start)
+  // Cleanup wizard-to-tour timeout on unmount
+  const wizardTourTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (wizardTourTimeoutRef.current) clearTimeout(wizardTourTimeoutRef.current);
+    };
+  }, []);
+
   const prevModeForUndo = useRef(mode);
   useEffect(() => {
     if (prevModeForUndo.current !== 'game' && mode === 'game') {
@@ -1035,7 +1043,7 @@ function App() {
               modals.setShowWizard(false);
               // Show onboarding tour after wizard if not already completed
               if (!isTourCompleted()) {
-                setTimeout(() => modals.setShowTour(true), 500);
+                wizardTourTimeoutRef.current = setTimeout(() => modals.setShowTour(true), 500);
               }
             }}
             onSkip={() => modals.setShowWizard(false)}
