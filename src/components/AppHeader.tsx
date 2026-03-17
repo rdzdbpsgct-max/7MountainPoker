@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from 'react';
+import { memo, type Dispatch, type SetStateAction } from 'react';
 import type { AppFeature } from '../domain/entitlements';
 import { markFeatureDiscovered } from '../domain/entitlements';
 import type { Settings } from '../domain/types';
@@ -44,7 +44,7 @@ function lockedTitle(featureName: string): string {
   return `${featureName} ${String.fromCodePoint(0x1F512)}`;
 }
 
-export function AppHeader({
+export const AppHeader = memo(function AppHeader({
   mode,
   tournamentName,
   clockTime,
@@ -285,4 +285,4 @@ export function AppHeader({
       </div>
     </header>
   );
-}
+});

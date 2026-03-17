@@ -1322,6 +1322,9 @@ const de = {
   'cloudExport.share': 'Teilen',
   'cloudExport.save': 'Speichern unter...',
   'cloudExport.configBackup': 'Konfiguration sichern',
+
+  // --- Storage ---
+  'storage.persistFailed': 'Speicher voll — Daten könnten beim Neuladen verloren gehen.',
 } as const;
 
 export type TranslationKey = keyof typeof de;
@@ -2645,6 +2648,9 @@ const en: Record<TranslationKey, string> = {
   'cloudExport.share': 'Share',
   'cloudExport.save': 'Save as...',
   'cloudExport.configBackup': 'Backup Configuration',
+
+  // --- Storage ---
+  'storage.persistFailed': 'Storage full — data may be lost on reload.',
 };
 
 export const translations: Record<Language, Record<TranslationKey, string>> = { de, en };

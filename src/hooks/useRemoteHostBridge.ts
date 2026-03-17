@@ -276,7 +276,7 @@ export function useRemoteHostBridge({
         remoteStateIntervalRef.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- remainingSeconds intentionally excluded: interval handles periodic sync
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- ref updates in render are intentional (latest-ref pattern)
   }, [
     mode,
     timerState.status,
@@ -291,6 +291,9 @@ export function useRemoteHostBridge({
     bountyEnabled,
     isItm,
     settings.soundEnabled,
+    config.buyIn,
+    config.rebuy,
+    config.addOn,
     t,
     remoteHostRef,
   ]);

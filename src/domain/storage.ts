@@ -286,6 +286,17 @@ function persistStore(store: StoreKey): void {
       console.warn(`[storage] Failed to persist "${store}" to IndexedDB:`, err);
       // Fallback: also write to localStorage as safety net
       persistToLocalStorage(store);
+      // Surface warning to user if localStorage also fails
+      try {
+        const test = `__storage_test_${Date.now()}`;
+        localStorage.setItem(test, '1');
+        localStorage.removeItem(test);
+      } catch {
+        console.error('[storage] CRITICAL: Both IndexedDB and localStorage writes failed. Data is in-memory only.');
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('storage-persist-failed', { detail: { store } }));
+        }
+      }
     });
   persistQueue.set(store, next);
 }
@@ -347,10 +358,6 @@ async function migrateFromLocalStorage(): Promise<void> {
   }
 
   try {
-    // Set migration flag BEFORE deleting keys — if we crash mid-migration,
-    // the data is still in localStorage and won't be re-migrated (safe).
-    localStorage.setItem(MIGRATED_KEY, 'true');
-
     for (const [lsKey, store] of Object.entries(MIGRATION_MAP)) {
       const raw = localStorage.getItem(lsKey);
       if (!raw) continue;
@@ -382,6 +389,10 @@ async function migrateFromLocalStorage(): Promise<void> {
         console.warn(`[storage] Failed to migrate "${lsKey}", skipping`);
       }
     }
+
+    // Set migration flag AFTER all writes complete — if we crash mid-migration,
+    // the data is still in localStorage and will be re-tried on next load.
+    localStorage.setItem(MIGRATED_KEY, 'true');
   } catch {
     console.warn('[storage] Migration from localStorage failed');
   }

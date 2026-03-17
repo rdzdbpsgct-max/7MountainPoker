@@ -29,6 +29,15 @@
         if (meta) meta.setAttribute('content', mode === 'dark' ? '#111827' : '#ffffff');
       })();
     </script>
+    <script>
+      // Set lang attribute before first paint to avoid wrong screen-reader language
+      (function() {
+        try {
+          var lang = localStorage.getItem('poker-timer-language');
+          if (lang === 'en') document.documentElement.lang = 'en';
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <a href="#main-content" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:9999" onfocus="this.style.position='fixed';this.style.left='1rem';this.style.top='1rem';this.style.width='auto';this.style.height='auto';this.style.overflow='visible';this.style.padding='0.5rem 1rem';this.style.background='#10b981';this.style.color='#fff';this.style.borderRadius='0.5rem';this.style.fontFamily='system-ui';this.style.fontSize='0.875rem';this.style.fontWeight='600';this.style.textDecoration='none';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'" onblur="this.style.position='absolute';this.style.left='-9999px';this.style.width='1px';this.style.height='1px';this.style.overflow='hidden';this.style.padding='0'">Skip to main content</a>

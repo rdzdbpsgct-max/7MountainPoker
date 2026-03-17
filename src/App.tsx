@@ -9,7 +9,6 @@ import {
   loadSettings,
   loadCheckpoint,
   clearCheckpoint,
-  buildTournamentResult,
   saveTournamentResult,
   loadLeagues,
   createGameDayFromResult,
@@ -305,6 +304,15 @@ function App() {
     showToast(isOnline ? t('app.onlineNotice') : t('app.offlineNotice'));
   }, [isOnline, t]);
 
+  // Warn user if both IndexedDB and localStorage fail
+  useEffect(() => {
+    const handler = () => {
+      showToast(t('storage.persistFailed' as Parameters<typeof t>[0]));
+    };
+    window.addEventListener('storage-persist-failed', handler);
+    return () => window.removeEventListener('storage-persist-failed', handler);
+  }, [t]);
+
   // Toggle last hand announcement
   const handleLastHand = useCallback(() => {
     setLastHandActive((prev) => {
@@ -592,19 +600,18 @@ function App() {
   // Clear checkpoint and save result when tournament finishes
   const resultSavedRef = useRef(false);
   useEffect(() => {
-    if (mode === 'game' && tournamentFinished) {
+    if (mode === 'game' && tournamentFinished && finishedResult) {
       clearCheckpoint();
       if (!resultSavedRef.current) {
         resultSavedRef.current = true;
-        const result = buildTournamentResult(config, tournamentElapsed, currentPlayLevel, tournamentEvents);
-        saveTournamentResult(result);
+        saveTournamentResult(finishedResult);
         // Auto-create GameDay when tournament is linked to a league
         if (config.leagueId) {
           const leagues = loadLeagues();
           const league = leagues.find(l => l.id === config.leagueId);
           if (league) {
             const registeredPlayers = loadPlayerDatabase();
-            createGameDayFromResult(result, league, registeredPlayers);
+            createGameDayFromResult(finishedResult, league, registeredPlayers);
           }
         }
       }
@@ -612,7 +619,7 @@ function App() {
     if (!tournamentFinished) {
       resultSavedRef.current = false;
     }
-  }, [mode, tournamentFinished, config, tournamentElapsed, currentPlayLevel, tournamentEvents]);
+  }, [mode, tournamentFinished, finishedResult, config.leagueId]);
 
   // Warn before navigating away during active tournament
   useEffect(() => {
@@ -716,6 +723,56 @@ function App() {
       confirmBeforeAction,
     },
   });
+
+  // Destructure stable modal setters for useMemo dep array (avoids react-hooks/exhaustive-deps warning on `modals` object)
+  const {
+    setShowPlayerPanel, setShowSidebar, toggleCleanView,
+    setShowCallTheClock, setShowPayoutOverlay, setShowIcm, setShowInstallGuide: setShowInstallGuideModal,
+  } = modals;
+
+  // Memoize the actions object for GameModeContainer to avoid re-creating on every render.
+  // All callbacks are already stable (useCallback / useState setters).
+  const gameModeActions = useMemo(() => ({
+    onTogglePlayerPanel: () => setShowPlayerPanel((v: boolean) => !v),
+    onToggleSidebar: () => setShowSidebar((v: boolean) => !v),
+    onUpdatePlayerRebuys: updatePlayerRebuys,
+    onUpdatePlayerAddOn: updatePlayerAddOn,
+    onEliminatePlayer: eliminatePlayer,
+    onReinstatePlayer: reinstatePlayer,
+    onAdvanceDealer: handleAdvanceDealer,
+    onToggleDealerBadges: handleToggleDealerBadges,
+    onUpdatePlayerStack: updatePlayerStack,
+    onInitStacks: initStacks,
+    onClearStacks: clearStacks,
+    onAddLatePlayer: addLatePlayer,
+    onReEntryPlayer: handleReEntry,
+    onSidePotResultChange: setSidePotData,
+    onSkipBreak: handleSkipBreak,
+    onExtendBreak: handleExtendBreak,
+    onResetLevel: handleResetLevel,
+    onRestartTournament: handleRestart,
+    onToggleCleanView: toggleCleanView,
+    onLastHand: handleLastHand,
+    onHandForHand: handleHandForHand,
+    onNextHand: handleNextHand,
+    onShowCallTheClock: () => setShowCallTheClock(true),
+    onShowPayoutOverlay: () => setShowPayoutOverlay(true),
+    onShowIcm: () => setShowIcm(true),
+    onUpdateTables: handleUpdateTables,
+    onTableMoves: handleTableMoves,
+    onSettingsChange: setSettings,
+    onToggleFullscreen: toggleFullscreen,
+    onShowInstallGuide: () => setShowInstallGuideModal(true),
+    onExitToSetup: handleExitToSetup,
+  }), [
+    setShowPlayerPanel, setShowSidebar, toggleCleanView,
+    setShowCallTheClock, setShowPayoutOverlay, setShowIcm, setShowInstallGuideModal,
+    updatePlayerRebuys, updatePlayerAddOn, eliminatePlayer, reinstatePlayer,
+    handleAdvanceDealer, handleToggleDealerBadges, updatePlayerStack, initStacks, clearStacks,
+    addLatePlayer, handleReEntry, setSidePotData, handleSkipBreak, handleExtendBreak,
+    handleResetLevel, handleRestart, handleLastHand, handleHandForHand, handleNextHand,
+    handleUpdateTables, handleTableMoves, setSettings, toggleFullscreen, handleExitToSetup,
+  ]);
 
   // Remote Controller Mode — render ONLY the controller view, skip all other UI
   if (isControllerMode && controllerPeerId) {
@@ -867,39 +924,7 @@ function App() {
               showSidebar: modals.showSidebar,
               showDealerBadges,
             }}
-            actions={{
-              onTogglePlayerPanel: () => modals.setShowPlayerPanel((v) => !v),
-              onToggleSidebar: () => modals.setShowSidebar((v) => !v),
-              onUpdatePlayerRebuys: updatePlayerRebuys,
-              onUpdatePlayerAddOn: updatePlayerAddOn,
-              onEliminatePlayer: eliminatePlayer,
-              onReinstatePlayer: reinstatePlayer,
-              onAdvanceDealer: handleAdvanceDealer,
-              onToggleDealerBadges: handleToggleDealerBadges,
-              onUpdatePlayerStack: updatePlayerStack,
-              onInitStacks: initStacks,
-              onClearStacks: clearStacks,
-              onAddLatePlayer: addLatePlayer,
-              onReEntryPlayer: handleReEntry,
-              onSidePotResultChange: setSidePotData,
-              onSkipBreak: handleSkipBreak,
-              onExtendBreak: handleExtendBreak,
-              onResetLevel: handleResetLevel,
-              onRestartTournament: handleRestart,
-              onToggleCleanView: modals.toggleCleanView,
-              onLastHand: handleLastHand,
-              onHandForHand: handleHandForHand,
-              onNextHand: handleNextHand,
-              onShowCallTheClock: () => modals.setShowCallTheClock(true),
-              onShowPayoutOverlay: () => modals.setShowPayoutOverlay(true),
-              onShowIcm: () => modals.setShowIcm(true),
-              onUpdateTables: handleUpdateTables,
-              onTableMoves: handleTableMoves,
-              onSettingsChange: setSettings,
-              onToggleFullscreen: toggleFullscreen,
-              onShowInstallGuide: () => modals.setShowInstallGuide(true),
-              onExitToSetup: handleExitToSetup,
-            }}
+            actions={gameModeActions}
             canUseSidePot={canUseSidePot}
             canUseMultiTable={canUseMultiTable}
             onOpenFeatureGate={openFeatureGate}

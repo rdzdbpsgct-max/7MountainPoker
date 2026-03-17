@@ -756,11 +756,14 @@ describe('useTournamentActions', () => {
   describe('event logging', () => {
     it('creates player_eliminated event when eliminating a player', () => {
       const config = makeConfig();
-      const { result, onAppendEvent } = renderActions(config, 3);
+      const { result, onAppendEvent, applyUpdate } = renderActions(config, 3);
 
       act(() => {
         result.current.eliminatePlayer('p1', 'p2');
       });
+
+      // Event is now appended inside the setConfig updater, so we must run the updater
+      applyUpdate(config);
 
       expect(onAppendEvent).toHaveBeenCalledWith(
         expect.objectContaining({
