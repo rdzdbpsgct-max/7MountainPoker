@@ -486,7 +486,10 @@ describe('import/export', () => {
     expect(imported?.currency).toBe(config.currency);
     expect(imported?.buyIn).toBe(config.buyIn);
     expect(imported?.levels).toEqual(config.levels);
-    expect(imported?.players).toEqual(config.players);
+    // parseConfigObject extracts explicit fields (prototype pollution defense) —
+    // check that all original fields are preserved
+    expect(imported?.players).toHaveLength(config.players.length);
+    expect(imported?.players[0]).toMatchObject(config.players[0]!);
   });
 
   it('returns null for invalid JSON', () => {

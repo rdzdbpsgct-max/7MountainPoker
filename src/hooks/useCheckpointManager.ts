@@ -73,7 +73,8 @@ export function useCheckpointManager({
         checkpointDebounceRef.current = null;
       }
     };
-  }, [mode, config, settings, currentLevelIndex, tournamentEvents, remainingSeconds]);
+  // remainingSeconds intentionally excluded — read via ref to avoid debounce reset on every tick
+  }, [mode, config, settings, currentLevelIndex, tournamentEvents]);
 
   // Periodic save every 5s while timer is running — reads from refs to avoid stale closures
   useEffect(() => {

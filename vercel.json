@@ -9,7 +9,11 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' wss://*.peerjs.com https://*.peerjs.com https://stun.l.google.com:19302 https://va.vercel-scripts.com https://*.ingest.sentry.io; media-src 'self'; img-src 'self' data: blob:; font-src 'self'; worker-src 'self'; frame-ancestors 'none';"
+          "value": "default-src 'self'; script-src 'self' 'sha256-FgeQNv9b74bs2261ug8+pPFc90dpyOWuYLyulDKcOG8=' 'sha256-WVVjBY1d5CtFutW2XJuH6wG84pu0bmRzYQC0zrDh5mk=' 'sha256-bVLCbseEyYSfAPHMFrVTn2mGcRoSvczQWJEVlUKhtLg='; style-src 'self' 'unsafe-inline'; connect-src 'self' wss://*.peerjs.com https://*.peerjs.com https://stun.l.google.com:19302 https://va.vercel-scripts.com https://*.ingest.sentry.io; media-src 'self'; img-src 'self' data: blob:; font-src 'self'; worker-src 'self'; frame-ancestors 'none';"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
         }
       ]
     }

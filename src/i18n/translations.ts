@@ -610,6 +610,7 @@ const de = {
   'checkpoint.restore': 'Turnier fortsetzen',
   'checkpoint.dismiss': 'Verwerfen',
   'checkpoint.leagueMissing': 'Hinweis: Die verknüpfte Liga existiert nicht mehr. Das Turnier wurde ohne Liga-Bezug wiederhergestellt.',
+  'checkpoint.incompatible': 'Gespeichertes Turnier konnte nach App-Update nicht wiederhergestellt werden.',
 
   // --- Theme ---
   'theme.system': 'System',
@@ -1939,6 +1940,7 @@ const en: Record<TranslationKey, string> = {
   'checkpoint.restore': 'Resume tournament',
   'checkpoint.dismiss': 'Dismiss',
   'checkpoint.leagueMissing': 'Note: linked league was not found. Tournament was restored without league link.',
+  'checkpoint.incompatible': 'Saved tournament could not be restored after app update.',
 
   // --- Theme ---
   'theme.system': 'System',

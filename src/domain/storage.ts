@@ -450,6 +450,11 @@ function loadAllFromLocalStorage(): void {
       // Skip corrupt data
     }
   }
+
+  // Stores without legacy localStorage keys — initialize as empty in fallback mode
+  cache.series = [];
+  cache.customAudio = [];
+  cache.audioMappings = [];
 }
 
 // ---------------------------------------------------------------------------

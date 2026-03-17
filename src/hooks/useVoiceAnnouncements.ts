@@ -59,6 +59,20 @@ export function useVoiceAnnouncements({
   // Stable integer-second value — avoids re-firing effects 4×/sec from float ticks
   const displaySeconds = Math.floor(timerState.remainingSeconds);
 
+  // Refs for values read inside effects with minimal dependency arrays (avoids stale closures)
+  const modeRef = useRef(mode);
+  useEffect(() => { modeRef.current = mode; });
+  const customAlertsRef = useRef(settings.customAlerts ?? []);
+  useEffect(() => { customAlertsRef.current = settings.customAlerts ?? []; });
+  const displaySecondsRef = useRef(displaySeconds);
+  useEffect(() => { displaySecondsRef.current = displaySeconds; });
+  const configLevelsRef = useRef(config.levels);
+  useEffect(() => { configLevelsRef.current = config.levels; });
+  const activePlayerCountRef = useRef(activePlayerCount);
+  useEffect(() => { activePlayerCountRef.current = activePlayerCount; });
+  const currentLevelIndexRef = useRef(timerState.currentLevelIndex);
+  useEffect(() => { currentLevelIndexRef.current = timerState.currentLevelIndex; });
+
   // Voice: Level change announcement
   const prevLevelIdxVoiceRef = useRef(timerState.currentLevelIndex);
   useEffect(() => {
@@ -231,7 +245,6 @@ export function useVoiceAnnouncements({
   }, [mode, settings.voiceEnabled, totalRebuys, t]);
 
   // ── Custom Alert Engine ──────────────────────────────────────────────────
-  const customAlerts = settings.customAlerts ?? [];
   const firedAlertsRef = useRef<Set<string>>(new Set());
 
   // Helper to fire a single alert (sound + voice)
@@ -262,65 +275,63 @@ export function useVoiceAnnouncements({
 
   // Custom alerts: level_start + break_start
   useEffect(() => {
-    if (mode !== 'game' || customAlerts.length === 0) return;
+    if (modeRef.current !== 'game' || customAlertsRef.current.length === 0) return;
     const idx = timerState.currentLevelIndex;
-    const level = config.levels[idx];
+    const level = configLevelsRef.current[idx];
     if (!level) return;
 
     const triggerType = level.type === 'break' ? 'break_start' : 'level_start';
 
-    for (const alert of customAlerts) {
+    for (const alert of customAlertsRef.current) {
       if (firedAlertsRef.current.has(alert.id)) continue;
       if (shouldFireAlert(alert, triggerType, {
         levelIndex: idx,
-        remainingSeconds: displaySeconds,
-        activePlayers: activePlayerCount,
-        prevActivePlayers: activePlayerCount,
+        remainingSeconds: displaySecondsRef.current,
+        activePlayers: activePlayerCountRef.current,
+        prevActivePlayers: activePlayerCountRef.current,
       })) {
         firedAlertsRef.current.add(alert.id);
-        fireAlertRef.current(alert, idx, activePlayerCount);
+        fireAlertRef.current(alert, idx, activePlayerCountRef.current);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timerState.currentLevelIndex]);
 
   // Custom alerts: time_remaining
   useEffect(() => {
-    if (mode !== 'game' || customAlerts.length === 0) return;
-    const idx = timerState.currentLevelIndex;
+    if (modeRef.current !== 'game' || customAlertsRef.current.length === 0) return;
+    const idx = currentLevelIndexRef.current;
 
-    for (const alert of customAlerts) {
+    for (const alert of customAlertsRef.current) {
       if (alert.trigger !== 'time_remaining') continue;
       if (firedAlertsRef.current.has(alert.id)) continue;
       if (shouldFireAlert(alert, 'time_remaining', {
         levelIndex: idx,
-        remainingSeconds: displaySeconds,
-        activePlayers: activePlayerCount,
-        prevActivePlayers: activePlayerCount,
+        remainingSeconds: displaySecondsRef.current,
+        activePlayers: activePlayerCountRef.current,
+        prevActivePlayers: activePlayerCountRef.current,
       })) {
         firedAlertsRef.current.add(alert.id);
-        fireAlertRef.current(alert, idx, activePlayerCount);
+        fireAlertRef.current(alert, idx, activePlayerCountRef.current);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displaySeconds]);
 
   // Custom alerts: player_count
   const prevActiveForAlertsRef = useRef(activePlayerCount);
   useEffect(() => {
-    if (mode !== 'game' || customAlerts.length === 0) {
+    if (modeRef.current !== 'game' || customAlertsRef.current.length === 0) {
       prevActiveForAlertsRef.current = activePlayerCount;
       return;
     }
     const prev = prevActiveForAlertsRef.current;
-    const idx = timerState.currentLevelIndex;
+    const idx = currentLevelIndexRef.current;
 
-    for (const alert of customAlerts) {
+    for (const alert of customAlertsRef.current) {
       if (alert.trigger !== 'player_count') continue;
       if (firedAlertsRef.current.has(alert.id)) continue;
       if (shouldFireAlert(alert, 'player_count', {
         levelIndex: idx,
-        remainingSeconds: displaySeconds,
+        remainingSeconds: displaySecondsRef.current,
         activePlayers: activePlayerCount,
         prevActivePlayers: prev,
       })) {
@@ -329,7 +340,6 @@ export function useVoiceAnnouncements({
       }
     }
     prevActiveForAlertsRef.current = activePlayerCount;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePlayerCount]);
 
   // Reset function for switchToSetup

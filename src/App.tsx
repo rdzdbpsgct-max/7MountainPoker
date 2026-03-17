@@ -313,6 +313,13 @@ function App() {
     return () => window.removeEventListener('storage-persist-failed', handler);
   }, [t]);
 
+  // Warn user if checkpoint could not be restored due to schema version mismatch
+  useEffect(() => {
+    const handler = () => showToast(t('checkpoint.incompatible' as Parameters<typeof t>[0]), 'warning');
+    window.addEventListener('checkpoint-schema-mismatch', handler);
+    return () => window.removeEventListener('checkpoint-schema-mismatch', handler);
+  }, [t]);
+
   // Toggle last hand announcement
   const handleLastHand = useCallback(() => {
     setLastHandActive((prev) => {

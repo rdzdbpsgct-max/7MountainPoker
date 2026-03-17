@@ -17,6 +17,7 @@ import type {
 } from './types';
 import { parseCurrency } from './types';
 import { generateBlindStructure } from './blinds';
+import { generatePlayerId } from './helpers';
 import { defaultChipConfig } from './chips';
 import { defaultPayoutConfig } from './tournament';
 import { defaultLateRegistrationConfig } from './validation';
@@ -237,14 +238,21 @@ export function parseConfigObject(parsed: Record<string, unknown>): TournamentCo
       ? ((parsed.players as Record<string, unknown>[])
           .filter((p) => p && typeof p === 'object' && typeof p.id === 'string' && (p.id as string).length > 0 && typeof p.name === 'string')
           .map((p) => ({
-          ...p,
+          id: typeof p.id === 'string' ? p.id : generatePlayerId(),
+          name: typeof p.name === 'string' ? p.name : '',
+          seat: typeof p.seat === 'number' ? p.seat : undefined,
           rebuys: typeof p.rebuys === 'number' ? p.rebuys : 0,
           addOn: typeof p.addOn === 'boolean' ? p.addOn : false,
-          status: p.status === 'eliminated' ? 'eliminated' : 'active',
+          status: p.status === 'eliminated' ? 'eliminated' as const : 'active' as const,
           placement: typeof p.placement === 'number' ? p.placement : null,
           eliminatedBy: typeof p.eliminatedBy === 'string' ? p.eliminatedBy : null,
+          eliminatedAt: typeof p.eliminatedAt === 'number' ? p.eliminatedAt : undefined,
           knockouts: typeof p.knockouts === 'number' ? p.knockouts : 0,
           chips: typeof p.chips === 'number' ? p.chips : undefined,
+          bountyEarned: typeof p.bountyEarned === 'number' ? p.bountyEarned : 0,
+          rebuyTimestamps: Array.isArray(p.rebuyTimestamps) ? p.rebuyTimestamps : undefined,
+          originalPlayerId: typeof p.originalPlayerId === 'string' ? p.originalPlayerId : undefined,
+          reEntryCount: typeof p.reEntryCount === 'number' ? p.reEntryCount : undefined,
         })) as Player[])
       : ([] as Player[]),
     dealerIndex: typeof parsed.dealerIndex === 'number' ? parsed.dealerIndex : 0,
@@ -384,6 +392,9 @@ export function loadCheckpoint(): TournamentCheckpoint | null {
     // Reject checkpoints from incompatible schema versions
     if (raw.schemaVersion !== undefined && raw.schemaVersion !== CHECKPOINT_SCHEMA_VERSION) {
       clearCheckpoint();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('checkpoint-schema-mismatch'));
+      }
       return null;
     }
     const config = raw.config ? parseConfigObject(raw.config as Record<string, unknown>) : null;
@@ -397,7 +408,15 @@ export function loadCheckpoint(): TournamentCheckpoint | null {
       timer.currentLevelIndex as number, config.levels.length - 1,
     ));
     timer.remainingSeconds = Math.max(0, timer.remainingSeconds as number);
-    return { ...raw, config, timer } as TournamentCheckpoint;
+    return {
+      version: 1,
+      schemaVersion: CHECKPOINT_SCHEMA_VERSION,
+      config,
+      settings: raw.settings,
+      timer: timer as TournamentCheckpoint['timer'],
+      savedAt: typeof raw.savedAt === 'string' ? raw.savedAt : new Date().toISOString(),
+      events: Array.isArray(raw.events) ? raw.events : [],
+    } as TournamentCheckpoint;
   } catch {
     return null;
   }

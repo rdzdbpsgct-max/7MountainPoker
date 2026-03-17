@@ -502,7 +502,8 @@ export class RemoteHost {
             if (isHelloMessage(msg) && msg.role === 'display') {
               // Display peer — register and set up close handler
               if (this.displayConnections.size >= MAX_DISPLAYS) {
-                console.warn(`[RemoteHost] Display connection rejected — limit reached (${this.displayConnections.size})`);
+                console.warn(`[RemoteHost] Display connection rejected — limit reached`);
+                identified = true;  // prevent timeout from re-registering as controller
                 try { conn.close(); } catch { /* ignore */ }
                 return;
               }
@@ -540,7 +541,8 @@ export class RemoteHost {
             if (isHelloMessage(msg) && msg.role === 'remote') {
               // Remote controller hello — add to controller map
               if (this.controllerConns.size >= MAX_CONTROLLERS) {
-                console.warn(`[RemoteHost] Controller connection rejected — limit reached (${this.controllerConns.size})`);
+                console.warn(`[RemoteHost] Controller connection rejected — limit reached`);
+                identified = true;  // prevent timeout from re-registering as controller
                 try { conn.close(); } catch { /* ignore */ }
                 return;
               }
@@ -566,7 +568,8 @@ export class RemoteHost {
 
           // No hello at all → treat as legacy remote controller
           if (this.controllerConns.size >= MAX_CONTROLLERS) {
-            console.warn(`[RemoteHost] Controller connection rejected — limit reached (${this.controllerConns.size})`);
+            console.warn(`[RemoteHost] Controller connection rejected — limit reached`);
+            identified = true;  // prevent timeout from re-registering as controller
             try { conn.close(); } catch { /* ignore */ }
             return;
           }
@@ -591,7 +594,8 @@ export class RemoteHost {
         setTimeout(() => {
           if (!identified) {
             if (this.controllerConns.size >= MAX_CONTROLLERS) {
-              console.warn(`[RemoteHost] Controller connection rejected — limit reached (${this.controllerConns.size})`);
+              console.warn(`[RemoteHost] Controller connection rejected — limit reached`);
+              identified = true;  // prevent double registration
               try { conn.close(); } catch { /* ignore */ }
               return;
             }
