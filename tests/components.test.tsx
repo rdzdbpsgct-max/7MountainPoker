@@ -58,10 +58,12 @@ vi.mock('../src/domain/speech', () => ({
   announceTableMove: vi.fn(),
   announceTableDissolution: vi.fn(),
   announceFinalTable: vi.fn(),
+  announceRebuyTaken: vi.fn(),
   announceWinner: vi.fn(),
   announceTournamentWinner: vi.fn(),
   announceBubble: vi.fn(),
   announceInTheMoney: vi.fn(),
+  speakCustomText: vi.fn(),
 }));
 
 // ---------------------------------------------------------------------------
@@ -1274,6 +1276,243 @@ describe('useVoiceAnnouncements', () => {
 
     // reset should not throw
     expect(() => result.current.reset()).not.toThrow();
+  });
+
+  it('announces color-up when transitioning to a level with color-up chips', () => {
+    const chipDenom: ChipDenomination = { id: 'c1', value: 25, color: 'white', label: 'White 25' };
+    const colorUpMap = new Map<number, ChipDenomination[]>();
+    colorUpMap.set(2, [chipDenom]);
+    const params = makeDefaultParams({
+      timerState: makeTimerState({ currentLevelIndex: 0 }),
+      colorUpMap,
+      config: {
+        ...defaultConfig(),
+        levels: [
+          makeLevel({ smallBlind: 25, bigBlind: 50 }),
+          makeBreak(600),
+          makeLevel({ smallBlind: 50, bigBlind: 100 }),
+        ],
+        chips: { ...defaultConfig().chips, enabled: true, colorUpEnabled: true },
+      },
+    });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    rerender({ ...params, timerState: makeTimerState({ currentLevelIndex: 2 }) });
+
+    expect(speech.announceColorUp).toHaveBeenCalledWith('White 25', expect.any(Function));
+  });
+
+  it('does NOT announce color-up when chips are disabled', () => {
+    const chipDenom: ChipDenomination = { id: 'c1', value: 25, color: 'white', label: 'White 25' };
+    const colorUpMap = new Map<number, ChipDenomination[]>();
+    colorUpMap.set(2, [chipDenom]);
+    const params = makeDefaultParams({
+      timerState: makeTimerState({ currentLevelIndex: 0 }),
+      colorUpMap,
+      config: {
+        ...defaultConfig(),
+        levels: [
+          makeLevel({ smallBlind: 25, bigBlind: 50 }),
+          makeBreak(600),
+          makeLevel({ smallBlind: 50, bigBlind: 100 }),
+        ],
+        chips: { ...defaultConfig().chips, enabled: false, colorUpEnabled: true },
+      },
+    });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    rerender({ ...params, timerState: makeTimerState({ currentLevelIndex: 2 }) });
+
+    expect(speech.announceColorUp).not.toHaveBeenCalled();
+  });
+
+  it('announces rebuy ended without add-on when rebuyActive becomes false', () => {
+    const params = makeDefaultParams({
+      rebuyActive: true,
+      config: {
+        ...defaultConfig(),
+        levels: [makeLevel(), makeBreak(), makeLevel()],
+        rebuy: { ...defaultConfig().rebuy, enabled: true },
+        addOn: { ...defaultConfig().addOn, enabled: false },
+      },
+    });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    rerender({ ...params, rebuyActive: false });
+
+    expect(speech.announceRebuyEnded).toHaveBeenCalled();
+    expect(speech.announceAddOn).not.toHaveBeenCalled();
+  });
+
+  it('does NOT announce rebuyEnded when addOn is enabled (handled by addOnWindow effect)', () => {
+    const params = makeDefaultParams({
+      rebuyActive: true,
+      config: {
+        ...defaultConfig(),
+        levels: [makeLevel(), makeBreak(), makeLevel()],
+        rebuy: { ...defaultConfig().rebuy, enabled: true },
+        addOn: { ...defaultConfig().addOn, enabled: true },
+      },
+    });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    rerender({ ...params, rebuyActive: false });
+
+    expect(speech.announceRebuyEnded).not.toHaveBeenCalled();
+  });
+
+  it('announces rebuy taken when total rebuys increase', () => {
+    const players: Player[] = [
+      { id: 'p1', name: 'Alice', status: 'active', seatIndex: 0, rebuys: 0, addOn: false, placement: null, bountyEarned: 0 },
+      { id: 'p2', name: 'Bob', status: 'active', seatIndex: 1, rebuys: 0, addOn: false, placement: null, bountyEarned: 0 },
+    ];
+    const params = makeDefaultParams({
+      config: {
+        ...defaultConfig(),
+        levels: [makeLevel(), makeBreak(), makeLevel()],
+        players,
+      },
+    });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    const updatedPlayers: Player[] = [
+      { ...players[0], rebuys: 1 },
+      players[1],
+    ];
+    rerender({
+      ...params,
+      config: { ...params.config, players: updatedPlayers },
+    });
+
+    expect(speech.announceRebuyTaken).toHaveBeenCalled();
+  });
+
+  it('announces elimination and bounty when a player is eliminated with bounty enabled', () => {
+    const players: Player[] = [
+      { id: 'p1', name: 'Alice', status: 'active', seatIndex: 0, rebuys: 0, addOn: false, placement: null, bountyEarned: 0 },
+      { id: 'p2', name: 'Bob', status: 'active', seatIndex: 1, rebuys: 0, addOn: false, placement: null, bountyEarned: 0 },
+    ];
+    const params = makeDefaultParams({
+      config: {
+        ...defaultConfig(),
+        levels: [makeLevel(), makeBreak(), makeLevel()],
+        players,
+        bounty: { ...defaultConfig().bounty, enabled: true, amount: 5 },
+      },
+    });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    const updatedPlayers: Player[] = [
+      players[0],
+      { ...players[1], status: 'eliminated' as const, placement: 2 },
+    ];
+    rerender({
+      ...params,
+      config: { ...params.config, players: updatedPlayers },
+    });
+
+    expect(speech.announceElimination).toHaveBeenCalled();
+    expect(speech.announceBounty).toHaveBeenCalled();
+  });
+
+  it('does NOT announce timer paused when tournament is finished', () => {
+    const params = makeDefaultParams({
+      tournamentFinished: true,
+      timerState: makeTimerState({ status: 'running' }),
+    });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    rerender({ ...params, timerState: makeTimerState({ status: 'paused' }) });
+
+    expect(speech.announceTimerPaused).not.toHaveBeenCalled();
+  });
+
+  it('announces players remaining when count drops to paidPlaces', () => {
+    const params = makeDefaultParams({ activePlayerCount: 6, paidPlaces: 5 });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    rerender({ ...params, activePlayerCount: 5 });
+
+    expect(speech.announcePlayersRemaining).toHaveBeenCalledWith(5, expect.any(Function));
+  });
+
+  it('does NOT announce players remaining when count is above paidPlaces', () => {
+    const params = makeDefaultParams({ activePlayerCount: 8, paidPlaces: 3 });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    rerender({ ...params, activePlayerCount: 7 });
+
+    expect(speech.announcePlayersRemaining).not.toHaveBeenCalled();
+  });
+
+  it('does NOT announce five-minute warning for levels with duration <= 300s', () => {
+    const params = makeDefaultParams({
+      config: {
+        ...defaultConfig(),
+        levels: [
+          makeLevel({ durationSeconds: 300, smallBlind: 25, bigBlind: 50 }),
+          makeBreak(600),
+          makeLevel({ smallBlind: 50, bigBlind: 100 }),
+        ],
+      },
+      timerState: makeTimerState({ currentLevelIndex: 0, remainingSeconds: 310 }),
+    });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    rerender({ ...params, timerState: makeTimerState({ currentLevelIndex: 0, remainingSeconds: 299 }) });
+
+    expect(speech.announceFiveMinutes).not.toHaveBeenCalled();
+  });
+
+  it('announces break over when returning from a break level', () => {
+    const levels = [
+      makeLevel({ smallBlind: 25, bigBlind: 50 }),
+      makeBreak(600),
+      makeLevel({ smallBlind: 50, bigBlind: 100 }),
+    ];
+    const params = makeDefaultParams({
+      config: { ...defaultConfig(), levels },
+      timerState: makeTimerState({ currentLevelIndex: 1 }),
+    });
+    const { rerender } = renderHook(
+      (p) => useVoiceAnnouncements(p),
+      { initialProps: params },
+    );
+
+    // Advance from break (index 1) to play level (index 2)
+    rerender({ ...params, timerState: makeTimerState({ currentLevelIndex: 2 }) });
+
+    expect(speech.announceBreakOver).toHaveBeenCalled();
   });
 });
 
