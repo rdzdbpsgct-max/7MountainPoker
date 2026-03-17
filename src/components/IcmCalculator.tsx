@@ -56,7 +56,7 @@ export function IcmCalculator({ onClose, players, payout, prizePool }: Props) {
   useEffect(() => {
     if (!hasValidInputs) return;
     let cancelled = false;
-    computeIcmDeal(stacks, payoutAmounts).then((results) => {
+    void computeIcmDeal(stacks, payoutAmounts).then((results) => {
       if (!cancelled) setIcmResultsRaw(results);
     });
     return () => { cancelled = true; };

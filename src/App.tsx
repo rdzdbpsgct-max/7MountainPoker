@@ -370,10 +370,10 @@ function App() {
       const el = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => void };
 
       if (document.fullscreenElement || doc.webkitFullscreenElement) {
-        if (document.exitFullscreen) document.exitFullscreen();
+        if (document.exitFullscreen) void document.exitFullscreen();
         else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
       } else {
-        if (el.requestFullscreen) el.requestFullscreen();
+        if (el.requestFullscreen) void el.requestFullscreen();
         else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
       }
     } catch {

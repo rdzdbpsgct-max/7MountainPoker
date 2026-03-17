@@ -423,6 +423,7 @@ export function SetupPage({
               onChange={(e) =>
                 setConfig((prev) => ({ ...prev, name: e.target.value }))
               }
+              maxLength={100}
               placeholder={t('app.tournamentNamePlaceholder')}
               className="w-full px-3 py-2 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--accent-500)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-all duration-200"
             />

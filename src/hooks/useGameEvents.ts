@@ -49,7 +49,7 @@ export function useGameEvents({
             }
           }
         };
-        play();
+        void play();
       }
     }
     if (!tournamentFinished) {
@@ -68,7 +68,7 @@ export function useGameEvents({
           if (settings.soundEnabled) await playBubbleSound();
           if (settings.voiceEnabled) announceBubble(t);
         };
-        play();
+        void play();
       }
 
       // Bubble just ended (burst) → show ITM flash
@@ -79,7 +79,7 @@ export function useGameEvents({
           if (settings.soundEnabled) await playInTheMoneySound();
           if (settings.voiceEnabled) announceInTheMoney(t);
         };
-        play();
+        void play();
         if (itmFlashTimeoutRef.current) clearTimeout(itmFlashTimeoutRef.current);
         itmFlashTimeoutRef.current = setTimeout(() => setShowItmFlash(false), 5000);
       }

@@ -14,7 +14,7 @@ export function getSharedAudioContext(): AudioContext | null {
       sharedCtx = new AudioContext();
     }
     if (sharedCtx.state === 'suspended') {
-      sharedCtx.resume();
+      void sharedCtx.resume();
     }
     return sharedCtx;
   } catch {

@@ -211,7 +211,7 @@ export function RemoteControllerView({ hostPeerId, secret, onClose }: Controller
   }, []);
 
   const sendCmd = useCallback((action: RemoteCommand['action'], payload?: Record<string, unknown>) => {
-    controllerRef.current?.sendCommand(action, payload);
+    void controllerRef.current?.sendCommand(action, payload);
   }, []);
 
   const handleRetry = useCallback(() => {

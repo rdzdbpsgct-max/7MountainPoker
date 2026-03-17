@@ -70,7 +70,7 @@ export function CustomAudioEditor({ onClose }: Props) {
       const arrayBuffer = await file.arrayBuffer();
       const audioFile: CustomAudioFile = {
         id: generateId(),
-        name: file.name,
+        name: file.name.slice(0, 100),
         data: arrayBuffer,
         mimeType: file.type,
         sizeBytes: file.size,
@@ -86,7 +86,7 @@ export function CustomAudioEditor({ onClose }: Props) {
     e.preventDefault();
     setDragOver(false);
     if (e.dataTransfer.files.length > 0) {
-      handleFileUpload(e.dataTransfer.files);
+      void handleFileUpload(e.dataTransfer.files);
     }
   }, [handleFileUpload]);
 
@@ -259,7 +259,7 @@ export function CustomAudioEditor({ onClose }: Props) {
                   </button>
                   {/* Delete button */}
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleDeleteFile(file.id); }}
+                    onClick={(e) => { e.stopPropagation(); void handleDeleteFile(file.id); }}
                     className="px-2 py-1 text-xs font-medium rounded-md transition-colors bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
                     aria-label={t('customAudio.delete' as Parameters<typeof t>[0])}
                   >

@@ -76,7 +76,7 @@ export function CrossDeviceDisplay({ hostPeerId }: Props) {
           reconnectAttemptRef.current = 0;
 
           // Send hello handshake
-          conn.send({ type: 'hello', role: 'display', version: 2 });
+          void conn.send({ type: 'hello', role: 'display', version: 2 });
         });
 
         conn.on('data', (raw: unknown) => {
@@ -159,7 +159,7 @@ export function CrossDeviceDisplay({ hostPeerId }: Props) {
     const delay = BACKOFF_BASE * Math.pow(2, attempt); // 2s, 4s, 8s
     reconnectTimerRef.current = setTimeout(() => {
       if (!destroyedRef.current) {
-        connect();
+        void connect();
       }
     }, delay);
   }, [connect]);
@@ -167,7 +167,7 @@ export function CrossDeviceDisplay({ hostPeerId }: Props) {
   // Connect on mount, clean up on unmount
   useEffect(() => {
     destroyedRef.current = false;
-    connect();
+    void connect();
 
     // Timer interpolation — permanent 100ms interval, sole writer of displaySeconds
     const tickId = setInterval(() => {
@@ -231,7 +231,7 @@ export function CrossDeviceDisplay({ hostPeerId }: Props) {
   const handleRetry = useCallback(() => {
     reconnectAttemptRef.current = 0;
     setStatus('connecting');
-    connect();
+    void connect();
   }, [connect]);
 
   // --- Render ---

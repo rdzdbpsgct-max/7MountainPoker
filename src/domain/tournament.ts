@@ -645,6 +645,7 @@ export function drawMysteryBounty(pool: number[]): { amount: number; remainingPo
 
 export function decodeResultFromQR(encoded: string): TournamentResult | null {
   try {
+    if (encoded.length > 8192) return null;
     const parts = encoded.split('|');
     if (parts.length < 11) return null;
 
@@ -661,7 +662,7 @@ export function decodeResultFromQR(encoded: string): TournamentResult | null {
     const playersRaw = parts.slice(10).join('|');
 
     // Validate all numeric header fields
-    if (!name || [playerCount, buyIn, prizePool, bountyAmount, totalRebuys, totalAddOns, elapsedMinutes, levelsPlayed].some(isNaN)) return null;
+    if (!name || name.length > 200 || [playerCount, buyIn, prizePool, bountyAmount, totalRebuys, totalAddOns, elapsedMinutes, levelsPlayed].some(isNaN)) return null;
 
     const players: PlayerResult[] = playersRaw.split(';').filter(Boolean).map(entry => {
       // Split with limit — name may contain ':' so grab known trailing fields from the right
@@ -681,7 +682,7 @@ export function decodeResultFromQR(encoded: string): TournamentResult | null {
       const hasAddOn = Number(addOn) === 1;
       const knockoutsNum = Number(knockouts) || 0;
       // Reject player entries with invalid place
-      if (!pName || isNaN(placeNum) || placeNum < 1) {
+      if (!pName || pName.length > 100 || isNaN(placeNum) || placeNum < 1) {
         return null;
       }
       const totalCost = buyIn + rebuyCount * buyIn + (hasAddOn ? buyIn : 0);

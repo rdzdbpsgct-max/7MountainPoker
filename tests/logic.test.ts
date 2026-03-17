@@ -6431,8 +6431,8 @@ describe('League Module', () => {
     });
 
     it('buildHmacPayload creates canonical payload string', () => {
-      expect(buildHmacPayload('toggle', 1234567890)).toBe('command:toggle:1234567890');
-      expect(buildHmacPayload('next', 0)).toBe('command:next:0');
+      expect(buildHmacPayload('toggle', 1234567890)).toBe('command:toggle:1234567890:');
+      expect(buildHmacPayload('next', 0)).toBe('command:next:0:');
     });
 
     it('signMessage + verifyMessage round-trip succeeds', async () => {
@@ -7921,5 +7921,20 @@ describe('Tournament Event Log integration', () => {
     const event = createEvent('break_skipped', 5, {});
     const text = formatEventAsText(event, {});
     expect(text).toContain('⏭');
+  });
+});
+
+describe('HMAC security', () => {
+  it('buildHmacPayload includes serialized payload', () => {
+    const payload = buildHmacPayload('eliminatePlayer', 1234567890, { playerId: 'p1', eliminatorId: 'p2' });
+    expect(payload).toContain('eliminatePlayer');
+    expect(payload).toContain('1234567890');
+    expect(payload).toContain('eliminatorId');
+    expect(payload).toContain('playerId');
+  });
+
+  it('buildHmacPayload without payload matches format with empty trailing', () => {
+    const payload = buildHmacPayload('toggle', 1234567890);
+    expect(payload).toBe('command:toggle:1234567890:');
   });
 });

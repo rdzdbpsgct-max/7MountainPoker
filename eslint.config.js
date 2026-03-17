@@ -21,7 +21,7 @@ export default defineConfig([
     },
     rules: {
       // Code quality
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': ['error', { allow: ['warn', 'error'] }],
       '@typescript-eslint/no-explicit-any': 'error',
       // Security rules (warn to avoid blocking existing code)
       'security/detect-object-injection': 'off', // too many false positives with TypeScript
@@ -35,6 +35,19 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+    },
+  },
+  // Type-aware rules for src/ only (tests are not in tsconfig)
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
     },
   },
 ])

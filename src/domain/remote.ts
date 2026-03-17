@@ -96,14 +96,16 @@ export async function signMessage(key: CryptoKey, payload: string): Promise<stri
 
 /** Verify an HMAC-SHA256 signature against a payload */
 export async function verifyMessage(key: CryptoKey, payload: string, signature: string): Promise<boolean> {
-  const sigBytes = new Uint8Array(signature.match(/.{2}/g)?.map((h) => parseInt(h, 16)) ?? []);
+  if (!/^[0-9a-f]{64}$/i.test(signature)) return false;
+  const sigBytes = new Uint8Array(signature.match(/.{2}/g)!.map((h) => parseInt(h, 16)));
   const encoded = new TextEncoder().encode(payload);
   return crypto.subtle.verify('HMAC', key, sigBytes, encoded);
 }
 
 /** Build the canonical payload string for HMAC: "type:action:timestamp" */
-export function buildHmacPayload(action: string, ts: number): string {
-  return `command:${action}:${ts}`;
+export function buildHmacPayload(action: string, ts: number, payload?: Record<string, unknown>): string {
+  const payloadStr = payload ? JSON.stringify(payload, Object.keys(payload).sort()) : '';
+  return `command:${action}:${ts}:${payloadStr}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -420,7 +422,7 @@ export class RemoteHost {
     this._resumed = !!(options?.peerId && options?.secret);
     persistHostSession(this._peerId, this._secret);
     this.hmacKeyReady = this.initHmacKey();
-    this.init();
+    void this.init();
   }
 
   get peerId(): string {
@@ -529,7 +531,7 @@ export class RemoteHost {
 
               // Send immediate display state snapshot (correct DisplayMessage format)
               if (this.lastDisplayMessage && conn.open) {
-                try { conn.send(this.lastDisplayMessage); } catch { /* ignore */ }
+                try { void conn.send(this.lastDisplayMessage); } catch { /* ignore */ }
               }
               // Notify host to build and push fresh full-state
               this.callbacks.onDisplayConnected?.();
@@ -556,7 +558,7 @@ export class RemoteHost {
               }
               // Send immediate state snapshot
               if (this.lastBuiltState && conn.open) {
-                try { conn.send(JSON.stringify(this.lastBuiltState)); } catch { /* ignore */ }
+                try { void conn.send(JSON.stringify(this.lastBuiltState)); } catch { /* ignore */ }
               }
               return;
             }
@@ -616,7 +618,7 @@ export class RemoteHost {
           persistHostSession(this._peerId, this._secret);
           this.peer?.destroy();
           this.peer = null;
-          this.init();
+          void this.init();
           return;
         }
         this.setStatus('error');
@@ -649,7 +651,7 @@ export class RemoteHost {
       // Send immediate state snapshot so controller doesn't wait for next periodic update
       if (this.lastBuiltState && conn.open) {
         try {
-          conn.send(JSON.stringify(this.lastBuiltState));
+          void conn.send(JSON.stringify(this.lastBuiltState));
         } catch {
           // Connection not ready yet
         }
@@ -709,7 +711,7 @@ export class RemoteHost {
         }
 
         // M31: HMAC verification (async)
-        this.verifyAndDispatch(msg);
+        void this.verifyAndDispatch(msg);
       }
     } catch {
       // Invalid message
@@ -719,6 +721,12 @@ export class RemoteHost {
   private async verifyAndDispatch(msg: RemoteCommand): Promise<void> {
     // Ensure HMAC key is ready before verifying
     await this.hmacKeyReady;
+
+    // Fail-closed: if secret was provided but key init failed, reject all commands
+    if (this._secret && !this.hmacKey) {
+      console.warn('[remote] Command rejected: HMAC key unavailable');
+      return;
+    }
 
     // If HMAC key is available, require valid signature
     if (this.hmacKey) {
@@ -734,12 +742,20 @@ export class RemoteHost {
         return;
       }
 
-      const payload = buildHmacPayload(msg.action, msg.ts);
-      const valid = await verifyMessage(this.hmacKey, payload, msg.hmac);
+      const hmacPayload = buildHmacPayload(msg.action, msg.ts, msg.payload);
+      const valid = await verifyMessage(this.hmacKey, hmacPayload, msg.hmac);
       if (!valid) {
         console.warn('[remote] Command rejected: invalid HMAC signature');
         return;
       }
+    }
+
+    // Validate payload structure per command
+    if (msg.payload) {
+      const p = msg.payload;
+      if (msg.action === 'eliminatePlayer' && typeof p.playerId !== 'string') return;
+      if (msg.action === 'rebuyPlayer' && typeof p.playerId !== 'string') return;
+      if (msg.action === 'addOnPlayer' && typeof p.playerId !== 'string') return;
     }
 
     this.callbacks.onCommand(msg);
@@ -752,7 +768,7 @@ export class RemoteHost {
       // Ping all connected controllers
       for (const [peerId, conn] of this.controllerConns) {
         if (conn.open) {
-          try { conn.send(pingMsg); } catch {
+          try { void conn.send(pingMsg); } catch {
             this.controllerConns.delete(peerId);
             this.callbacks.onControllerCountChange?.(this.controllerConns.size);
           }
@@ -781,7 +797,7 @@ export class RemoteHost {
     const json = JSON.stringify(msg);
     for (const [peerId, conn] of this.controllerConns) {
       if (conn.open) {
-        try { conn.send(json); } catch {
+        try { void conn.send(json); } catch {
           // Connection lost — clean up
           this.controllerConns.delete(peerId);
           this.callbacks.onControllerCountChange?.(this.controllerConns.size);
@@ -798,7 +814,7 @@ export class RemoteHost {
     if (this.displayConnections.size === 0) return;
     for (const [peerId, conn] of this.displayConnections) {
       if (conn.open) {
-        try { conn.send(json); } catch {
+        try { void conn.send(json); } catch {
           // Connection lost — clean up
           this.displayConnections.delete(peerId);
           this.callbacks.onDisplayCountChange?.(this.displayConnections.size);
@@ -859,7 +875,7 @@ export class RemoteController {
     this.hostPeerId = hostPeerId;
     this.secret = secret ?? null;
     this.hmacKeyReady = this.initHmacKey();
-    this.connect();
+    void this.connect();
   }
 
   get status(): ControllerStatus {
@@ -960,7 +976,7 @@ export class RemoteController {
           // Reply to keepalive
           if (conn.open) {
             try {
-              conn.send(JSON.stringify({ type: 'pong' }));
+              void conn.send(JSON.stringify({ type: 'pong' }));
             } catch {
               // ignore
             }
@@ -1000,7 +1016,7 @@ export class RemoteController {
           try { this.peer.destroy(); } catch { /* ignore */ }
           this.peer = null;
         }
-        this.connect();
+        void this.connect();
       }, delay);
     } else {
       this.setStatus('error');
@@ -1017,7 +1033,7 @@ export class RemoteController {
       this.peer = null;
     }
     this.setStatus('connecting');
-    this.connect();
+    void this.connect();
   }
 
   /** Send command to host (signed with HMAC if secret is configured) */
@@ -1031,13 +1047,13 @@ export class RemoteController {
       // Sign with HMAC if key is available
       if (this.hmacKey) {
         const ts = Date.now();
-        const hmacPayload = buildHmacPayload(action, ts);
+        const hmacPayload = buildHmacPayload(action, ts, payload);
         const hmac = await signMessage(this.hmacKey, hmacPayload);
         msg.ts = ts;
         msg.hmac = hmac;
       }
 
-      this.conn.send(JSON.stringify(msg));
+      void this.conn.send(JSON.stringify(msg));
     } catch {
       // Connection lost
     }

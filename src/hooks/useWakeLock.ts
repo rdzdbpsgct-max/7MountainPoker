@@ -29,22 +29,22 @@ export function useWakeLock(active: boolean): void {
     };
 
     if (active) {
-      requestWakeLock();
+      void requestWakeLock();
     } else {
-      releaseWakeLock();
+      void releaseWakeLock();
     }
 
     // Re-acquire wake lock when tab becomes visible again
     const handleVisibility = () => {
       if (document.visibilityState === 'visible' && active) {
-        requestWakeLock();
+        void requestWakeLock();
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
-      releaseWakeLock();
+      void releaseWakeLock();
     };
   }, [active]);
 }
