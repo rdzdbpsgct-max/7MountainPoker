@@ -191,18 +191,20 @@ src/
     └── useTranslation.ts        # Hook: t(key, params) + language state
 
 tests/
-├── logic.test.ts                # 530+ unit tests for domain logic + PeerJS remote control + undo/redo + ICM + cloud export
-├── components.test.tsx          # 109 UI component tests (NumberStepper, CollapsibleSection, PrintView, CallTheClock, BubbleIndicator, RebuyStatus, ChevronIcon, CollapsibleSubSection, LanguageSwitcher, ThemeSwitcher, ErrorBoundary, useTimer, useConfirmDialog, LoadingFallback, ConfigEditor, SettingsPanel, PlayerPanel, TournamentLog)
-├── edge-cases.test.ts           # 88 edge case tests (timer, blinds, players, multi-table, format, tournament, validation, helpers)
-├── sound-speech.test.ts         # 56 sound effects + speech announcement + AudioBuffer cache tests
+├── logic.test.ts                # 656 unit tests for domain logic + PeerJS remote control + undo/redo + ICM + cloud export + series + prizepool + side-pots
+├── components.test.tsx          # 117 UI component tests (NumberStepper, CollapsibleSection, PrintView, CallTheClock, BubbleIndicator, RebuyStatus, ChevronIcon, CollapsibleSubSection, LanguageSwitcher, ThemeSwitcher, ErrorBoundary, useTimer, useConfirmDialog, LoadingFallback, ConfigEditor, SettingsPanel, PlayerPanel, TournamentLog)
+├── edge-cases.test.ts           # 101 edge case tests (timer, blinds, players, multi-table, format, tournament, validation, helpers)
+├── sound-speech.test.ts         # 41 sound effects + speech announcement + AudioBuffer cache tests
+├── events.test.ts               # 52 tournament event creation, filtering, i18n formatting tests
 ├── integration.test.ts          # 47 cross-module integration tests (checkpoint, timer, config compat, tournament flow, league, audio)
-├── league-advanced.test.ts      # 32 league advanced tests (tiebreaker, ELO, weighted points, H2H, extended standings)
-├── tournamentActions.test.tsx   # 31 useTournamentActions hook tests
-├── hooks.test.tsx               # 25 useKeyboardShortcuts + useGameEvents tests
-├── i18n.test.ts                 # 24 i18n key parity, parameters, placeholder consistency, quality
-├── persistence.test.ts          # 24 config/settings/checkpoint save/load round-trips
+├── tournamentActions.test.tsx   # 41 useTournamentActions hook tests
 ├── controls.test.tsx            # 26 Controls component tests (buttons, callbacks, ARIA, break controls)
-├── display-channel.test.ts      # 14 BroadcastChannel serialization + communication tests
+├── hooks.test.tsx               # 25 useKeyboardShortcuts + useGameEvents tests
+├── persistence.test.ts          # 25 config/settings/checkpoint save/load round-trips
+├── i18n.test.ts                 # 24 i18n key parity, parameters, placeholder consistency, quality
+├── league-advanced.test.ts      # 22 league advanced tests (tiebreaker, ELO, weighted points, H2H, extended standings)
+├── display-channel.test.ts      # 19 BroadcastChannel serialization + communication tests
+├── hooks-phase1.test.tsx        # 19 useVoiceAnnouncements + phase transition hook tests
 ├── entitlements.test.ts         # 12 feature gate / entitlement tests
 ├── toast.test.ts                # 6 toast notification system tests
 ├── monetizationTelemetry.test.ts # 3 monetization telemetry tests
@@ -381,7 +383,7 @@ public/
 ## Testing
 
 - **1257 tests** across 18 test files + 1 setup file
-- Core files: `logic.test.ts` (656), `components.test.tsx` (117), `edge-cases.test.ts` (101), `sound-speech.test.ts` (59), `events.test.ts` (52), `integration.test.ts` (47), `tournamentActions.test.tsx` (41), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `league-advanced.test.ts` (22), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
+- Core files: `logic.test.ts` (656), `components.test.tsx` (117), `edge-cases.test.ts` (101), `events.test.ts` (52), `integration.test.ts` (47), `sound-speech.test.ts` (41), `tournamentActions.test.tsx` (41), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `league-advanced.test.ts` (22), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -421,12 +423,12 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 
 ### v6.9.6 — Test-Audit: Lückenanalyse & Coverage-Boost
 
-- **Neue Testdatei `league-advanced.test.ts`**: 32 Tests für `applyTiebreaker` (6), `computeEloRatings` (5), `computeWeightedPoints` (5), `computeHeadToHeadMatrix` (5), `computeExtendedStandings` (11) — erstmals alle Liga-Ranking-Algorithmen vollständig getestet.
+- **Neue Testdatei `league-advanced.test.ts`**: 22 Tests für `applyTiebreaker` (6), `computeEloRatings` (2), `computeWeightedPoints` (3), `computeHeadToHeadMatrix` (3), `computeExtendedStandings` (8) — erstmals alle Liga-Ranking-Algorithmen vollständig getestet.
 - **Series-Tests**: 12 Tests für `computeSeriesStandings` (3 Ranking-Modi: points/bestN/average), `exportSeriesToJSON`/`parseSeriesFile` Round-Trip, Edge-Cases (leere Serien, ungültige JSON).
 - **Prizepool-Tests**: 7 Tests für komplexe Prizepool-Berechnungen (Rebuy+AddOn+Bounty, Mystery-Bounty, prozentuale/feste Auszahlung, Edge-Cases).
 - **Side-Pot-Formatierung**: 5 Tests für `formatSidePotsAsText` (Einzel-Pot, Multi-Pot, leere Pots, fehlende Spieler, Währungssymbol).
 - **Integration-Tests erweitert**: 11 neue Tests — Liga GameDay→Standings Flow (3), Liga JSON v2 Export/Import (2), Custom Audio Mapping Persistence (3), Checkpoint Full Rehydration (3).
-- **50 neue Tests** — **1257 Tests gesamt** (18 Testdateien, 40 Duplikate bereinigt)
+- **68 neue Tests, 40 Duplikate bereinigt** — **1257 Tests gesamt** (18 Testdateien)
 
 ### v6.9.5 — Audit Findings Closed (#34, #35, #36)
 
