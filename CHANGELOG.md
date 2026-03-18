@@ -5,6 +5,19 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.9.6] – 2026-03-18
+
+### Test-Audit: Lückenanalyse & Coverage-Boost
+
+- **Neue Testdatei `league-advanced.test.ts`** (32 Tests): Erstmals vollständige Abdeckung aller Liga-Ranking-Algorithmen — `applyTiebreaker` (6 Kriterien-Ketten), `computeEloRatings` (5 Szenarien inkl. Custom-K-Factor), `computeWeightedPoints` (5 Decay-Tests), `computeHeadToHeadMatrix` (5 NxN-Validierungen), `computeExtendedStandings` (11 Tests für Finanzen, Partizipation, Gäste, Korrekturen, Saisons).
+- **Series-Tests** (12 Tests): `computeSeriesStandings` für alle 3 Ranking-Modi (points/bestN/average), `exportSeriesToJSON`/`parseSeriesFile` Round-Trip-Validierung, Edge-Cases (leere Serien, ungültiger JSON).
+- **Prizepool-Tests** (7 Tests): Komplexe Berechnungen mit Rebuy+AddOn+Bounty, Mystery-Bounty-Pool, prozentuale/feste Auszahlung, Null-Player-Guard.
+- **Side-Pot-Formatierung** (5 Tests): `formatSidePotsAsText` mit Main-Pot, Multi-Side-Pots, leere Arrays, fehlende Spielernamen, Währungssymbol-Parameter.
+- **Integration-Tests erweitert** (11 Tests): Liga GameDay→Standings Flow (End-to-End), Liga JSON v2 Export/Import mit GameDays, Custom Audio Mapping Persistence (IndexedDB Round-Trip), Checkpoint Full Rehydration mit allen Feldern.
+- **68 neue Tests** — **1297 Tests gesamt** (18 Testdateien)
+
+---
+
 ## [6.9.5] – 2026-03-18
 
 ### Audit Findings Closed (#34, #35, #36)
