@@ -73,7 +73,7 @@ interface CollectionItemMap {
 // ---------------------------------------------------------------------------
 
 const DB_NAME = 'poker-timer-db';
-const DB_VERSION = 4;
+export const DB_VERSION = 4;
 const MIGRATED_KEY = 'poker-timer-migrated';
 
 /** Maximum number of tournament history entries to retain. */
@@ -129,6 +129,45 @@ let useLocalStorageFallback = false;
 const persistQueue = new Map<string, Promise<void>>();
 
 // ---------------------------------------------------------------------------
+// Schema Migrations
+// ---------------------------------------------------------------------------
+
+/** Per-version migration functions. Each creates stores added in that version. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const migrations: Record<number, (database: any) => void> = {
+  1: (database) => {
+    // v1: Core singleton stores
+    for (const store of ['config', 'settings', 'checkpoint'] as const) {
+      if (!database.objectStoreNames.contains(store)) {
+        database.createObjectStore(store);
+      }
+    }
+  },
+  2: (database) => {
+    // v2: Initial collection stores
+    for (const store of ['templates', 'history', 'players', 'leagues', 'gameDays'] as const) {
+      if (!database.objectStoreNames.contains(store)) {
+        database.createObjectStore(store, { keyPath: 'id' });
+      }
+    }
+  },
+  3: (database) => {
+    // v3: Tournament event log
+    if (!database.objectStoreNames.contains('events')) {
+      database.createObjectStore('events', { keyPath: 'id' });
+    }
+  },
+  4: (database) => {
+    // v4: Series, custom audio, audio mappings
+    for (const store of ['series', 'customAudio', 'audioMappings'] as const) {
+      if (!database.objectStoreNames.contains(store)) {
+        database.createObjectStore(store, { keyPath: 'id' });
+      }
+    }
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Initialization
 // ---------------------------------------------------------------------------
 
@@ -148,18 +187,10 @@ export async function initStorage(): Promise<void> {
     if (typeof indexedDB === 'undefined') throw new Error('IndexedDB not available');
 
     db = await openDB(DB_NAME, DB_VERSION, {
-      upgrade(database) {
-        // Singleton stores (key-value)
-        for (const store of ['config', 'settings', 'checkpoint'] as const) {
-          if (!database.objectStoreNames.contains(store)) {
-            database.createObjectStore(store);
-          }
-        }
-        // Collection stores (keyPath: 'id')
-        for (const store of ['templates', 'history', 'players', 'leagues', 'gameDays', 'events', 'series', 'customAudio', 'audioMappings'] as const) {
-          if (!database.objectStoreNames.contains(store)) {
-            database.createObjectStore(store, { keyPath: 'id' });
-          }
+      upgrade(database, oldVersion) {
+        for (let v = oldVersion + 1; v <= DB_VERSION; v++) {
+          const migration = migrations[v];
+          if (migration) migration(database);
         }
       },
     });

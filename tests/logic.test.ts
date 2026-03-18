@@ -168,6 +168,8 @@ import {
   computeIcmDeal,
   UndoStack,
   createUndoSnapshot,
+  migrations,
+  DB_VERSION,
 } from '../src/domain/logic';
 import {
   applyChipPreset,
@@ -8002,5 +8004,43 @@ describe('Remote HMAC security', () => {
   it('buildHmacPayload sorts payload keys', () => {
     const result = buildHmacPayload('eliminatePlayer', 123, { playerId: 'p1', eliminatorId: 'p2' });
     expect(result.indexOf('eliminatorId')).toBeLessThan(result.indexOf('playerId'));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// IDB Schema Migrations
+// ---------------------------------------------------------------------------
+
+describe('IDB Schema Migrations', () => {
+  it('migrations registry covers all versions from 1 to DB_VERSION', () => {
+    expect(typeof migrations).toBe('object');
+    for (let v = 1; v <= DB_VERSION; v++) {
+      expect(migrations[v]).toBeDefined();
+    }
+  });
+
+  it('migration v4 creates series, customAudio, audioMappings stores', () => {
+    const mockDb = {
+      objectStoreNames: { contains: () => false },
+      createObjectStore: vi.fn(),
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    migrations[4]!(mockDb as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const calls = mockDb.createObjectStore.mock.calls.map((c: any[]) => c[0]);
+    expect(calls).toContain('series');
+    expect(calls).toContain('customAudio');
+    expect(calls).toContain('audioMappings');
+  });
+
+  it('migrations skip existing stores (idempotent)', () => {
+    const existing = new Set(['config', 'settings', 'checkpoint']);
+    const mockDb = {
+      objectStoreNames: { contains: (name: string) => existing.has(name) },
+      createObjectStore: vi.fn(),
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    migrations[1]!(mockDb as any);
+    expect(mockDb.createObjectStore).not.toHaveBeenCalled();
   });
 });
