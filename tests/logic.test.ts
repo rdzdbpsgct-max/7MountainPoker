@@ -8127,58 +8127,6 @@ describe('Series Export/Import Round-Trip', () => {
     };
   }
 
-  function makeResult(id: string, players: { name: string; place: number }[]): TournamentResult {
-    return {
-      id,
-      name: 'Tournament ' + id,
-      date: '2025-01-15T10:00:00.000Z',
-      playerCount: players.length,
-      buyIn: 20,
-      prizePool: players.length * 20,
-      players: players.map(p => ({
-        name: p.name,
-        place: p.place,
-        payout: p.place === 1 ? players.length * 20 : 0,
-        rebuys: 0,
-        addOn: false,
-        knockouts: 0,
-        bountyEarned: 0,
-        netBalance: (p.place === 1 ? players.length * 20 : 0) - 20,
-      })),
-      bountyEnabled: false,
-      bountyAmount: 0,
-      rebuyEnabled: false,
-      totalRebuys: 0,
-      addOnEnabled: false,
-      totalAddOns: 0,
-      elapsedSeconds: 3600,
-      levelsPlayed: 10,
-    };
-  }
-
-  it('round-trips series with results through JSON export/import', () => {
-    const series = makeSeries();
-    const results = [
-      makeResult('t1', [{ name: 'Alice', place: 1 }, { name: 'Bob', place: 2 }]),
-      makeResult('t2', [{ name: 'Charlie', place: 1 }, { name: 'Alice', place: 2 }]),
-      makeResult('t3', [{ name: 'Dave', place: 1 }]), // not in series
-    ];
-
-    const json = exportSeriesToJSON(series, results);
-    const parsed = parseSeriesFile(json);
-
-    expect(parsed).not.toBeNull();
-    expect(parsed!.version).toBe(1);
-    expect(parsed!.series.id).toBe('series-1');
-    expect(parsed!.series.name).toBe('Test Series');
-    expect(parsed!.series.rankingMode).toBe('points');
-    expect(parsed!.series.tournamentIds).toEqual(['t1', 't2']);
-    expect(parsed!.series.pointSystem.entries).toHaveLength(3);
-    // Only t1 and t2 should be included (t3 is not in series)
-    expect(parsed!.results).toHaveLength(2);
-    expect(parsed!.results.map(r => r.id)).toEqual(['t1', 't2']);
-  });
-
   it('preserves ranking mode through round-trip (netBalance)', () => {
     const series = makeSeries({ rankingMode: 'netBalance' });
     const json = exportSeriesToJSON(series, []);
@@ -8191,15 +8139,6 @@ describe('Series Export/Import Round-Trip', () => {
     const json = exportSeriesToJSON(series, []);
     const parsed = parseSeriesFile(json);
     expect(parsed!.series.rankingMode).toBe('avgPlace');
-  });
-
-  it('returns null for invalid JSON', () => {
-    expect(parseSeriesFile('not valid json {')).toBeNull();
-  });
-
-  it('returns null for wrong version', () => {
-    const data = { version: 99, series: { id: 'x', name: 'X', tournamentIds: [] }, results: [] };
-    expect(parseSeriesFile(JSON.stringify(data))).toBeNull();
   });
 
   it('returns null for missing series fields', () => {
@@ -8267,30 +8206,6 @@ describe('Series Ranking Modes', () => {
     };
   }
 
-  it('points mode: ranks by total points, tiebreaker by avgPlace', () => {
-    const series = makeSeriesWithMode('points', ['t1', 't2']);
-    const results = [
-      makeResultFull('t1', [
-        { name: 'Alice', place: 1, payout: 20, netBalance: 10 },
-        { name: 'Bob', place: 2, payout: 12, netBalance: 2 },
-        { name: 'Charlie', place: 3, payout: 8, netBalance: -2 },
-      ]),
-      makeResultFull('t2', [
-        { name: 'Bob', place: 1, payout: 20, netBalance: 10 },
-        { name: 'Alice', place: 2, payout: 12, netBalance: 2 },
-        { name: 'Charlie', place: 4, payout: 0, netBalance: -10 },
-      ]),
-    ];
-
-    const standings = computeSeriesStandings(series, results);
-    // Alice: 10+7=17 pts, avg 1.5. Bob: 7+10=17 pts, avg 1.5. Tied on points and avgPlace.
-    expect(standings[0]!.points).toBe(17);
-    expect(standings[1]!.points).toBe(17);
-    // Charlie: 5+3=8 pts
-    expect(standings[2]!.name).toBe('Charlie');
-    expect(standings[2]!.points).toBe(8);
-  });
-
   it('netBalance mode: ranks by net balance descending', () => {
     const series = makeSeriesWithMode('netBalance', ['t1']);
     const results = [
@@ -8330,35 +8245,6 @@ describe('Series Ranking Modes', () => {
     expect(standings[1]!.avgPlace).toBe(2);
   });
 
-  it('minTournaments: unqualified players sorted after qualified', () => {
-    const series = makeSeriesWithMode('points', ['t1', 't2'], 2);
-    const results = [
-      makeResultFull('t1', [
-        { name: 'Alice', place: 1, payout: 20, netBalance: 10 },
-        { name: 'Bob', place: 2, payout: 12, netBalance: 2 },
-      ]),
-      makeResultFull('t2', [
-        { name: 'Alice', place: 1, payout: 20, netBalance: 10 },
-      ]),
-    ];
-
-    const standings = computeSeriesStandings(series, results);
-    // Alice has 2 tournaments (qualified), Bob has 1 (not qualified)
-    expect(standings[0]!.name).toBe('Alice');
-    expect(standings[0]!.qualified).toBe(true);
-    expect(standings[1]!.name).toBe('Bob');
-    expect(standings[1]!.qualified).toBe(false);
-  });
-
-  it('returns empty array for series with no matching results', () => {
-    const series = makeSeriesWithMode('points', ['nonexistent']);
-    const results = [
-      makeResultFull('other', [
-        { name: 'Alice', place: 1, payout: 20, netBalance: 10 },
-      ]),
-    ];
-    expect(computeSeriesStandings(series, results)).toEqual([]);
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -8385,22 +8271,6 @@ describe('Prizepool Complex Calculations', () => {
     // 6*50 (buy-ins) + 12*30 (rebuys) + 6*25 (add-ons) = 300 + 360 + 150 = 810
     const pool = computePrizePool(players, buyIn, rebuyCost, addOnCost);
     expect(pool).toBe(810);
-  });
-
-  it('computes prizepool with separateRebuyPot excludes rebuys', () => {
-    const players = makePlayers(4, 3, true);
-    const buyIn = 20;
-    const rebuyCost = 15;
-    const addOnCost = 10;
-    // 4*20 (buy-ins) + 0 (rebuys excluded) + 4*10 (add-ons) = 80 + 0 + 40 = 120
-    const pool = computePrizePool(players, buyIn, rebuyCost, addOnCost, true);
-    expect(pool).toBe(120);
-  });
-
-  it('computes prizepool for freeroll (0 buyIn) as 0', () => {
-    const players = makePlayers(8);
-    const pool = computePrizePool(players, 0);
-    expect(pool).toBe(0);
   });
 
   it('computePayouts with 1 paid place gives winner everything', () => {

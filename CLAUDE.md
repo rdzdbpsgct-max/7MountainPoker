@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1297 tests, single run)
+npm run test         # Vitest run (1279 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -380,8 +380,8 @@ public/
 
 ## Testing
 
-- **1297 tests** across 18 test files + 1 setup file
-- Core files: `logic.test.ts` (697), `components.test.tsx` (109), `edge-cases.test.ts` (88), `sound-speech.test.ts` (56), `integration.test.ts` (47), `league-advanced.test.ts` (32), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (26), `display-channel.test.ts` (14), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service, event log, break controls
+- **1279 tests** across 18 test files + 1 setup file
+- Core files: `logic.test.ts` (689), `components.test.tsx` (109), `edge-cases.test.ts` (88), `sound-speech.test.ts` (56), `integration.test.ts` (47), `league-advanced.test.ts` (22), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (24), `controls.test.tsx` (26), `display-channel.test.ts` (14), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service, event log, break controls
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -426,7 +426,7 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - **Prizepool-Tests**: 7 Tests für komplexe Prizepool-Berechnungen (Rebuy+AddOn+Bounty, Mystery-Bounty, prozentuale/feste Auszahlung, Edge-Cases).
 - **Side-Pot-Formatierung**: 5 Tests für `formatSidePotsAsText` (Einzel-Pot, Multi-Pot, leere Pots, fehlende Spieler, Währungssymbol).
 - **Integration-Tests erweitert**: 11 neue Tests — Liga GameDay→Standings Flow (3), Liga JSON v2 Export/Import (2), Custom Audio Mapping Persistence (3), Checkpoint Full Rehydration (3).
-- **68 neue Tests** — **1297 Tests gesamt** (18 Testdateien)
+- **50 neue Tests** — **1279 Tests gesamt** (18 Testdateien, 18 Duplikate bereinigt)
 
 ### v6.9.5 — Audit Findings Closed (#34, #35, #36)
 

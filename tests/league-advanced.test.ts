@@ -182,64 +182,6 @@ describe('applyTiebreaker', () => {
 // ---------------------------------------------------------------------------
 
 describe('computeEloRatings', () => {
-  it('2 players, single game day — winner gains, loser loses with K-factor impact', () => {
-    const gd = makeGameDay('gd1', '2025-01-01', [
-      makeParticipant('Alice', 1),
-      makeParticipant('Bob', 2),
-    ]);
-    const ratings16 = computeEloRatings([gd], 1200, 16);
-    const ratings64 = computeEloRatings([gd], 1200, 64);
-
-    const aliceKey = 'alice';
-    const bobKey = 'bob';
-
-    // With equal start ratings, winner should gain and loser should lose
-    expect(ratings16.get(aliceKey)!).toBeGreaterThan(1200);
-    expect(ratings16.get(bobKey)!).toBeLessThan(1200);
-
-    // Higher K-factor means larger rating change
-    const gain16 = ratings16.get(aliceKey)! - 1200;
-    const gain64 = ratings64.get(aliceKey)! - 1200;
-    expect(gain64).toBeGreaterThan(gain16);
-  });
-
-  it('4 players, multiple game days — consistent winner has highest ELO', () => {
-    const gd1 = makeGameDay('gd1', '2025-01-01', [
-      makeParticipant('Alice', 1),
-      makeParticipant('Bob', 2),
-      makeParticipant('Carol', 3),
-      makeParticipant('Dave', 4),
-    ]);
-    const gd2 = makeGameDay('gd2', '2025-01-15', [
-      makeParticipant('Alice', 1),
-      makeParticipant('Carol', 2),
-      makeParticipant('Bob', 3),
-      makeParticipant('Dave', 4),
-    ]);
-    const ratings = computeEloRatings([gd1, gd2], 1200, 32);
-
-    // Alice won both — highest ELO
-    expect(ratings.get('alice')!).toBeGreaterThan(ratings.get('bob')!);
-    expect(ratings.get('alice')!).toBeGreaterThan(ratings.get('carol')!);
-    expect(ratings.get('alice')!).toBeGreaterThan(ratings.get('dave')!);
-    // Dave lost both — lowest ELO
-    expect(ratings.get('dave')!).toBeLessThan(ratings.get('bob')!);
-    expect(ratings.get('dave')!).toBeLessThan(ratings.get('carol')!);
-  });
-
-  it('player who always wins has highest ELO', () => {
-    const gameDays = Array.from({ length: 5 }, (_, i) =>
-      makeGameDay(`gd${i}`, `2025-0${i + 1}-01`, [
-        makeParticipant('Alice', 1),
-        makeParticipant('Bob', 2),
-        makeParticipant('Carol', 3),
-      ]),
-    );
-    const ratings = computeEloRatings(gameDays);
-    expect(ratings.get('alice')!).toBeGreaterThan(ratings.get('bob')!);
-    expect(ratings.get('bob')!).toBeGreaterThan(ratings.get('carol')!);
-  });
-
   it('empty game days array yields empty map', () => {
     const ratings = computeEloRatings([]);
     expect(ratings.size).toBe(0);
@@ -261,17 +203,6 @@ describe('computeEloRatings', () => {
 // ---------------------------------------------------------------------------
 
 describe('computeWeightedPoints', () => {
-  it('recent game days weighted higher than old ones', () => {
-    const gd1 = makeGameDay('gd1', '2025-01-01', [makeParticipant('Alice', 1)]);
-    const gd2 = makeGameDay('gd2', '2025-02-01', [makeParticipant('Alice', 1)]);
-
-    // With decay, the more recent gd2 gets weight 1.0, gd1 gets weight 0.9
-    const wp = computeWeightedPoints([gd1, gd2], defaultPointSystem, 0.9);
-    const aliceWP = wp.get('alice')!;
-    // 10 * 0.9 + 10 * 1.0 = 19
-    expect(aliceWP).toBeCloseTo(19, 5);
-  });
-
   it('decay factor 0.9 applied correctly across 5 game days', () => {
     const gameDays = Array.from({ length: 5 }, (_, i) =>
       makeGameDay(`gd${i}`, `2025-0${i + 1}-01`, [makeParticipant('Alice', 1)]),
@@ -281,15 +212,6 @@ describe('computeWeightedPoints', () => {
     // Weights: 0.9^4, 0.9^3, 0.9^2, 0.9^1, 0.9^0
     const expected = 10 * (Math.pow(0.9, 4) + Math.pow(0.9, 3) + Math.pow(0.9, 2) + Math.pow(0.9, 1) + 1);
     expect(wp.get('alice')!).toBeCloseTo(expected, 5);
-  });
-
-  it('all game days same with decay factor 1.0 → same as unweighted', () => {
-    const gameDays = Array.from({ length: 3 }, (_, i) =>
-      makeGameDay(`gd${i}`, `2025-0${i + 1}-01`, [makeParticipant('Alice', 1)]),
-    );
-    const wp = computeWeightedPoints(gameDays, defaultPointSystem, 1.0);
-    // decay=1.0 means all weights are 1.0, so total = 10*3 = 30
-    expect(wp.get('alice')!).toBeCloseTo(30, 5);
   });
 
   it('player with 0 game days is not in the map', () => {
@@ -310,38 +232,6 @@ describe('computeWeightedPoints', () => {
 // ---------------------------------------------------------------------------
 
 describe('computeHeadToHeadMatrix', () => {
-  it('3 players, 2 game days — correct win/loss counts', () => {
-    const gd1 = makeGameDay('gd1', '2025-01-01', [
-      makeParticipant('Alice', 1),
-      makeParticipant('Bob', 2),
-      makeParticipant('Carol', 3),
-    ]);
-    const gd2 = makeGameDay('gd2', '2025-02-01', [
-      makeParticipant('Bob', 1),
-      makeParticipant('Alice', 2),
-      makeParticipant('Carol', 3),
-    ]);
-    const result = computeHeadToHeadMatrix([gd1, gd2]);
-
-    expect(result.players.length).toBe(3);
-
-    // Find indices
-    const iAlice = result.players.indexOf('Alice');
-    const iBob = result.players.indexOf('Bob');
-    const iCarol = result.players.indexOf('Carol');
-
-    // Alice vs Bob: gd1 Alice won, gd2 Bob won → 1 win, 1 loss
-    const aliceVsBob = result.matrix[iAlice]![iBob]!;
-    expect(aliceVsBob.wins).toBe(1);
-    expect(aliceVsBob.losses).toBe(1);
-    expect(aliceVsBob.meetings).toBe(2);
-
-    // Alice vs Carol: Alice beat Carol in both game days
-    const aliceVsCarol = result.matrix[iAlice]![iCarol]!;
-    expect(aliceVsCarol.wins).toBe(2);
-    expect(aliceVsCarol.losses).toBe(0);
-  });
-
   it('player who beats everyone has all positive win entries', () => {
     const gd = makeGameDay('gd1', '2025-01-01', [
       makeParticipant('Alice', 1),
@@ -372,18 +262,6 @@ describe('computeHeadToHeadMatrix', () => {
     // filterPlayers only filters players that exist in the nameMap
     expect(result.players).not.toContain('Dave');
     expect(result.players.length).toBe(2);
-  });
-
-  it('diagonal is always null (no self-matches)', () => {
-    const gd = makeGameDay('gd1', '2025-01-01', [
-      makeParticipant('Alice', 1),
-      makeParticipant('Bob', 2),
-      makeParticipant('Carol', 3),
-    ]);
-    const result = computeHeadToHeadMatrix([gd]);
-    for (let i = 0; i < result.players.length; i++) {
-      expect(result.matrix[i]![i]).toBeNull();
-    }
   });
 
   it('winRate computed correctly', () => {
@@ -500,39 +378,6 @@ describe('computeExtendedStandings', () => {
     expect(standings[2]!.rank).toBe(3);
   });
 
-  it('participation rate computed correctly', () => {
-    const gd1 = makeGameDay('gd1', '2025-01-01', [
-      makeParticipant('Alice', 1),
-      makeParticipant('Bob', 2),
-    ]);
-    const gd2 = makeGameDay('gd2', '2025-02-01', [
-      makeParticipant('Alice', 1),
-    ]);
-    const league = makeLeague();
-    const standings = computeExtendedStandings(league, [gd1, gd2]);
-    const alice = standings.find((s) => s.name === 'Alice')!;
-    const bob = standings.find((s) => s.name === 'Bob')!;
-    expect(alice.participationRate).toBe(1); // 2/2
-    expect(bob.participationRate).toBe(0.5); // 1/2
-  });
-
-  it('ELO ranking algorithm sorts by ELO', () => {
-    const gd = makeGameDay('gd1', '2025-01-01', [
-      makeParticipant('Alice', 2),
-      makeParticipant('Bob', 1),
-    ]);
-    const league = makeLeague({
-      rankingAlgorithm: 'elo',
-      eloConfig: { startRating: 1200, kFactor: 32 },
-    });
-    const standings = computeExtendedStandings(league, [gd]);
-    // Bob won, so he should be ranked first with higher ELO
-    expect(standings[0]!.name).toBe('Bob');
-    expect(standings[0]!.eloRating).toBeGreaterThan(1200);
-    expect(standings[1]!.name).toBe('Alice');
-    expect(standings[1]!.eloRating).toBeLessThan(1200);
-  });
-
   it('weighted points ranking algorithm sorts by weighted points', () => {
     // Alice won older game day, Bob won recent game day
     const gd1 = makeGameDay('gd1', '2025-01-01', [
@@ -555,19 +400,4 @@ describe('computeExtendedStandings', () => {
     expect(standings[0]!.weightedPoints).toBeGreaterThan(standings[1]!.weightedPoints!);
   });
 
-  it('minParticipation flag set on standings', () => {
-    const gd1 = makeGameDay('gd1', '2025-01-01', [
-      makeParticipant('Alice', 1),
-      makeParticipant('Bob', 2),
-    ]);
-    const gd2 = makeGameDay('gd2', '2025-02-01', [
-      makeParticipant('Alice', 1),
-    ]);
-    const league = makeLeague({ minParticipation: 2 });
-    const standings = computeExtendedStandings(league, [gd1, gd2]);
-    const alice = standings.find((s) => s.name === 'Alice')!;
-    const bob = standings.find((s) => s.name === 'Bob')!;
-    expect(alice.meetsMinParticipation).toBe(true);
-    expect(bob.meetsMinParticipation).toBe(false);
-  });
 });
