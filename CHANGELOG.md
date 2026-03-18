@@ -5,6 +5,17 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.9.5] – 2026-03-18
+
+### Audit Findings Closed (#34, #35, #36)
+
+- **IDB Schema Versioning (Finding #34)**: Monolithischer `upgrade`-Block in `storage.ts` durch versionierte Migrations-Registry ersetzt. 4 Migrationsfunktionen (v1–v4) mit `oldVersion`-basierter Inkrement-Logik. Neue Schema-Änderungen erfordern nur einen neuen Registry-Eintrag. `migrations` und `DB_VERSION` exportiert für Testbarkeit.
+- **Undo/Redo Table Moves (Finding #35)**: 3 Tests beweisen, dass Tischauflösung und Balancing korrekt per Undo wiederhergestellt werden — Snapshot-Capture mit Multi-Table-State, Dissolution-Undo (dissolved → active), Deep-Clone-Isolation (Mutationen am Original ändern Snapshot nicht).
+- **AudioBuffer Decode Cache (Finding #36)**: `Map<string, AudioBuffer>` Cache in `audioPlayer.ts` vermeidet redundantes Fetch+Decode bei wiederholten MP3s (z.B. Countdown-Zahlen 1–10). Cache-Hit liefert sofort, Cache-Miss fetcht + decoded + speichert. `clearAudioBufferCache()` und `getAudioBufferCacheSize()` für Tests und Memory-Management.
+- **8 neue Tests** — **1229 Tests gesamt**
+
+---
+
 ## [6.9.4] – 2026-03-17
 
 ### Type Safety & Voice Test Coverage
