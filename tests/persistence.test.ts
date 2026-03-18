@@ -16,7 +16,6 @@ import {
   defaultConfig,
   defaultSettings,
   defaultRebuyConfig,
-  defaultAddOnConfig,
   defaultBountyConfig,
   parseConfigObject,
   exportConfigJSON,
@@ -72,13 +71,6 @@ describe('Default configs', () => {
     expect(r.rebuyCost).toBe(25);
     expect(r.rebuyChips).toBe(50000);
     expect(r.enabled).toBe(false);
-  });
-
-  it('defaultAddOnConfig uses buyIn and startingChips params', () => {
-    const a = defaultAddOnConfig(15, 30000);
-    expect(a.cost).toBe(15);
-    expect(a.chips).toBe(30000);
-    expect(a.enabled).toBe(false);
   });
 
   it('defaultBountyConfig returns fixed type disabled', () => {

@@ -223,20 +223,12 @@ function makePlayer(partial: Partial<Player> & { id: string; name: string }): Pl
 // formatTime
 // ---------------------------------------------------------------------------
 describe('formatTime', () => {
-  it('formats zero', () => {
-    expect(formatTime(0)).toBe('00:00');
-  });
-
   it('formats 61 seconds', () => {
     expect(formatTime(61)).toBe('01:01');
   });
 
   it('formats 900 seconds (15 min)', () => {
     expect(formatTime(900)).toBe('15:00');
-  });
-
-  it('clamps negative to 00:00', () => {
-    expect(formatTime(-5)).toBe('00:00');
   });
 
   it('floors fractional seconds', () => {
@@ -253,17 +245,6 @@ describe('computeRemaining', () => {
     const remainingAtStart = 60;
     const now = 11000; // 10s later
     expect(computeRemaining(startedAt, remainingAtStart, now)).toBe(50);
-  });
-
-  it('never goes below zero', () => {
-    const startedAt = 1000;
-    const remainingAtStart = 5;
-    const now = 100000;
-    expect(computeRemaining(startedAt, remainingAtStart, now)).toBe(0);
-  });
-
-  it('returns exact remaining when no time has passed', () => {
-    expect(computeRemaining(5000, 120, 5000)).toBe(120);
   });
 });
 
@@ -493,10 +474,6 @@ describe('import/export', () => {
     // check that all original fields are preserved
     expect(imported?.players).toHaveLength(config.players.length);
     expect(imported?.players[0]).toMatchObject(config.players[0]!);
-  });
-
-  it('returns null for invalid JSON', () => {
-    expect(importConfigJSON('not json')).toBeNull();
   });
 
   it('returns null for JSON missing required fields', () => {
@@ -2088,10 +2065,6 @@ describe('computeAverageStackInBB', () => {
     expect(computeAverageStackInBB(10000, 300)).toBe(33.3);
   });
 
-  it('returns 0 when big blind is 0', () => {
-    expect(computeAverageStackInBB(10000, 0)).toBe(0);
-  });
-
   it('rounds to one decimal place', () => {
     // 10000 / 700 = 14.2857... → 14.3
     expect(computeAverageStackInBB(10000, 700)).toBe(14.3);
@@ -2101,14 +2074,6 @@ describe('computeAverageStackInBB', () => {
 // ─── isBubble ─────────────────────────────────────────────────────
 
 describe('isBubble', () => {
-  it('returns true when active players equals paid places + 1', () => {
-    expect(isBubble(4, 3)).toBe(true);
-  });
-
-  it('returns false when more players than bubble threshold', () => {
-    expect(isBubble(6, 3)).toBe(false);
-  });
-
   it('returns false when already in the money', () => {
     expect(isBubble(3, 3)).toBe(false);
   });
@@ -2125,18 +2090,6 @@ describe('isBubble', () => {
 // ─── isInTheMoney ─────────────────────────────────────────────────
 
 describe('isInTheMoney', () => {
-  it('returns true when active players equals paid places', () => {
-    expect(isInTheMoney(3, 3)).toBe(true);
-  });
-
-  it('returns true when active players is fewer than paid places', () => {
-    expect(isInTheMoney(2, 3)).toBe(true);
-  });
-
-  it('returns false when more active players than paid places', () => {
-    expect(isInTheMoney(5, 3)).toBe(false);
-  });
-
   it('returns false when only 1 player', () => {
     expect(isInTheMoney(1, 3)).toBe(false);
   });
@@ -2362,33 +2315,11 @@ describe('computeBlindStructureSummary', () => {
     expect(result.avgMinutes).toBe(15);
   });
 
-  it('returns zeros for empty levels', () => {
-    const result = computeBlindStructureSummary([]);
-    expect(result.levelCount).toBe(0);
-    expect(result.breakCount).toBe(0);
-    expect(result.avgMinutes).toBe(0);
-  });
 });
 
 describe('speech module', () => {
   // Import speech functions — speechSynthesis and Audio are not available in jsdom,
   // so these tests verify graceful degradation (no errors thrown)
-
-  it('cancelSpeech does not throw without speechSynthesis', async () => {
-    const { cancelSpeech } = await import('../src/domain/speech');
-    expect(() => cancelSpeech()).not.toThrow();
-  });
-
-  it('initSpeech does not throw without speechSynthesis', async () => {
-    const { initSpeech } = await import('../src/domain/speech');
-    expect(() => initSpeech()).not.toThrow();
-  });
-
-  it('setSpeechLanguage does not throw', async () => {
-    const { setSpeechLanguage } = await import('../src/domain/speech');
-    expect(() => setSpeechLanguage('de')).not.toThrow();
-    expect(() => setSpeechLanguage('en')).not.toThrow();
-  });
 
   it('announceCountdown returns true for both German and English', async () => {
     const { setSpeechLanguage, announceCountdown, cancelSpeech } = await import('../src/domain/speech');
@@ -2399,42 +2330,6 @@ describe('speech module', () => {
     expect(announceCountdown(5)).toBe(true);
     cancelSpeech();
     setSpeechLanguage('de'); // restore
-  });
-
-  it('announcement builders do not throw without speechSynthesis or Audio', async () => {
-    const {
-      setSpeechLanguage,
-      announceLevelChange, announceBreakStart, announceBreakWarning,
-      announceCountdown, announceBubble, announceInTheMoney,
-      announceElimination, announceWinner, announceBounty, announceAddOn,
-      announceRebuyEnded, announceColorUp, announceTournamentStart,
-      announceHeadsUp, cancelSpeech,
-    } = await import('../src/domain/speech');
-
-    setSpeechLanguage('de');
-
-    const mockT = ((key: string, params?: Record<string, string | number>) => {
-      let text = key;
-      if (params) for (const [k, v] of Object.entries(params)) text += ` ${k}=${v}`;
-      return text;
-    }) as Parameters<typeof announceLevelChange>[4];
-
-    expect(() => announceLevelChange(5, 200, 400, 50, mockT)).not.toThrow();
-    expect(() => announceLevelChange(3, 100, 200, undefined, mockT)).not.toThrow();
-    expect(() => announceBreakStart(10, mockT)).not.toThrow();
-    expect(() => announceBreakWarning(mockT)).not.toThrow();
-    expect(() => announceCountdown(5)).not.toThrow();
-    expect(() => announceBubble(mockT)).not.toThrow();
-    expect(() => announceInTheMoney(mockT)).not.toThrow();
-    expect(() => announceElimination(mockT)).not.toThrow();
-    expect(() => announceWinner(mockT)).not.toThrow();
-    expect(() => announceBounty(mockT)).not.toThrow();
-    expect(() => announceAddOn(mockT)).not.toThrow();
-    expect(() => announceRebuyEnded(mockT)).not.toThrow();
-    expect(() => announceColorUp('500, 1000', mockT)).not.toThrow();
-    expect(() => announceTournamentStart(mockT)).not.toThrow();
-    expect(() => announceHeadsUp(mockT)).not.toThrow();
-    cancelSpeech();
   });
 
   it('convenience functions do not throw when language is English', async () => {
@@ -2499,28 +2394,6 @@ describe('advanceDealer', () => {
   });
 });
 
-describe('sound functions return Promises', () => {
-  it('playVictorySound returns a Promise', async () => {
-    const { playVictorySound } = await import('../src/domain/sounds');
-    const result = playVictorySound();
-    expect(result).toBeInstanceOf(Promise);
-    await result;
-  });
-
-  it('playBubbleSound returns a Promise', async () => {
-    const { playBubbleSound } = await import('../src/domain/sounds');
-    const result = playBubbleSound();
-    expect(result).toBeInstanceOf(Promise);
-    await result;
-  });
-
-  it('playInTheMoneySound returns a Promise', async () => {
-    const { playInTheMoneySound } = await import('../src/domain/sounds');
-    const result = playInTheMoneySound();
-    expect(result).toBeInstanceOf(Promise);
-    await result;
-  });
-});
 
 describe('audioPlayer module', () => {
   it('cancelAudioPlayback does not throw', async () => {

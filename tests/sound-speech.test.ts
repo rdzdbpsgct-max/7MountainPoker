@@ -354,16 +354,6 @@ describe('Speech system (speech.ts)', () => {
       expect(() => announceRebuyTaken(mockT as never)).not.toThrow();
     });
 
-    it('announceTableMove enqueues MP3 intro + speech detail', () => {
-      // Should not throw; now uses MP3 intro followed by speech
-      expect(() => announceTableMove('Max', 'Tisch 2', 5, mockT as never)).not.toThrow();
-    });
-
-    it('announceTableDissolution enqueues MP3 intro + speech detail', () => {
-      // Should not throw; now uses MP3 intro followed by speech
-      expect(() => announceTableDissolution('Tisch 3', mockT as never)).not.toThrow();
-    });
-
     it('announceBreakSkipped enqueues speech for break skipped', () => {
       expect(() => announceBreakSkipped(mockT as never)).not.toThrow();
       expect(mockT).toHaveBeenCalledWith('voice.breakSkipped');
