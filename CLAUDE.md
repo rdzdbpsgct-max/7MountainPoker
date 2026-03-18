@@ -381,7 +381,7 @@ public/
 ## Testing
 
 - **1257 tests** across 18 test files + 1 setup file
-- Core files: `logic.test.ts` (670), `components.test.tsx` (109), `edge-cases.test.ts` (88), `sound-speech.test.ts` (54), `integration.test.ts` (47), `league-advanced.test.ts` (22), `tournamentActions.test.tsx` (31), `hooks.test.tsx` (25), `i18n.test.ts` (24), `persistence.test.ts` (23), `controls.test.tsx` (26), `display-channel.test.ts` (14), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3), plus new test coverage for undo/redo, ICM, cloud export, audio service, event log, break controls
+- Core files: `logic.test.ts` (656), `components.test.tsx` (117), `edge-cases.test.ts` (101), `sound-speech.test.ts` (59), `events.test.ts` (52), `integration.test.ts` (47), `tournamentActions.test.tsx` (41), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `league-advanced.test.ts` (22), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
