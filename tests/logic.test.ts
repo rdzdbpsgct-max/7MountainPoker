@@ -7715,6 +7715,64 @@ describe('UndoStack', () => {
     const stack = new UndoStack();
     expect(stack.redo(makeSnapshot('x'))).toBeNull();
   });
+
+  it('snapshot captures tables state for undo', () => {
+    const players: Player[] = [
+      { id: '1', name: 'Alice', status: 'active', rebuys: 0, addOn: false, seatIndex: 0, placement: null, knockouts: 0 },
+      { id: '2', name: 'Bob', status: 'active', rebuys: 0, addOn: false, seatIndex: 1, placement: null, knockouts: 0 },
+    ];
+    const tables: Table[] = [
+      { id: 't1', name: 'Table 1', seats: [{ seatNumber: 1, playerId: '1' }, { seatNumber: 2, playerId: null }], maxSeats: 6, status: 'active', dealerSeat: 1 },
+      { id: 't2', name: 'Table 2', seats: [{ seatNumber: 1, playerId: '2' }, { seatNumber: 2, playerId: null }], maxSeats: 6, status: 'active', dealerSeat: 1 },
+    ];
+    const snapshot = createUndoSnapshot('eliminate', players, tables, [], 0);
+    expect(snapshot.tables).toHaveLength(2);
+    expect(snapshot.tables![0]!.id).toBe('t1');
+    expect(snapshot.tables![1]!.id).toBe('t2');
+  });
+
+  it('undo restores tables after dissolution', () => {
+    const tablesBefore: Table[] = [
+      { id: 't1', name: 'Table 1', seats: [{ seatNumber: 1, playerId: '1' }, { seatNumber: 2, playerId: '2' }], maxSeats: 6, status: 'active', dealerSeat: 1 },
+      { id: 't2', name: 'Table 2', seats: [{ seatNumber: 1, playerId: '3' }], maxSeats: 6, status: 'active', dealerSeat: 1 },
+    ];
+    const players = [
+      { id: '1', name: 'A', status: 'active' as const, rebuys: 0, addOn: false, seatIndex: 0, placement: null, knockouts: 0 },
+      { id: '2', name: 'B', status: 'active' as const, rebuys: 0, addOn: false, seatIndex: 1, placement: null, knockouts: 0 },
+      { id: '3', name: 'C', status: 'active' as const, rebuys: 0, addOn: false, seatIndex: 0, placement: null, knockouts: 0 },
+    ];
+
+    const beforeSnapshot = createUndoSnapshot('eliminate', players, tablesBefore, [], 0);
+    let stack = new UndoStack();
+    stack = stack.push(beforeSnapshot);
+
+    const tablesAfter: Table[] = [
+      { id: 't1', name: 'Table 1', seats: [{ seatNumber: 1, playerId: '1' }, { seatNumber: 2, playerId: '2' }, { seatNumber: 3, playerId: '3' }], maxSeats: 6, status: 'active', dealerSeat: 1 },
+      { id: 't2', name: 'Table 2', seats: [], maxSeats: 6, status: 'dissolved', dealerSeat: 1 },
+    ];
+    const currentSnapshot = createUndoSnapshot('current', players, tablesAfter, [], 0);
+
+    const result = stack.undo(currentSnapshot);
+    expect(result).not.toBeNull();
+    const [, restored] = result!;
+    expect(restored.tables).toHaveLength(2);
+    expect(restored.tables![0]!.status).toBe('active');
+    expect(restored.tables![1]!.status).toBe('active');
+    expect(restored.tables![1]!.seats[0]!.playerId).toBe('3');
+  });
+
+  it('snapshot deep-clones tables (mutations do not affect snapshot)', () => {
+    const tables: Table[] = [
+      { id: 't1', name: 'Table 1', seats: [{ seatNumber: 1, playerId: '1' }], maxSeats: 6, status: 'active', dealerSeat: 1 },
+    ];
+    const snapshot = createUndoSnapshot('test', [], tables, [], 0);
+
+    tables[0]!.status = 'dissolved';
+    tables[0]!.seats[0]!.playerId = 'changed';
+
+    expect(snapshot.tables![0]!.status).toBe('active');
+    expect(snapshot.tables![0]!.seats[0]!.playerId).toBe('1');
+  });
 });
 
 // ---------------------------------------------------------------------------
