@@ -10,6 +10,23 @@ let cancelRequested = false;
 let audioLanguage: Language = 'de';
 let audioVolume = 1.0;
 
+// ---------------------------------------------------------------------------
+// AudioBuffer Decode Cache
+// ---------------------------------------------------------------------------
+
+/** Cache for decoded AudioBuffers keyed by URL. Avoids re-fetching + re-decoding. */
+const bufferCache = new Map<string, AudioBuffer>();
+
+/** Clear the AudioBuffer cache. Useful for tests or memory management. */
+export function clearAudioBufferCache(): void {
+  bufferCache.clear();
+}
+
+/** Get the current cache size (number of cached buffers). */
+export function getAudioBufferCacheSize(): number {
+  return bufferCache.size;
+}
+
 /** Set the master volume for MP3 playback (0.0 – 1.0). */
 export function setAudioVolume(v: number): void {
   audioVolume = Math.max(0, Math.min(1, v));
@@ -87,14 +104,18 @@ function playWithWebAudio(files: string[], basePath: string): Promise<void> {
 
   return resumePromise.then(() => {
     // Fetch and decode all audio files in parallel
-    const decodePromises = files.map((file) =>
-      fetch(basePath + file)
-        .then((res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status} for ${file}`);
-          return res.arrayBuffer();
-        })
-        .then((buf) => ctx.decodeAudioData(buf)),
-    );
+    const decodePromises = files.map(async (file) => {
+      const url = basePath + file;
+      const cached = bufferCache.get(url);
+      if (cached) return cached;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status} for ${file}`);
+      const buf = await res.arrayBuffer();
+      const decoded = await ctx.decodeAudioData(buf);
+      bufferCache.set(url, decoded);
+      return decoded;
+    });
 
     return Promise.all(decodePromises);
   }).then((rawBuffers) => {

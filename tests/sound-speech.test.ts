@@ -375,3 +375,28 @@ describe('Speech system (speech.ts)', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// AudioBuffer cache tests (import actual, bypassing the mock)
+// ---------------------------------------------------------------------------
+
+describe('AudioBuffer cache', () => {
+  let clearAudioBufferCache: () => void;
+  let getAudioBufferCacheSize: () => number;
+
+  beforeAll(async () => {
+    const actual = await vi.importActual<typeof import('../src/domain/audioPlayer')>('../src/domain/audioPlayer');
+    clearAudioBufferCache = actual.clearAudioBufferCache;
+    getAudioBufferCacheSize = actual.getAudioBufferCacheSize;
+  });
+
+  it('clearAudioBufferCache is exported and callable', () => {
+    expect(typeof clearAudioBufferCache).toBe('function');
+    clearAudioBufferCache(); // should not throw
+  });
+
+  it('getAudioBufferCacheSize returns 0 after clear', () => {
+    clearAudioBufferCache();
+    expect(getAudioBufferCacheSize()).toBe(0);
+  });
+});
