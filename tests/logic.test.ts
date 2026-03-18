@@ -109,6 +109,7 @@ import {
   computeSidePots,
   calculateSidePots,
   resolvePotWinners,
+  formatSidePotsAsText,
   generateBlindsByEndTime,
   reEnterPlayer,
   canReEntry,
@@ -180,7 +181,7 @@ import {
   scheduleToColorUpMap,
   CHIP_COLORS,
 } from '../src/domain/chips';
-import type { Level, TournamentConfig, TimerState, PayoutConfig, RebuyConfig, Player, League, TournamentResult, Table, GameDay, ExtendedLeagueStanding, PlayerPotInput, PotWinnerAssignment, RegisteredPlayer, ChipDenomination, SeriesStanding } from '../src/domain/types';
+import type { Level, TournamentConfig, TimerState, PayoutConfig, RebuyConfig, Player, League, TournamentResult, Table, GameDay, ExtendedLeagueStanding, PlayerPotInput, PotWinnerAssignment, RegisteredPlayer, ChipDenomination, SeriesStanding, PotResult, TournamentSeries } from '../src/domain/types';
 import type { SeriesExport } from '../src/domain/series';
 import { generatePeerId, generateSecret, buildRemoteUrl, parseRemoteHash, buildHmacPayload, signMessage, verifyMessage, RateLimiter, MAX_MESSAGE_SIZE, REMOTE_STATE_CONTRACT_VERSION, persistHostSession, loadHostSession, clearHostSession, buildDisplayUrl, parseDisplayHash, isHelloMessage, MAX_CONTROLLERS, MAX_DISPLAYS } from '../src/domain/remote';
 import { serializeColorUpMap, deserializeColorUpMap } from '../src/domain/displayChannel';
@@ -8100,5 +8101,439 @@ describe('IDB Schema Migrations', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     migrations[1]!(mockDb as any);
     expect(mockDb.createObjectStore).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Series Export/Import Round-Trip
+// ---------------------------------------------------------------------------
+describe('Series Export/Import Round-Trip', () => {
+  function makeSeries(overrides?: Partial<TournamentSeries>): TournamentSeries {
+    return {
+      id: 'series-1',
+      name: 'Test Series',
+      startDate: '2025-01-01',
+      tournamentIds: ['t1', 't2'],
+      pointSystem: {
+        entries: [
+          { place: 1, points: 10 },
+          { place: 2, points: 7 },
+          { place: 3, points: 5 },
+        ],
+      },
+      rankingMode: 'points',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      ...overrides,
+    };
+  }
+
+  function makeResult(id: string, players: { name: string; place: number }[]): TournamentResult {
+    return {
+      id,
+      name: 'Tournament ' + id,
+      date: '2025-01-15T10:00:00.000Z',
+      playerCount: players.length,
+      buyIn: 20,
+      prizePool: players.length * 20,
+      players: players.map(p => ({
+        name: p.name,
+        place: p.place,
+        payout: p.place === 1 ? players.length * 20 : 0,
+        rebuys: 0,
+        addOn: false,
+        knockouts: 0,
+        bountyEarned: 0,
+        netBalance: (p.place === 1 ? players.length * 20 : 0) - 20,
+      })),
+      bountyEnabled: false,
+      bountyAmount: 0,
+      rebuyEnabled: false,
+      totalRebuys: 0,
+      addOnEnabled: false,
+      totalAddOns: 0,
+      elapsedSeconds: 3600,
+      levelsPlayed: 10,
+    };
+  }
+
+  it('round-trips series with results through JSON export/import', () => {
+    const series = makeSeries();
+    const results = [
+      makeResult('t1', [{ name: 'Alice', place: 1 }, { name: 'Bob', place: 2 }]),
+      makeResult('t2', [{ name: 'Charlie', place: 1 }, { name: 'Alice', place: 2 }]),
+      makeResult('t3', [{ name: 'Dave', place: 1 }]), // not in series
+    ];
+
+    const json = exportSeriesToJSON(series, results);
+    const parsed = parseSeriesFile(json);
+
+    expect(parsed).not.toBeNull();
+    expect(parsed!.version).toBe(1);
+    expect(parsed!.series.id).toBe('series-1');
+    expect(parsed!.series.name).toBe('Test Series');
+    expect(parsed!.series.rankingMode).toBe('points');
+    expect(parsed!.series.tournamentIds).toEqual(['t1', 't2']);
+    expect(parsed!.series.pointSystem.entries).toHaveLength(3);
+    // Only t1 and t2 should be included (t3 is not in series)
+    expect(parsed!.results).toHaveLength(2);
+    expect(parsed!.results.map(r => r.id)).toEqual(['t1', 't2']);
+  });
+
+  it('preserves ranking mode through round-trip (netBalance)', () => {
+    const series = makeSeries({ rankingMode: 'netBalance' });
+    const json = exportSeriesToJSON(series, []);
+    const parsed = parseSeriesFile(json);
+    expect(parsed!.series.rankingMode).toBe('netBalance');
+  });
+
+  it('preserves ranking mode through round-trip (avgPlace)', () => {
+    const series = makeSeries({ rankingMode: 'avgPlace' });
+    const json = exportSeriesToJSON(series, []);
+    const parsed = parseSeriesFile(json);
+    expect(parsed!.series.rankingMode).toBe('avgPlace');
+  });
+
+  it('returns null for invalid JSON', () => {
+    expect(parseSeriesFile('not valid json {')).toBeNull();
+  });
+
+  it('returns null for wrong version', () => {
+    const data = { version: 99, series: { id: 'x', name: 'X', tournamentIds: [] }, results: [] };
+    expect(parseSeriesFile(JSON.stringify(data))).toBeNull();
+  });
+
+  it('returns null for missing series fields', () => {
+    const data = { version: 1, series: { id: 'x' }, results: [] }; // missing name + tournamentIds
+    expect(parseSeriesFile(JSON.stringify(data))).toBeNull();
+  });
+
+  it('returns null for non-object input', () => {
+    expect(parseSeriesFile('"just a string"')).toBeNull();
+    expect(parseSeriesFile('null')).toBeNull();
+    expect(parseSeriesFile('42')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Series Ranking Modes (computeSeriesStandings)
+// ---------------------------------------------------------------------------
+describe('Series Ranking Modes', () => {
+  function makeSeriesWithMode(mode: 'points' | 'netBalance' | 'avgPlace', tournamentIds: string[], minTournaments?: number): TournamentSeries {
+    return {
+      id: 'series-rank',
+      name: 'Ranking Test',
+      startDate: '2025-01-01',
+      tournamentIds,
+      pointSystem: {
+        entries: [
+          { place: 1, points: 10 },
+          { place: 2, points: 7 },
+          { place: 3, points: 5 },
+          { place: 4, points: 3 },
+        ],
+      },
+      rankingMode: mode,
+      createdAt: '2025-01-01T00:00:00.000Z',
+      minTournaments,
+    };
+  }
+
+  function makeResultFull(id: string, players: { name: string; place: number; payout: number; netBalance: number }[]): TournamentResult {
+    return {
+      id,
+      name: 'T-' + id,
+      date: '2025-02-01T10:00:00.000Z',
+      playerCount: players.length,
+      buyIn: 10,
+      prizePool: 40,
+      players: players.map(p => ({
+        name: p.name,
+        place: p.place,
+        payout: p.payout,
+        rebuys: 0,
+        addOn: false,
+        knockouts: 0,
+        bountyEarned: 0,
+        netBalance: p.netBalance,
+      })),
+      bountyEnabled: false,
+      bountyAmount: 0,
+      rebuyEnabled: false,
+      totalRebuys: 0,
+      addOnEnabled: false,
+      totalAddOns: 0,
+      elapsedSeconds: 1800,
+      levelsPlayed: 5,
+    };
+  }
+
+  it('points mode: ranks by total points, tiebreaker by avgPlace', () => {
+    const series = makeSeriesWithMode('points', ['t1', 't2']);
+    const results = [
+      makeResultFull('t1', [
+        { name: 'Alice', place: 1, payout: 20, netBalance: 10 },
+        { name: 'Bob', place: 2, payout: 12, netBalance: 2 },
+        { name: 'Charlie', place: 3, payout: 8, netBalance: -2 },
+      ]),
+      makeResultFull('t2', [
+        { name: 'Bob', place: 1, payout: 20, netBalance: 10 },
+        { name: 'Alice', place: 2, payout: 12, netBalance: 2 },
+        { name: 'Charlie', place: 4, payout: 0, netBalance: -10 },
+      ]),
+    ];
+
+    const standings = computeSeriesStandings(series, results);
+    // Alice: 10+7=17 pts, avg 1.5. Bob: 7+10=17 pts, avg 1.5. Tied on points and avgPlace.
+    expect(standings[0]!.points).toBe(17);
+    expect(standings[1]!.points).toBe(17);
+    // Charlie: 5+3=8 pts
+    expect(standings[2]!.name).toBe('Charlie');
+    expect(standings[2]!.points).toBe(8);
+  });
+
+  it('netBalance mode: ranks by net balance descending', () => {
+    const series = makeSeriesWithMode('netBalance', ['t1']);
+    const results = [
+      makeResultFull('t1', [
+        { name: 'Alice', place: 1, payout: 30, netBalance: 20 },
+        { name: 'Bob', place: 2, payout: 10, netBalance: 0 },
+        { name: 'Charlie', place: 3, payout: 0, netBalance: -10 },
+      ]),
+    ];
+
+    const standings = computeSeriesStandings(series, results);
+    expect(standings[0]!.name).toBe('Alice');
+    expect(standings[0]!.netBalance).toBe(20);
+    expect(standings[1]!.name).toBe('Bob');
+    expect(standings[2]!.name).toBe('Charlie');
+    expect(standings[2]!.netBalance).toBe(-10);
+  });
+
+  it('avgPlace mode: ranks by average place ascending, tiebreaker by points', () => {
+    const series = makeSeriesWithMode('avgPlace', ['t1', 't2']);
+    const results = [
+      makeResultFull('t1', [
+        { name: 'Alice', place: 1, payout: 20, netBalance: 10 },
+        { name: 'Bob', place: 3, payout: 0, netBalance: -10 },
+      ]),
+      makeResultFull('t2', [
+        { name: 'Alice', place: 2, payout: 12, netBalance: 2 },
+        { name: 'Bob', place: 1, payout: 20, netBalance: 10 },
+      ]),
+    ];
+
+    const standings = computeSeriesStandings(series, results);
+    // Alice avg: 1.5, Bob avg: 2.0
+    expect(standings[0]!.name).toBe('Alice');
+    expect(standings[0]!.avgPlace).toBe(1.5);
+    expect(standings[1]!.name).toBe('Bob');
+    expect(standings[1]!.avgPlace).toBe(2);
+  });
+
+  it('minTournaments: unqualified players sorted after qualified', () => {
+    const series = makeSeriesWithMode('points', ['t1', 't2'], 2);
+    const results = [
+      makeResultFull('t1', [
+        { name: 'Alice', place: 1, payout: 20, netBalance: 10 },
+        { name: 'Bob', place: 2, payout: 12, netBalance: 2 },
+      ]),
+      makeResultFull('t2', [
+        { name: 'Alice', place: 1, payout: 20, netBalance: 10 },
+      ]),
+    ];
+
+    const standings = computeSeriesStandings(series, results);
+    // Alice has 2 tournaments (qualified), Bob has 1 (not qualified)
+    expect(standings[0]!.name).toBe('Alice');
+    expect(standings[0]!.qualified).toBe(true);
+    expect(standings[1]!.name).toBe('Bob');
+    expect(standings[1]!.qualified).toBe(false);
+  });
+
+  it('returns empty array for series with no matching results', () => {
+    const series = makeSeriesWithMode('points', ['nonexistent']);
+    const results = [
+      makeResultFull('other', [
+        { name: 'Alice', place: 1, payout: 20, netBalance: 10 },
+      ]),
+    ];
+    expect(computeSeriesStandings(series, results)).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Prizepool Complex Calculations
+// ---------------------------------------------------------------------------
+describe('Prizepool Complex Calculations', () => {
+  function makePlayers(count: number, rebuys = 0, addOn = false): Player[] {
+    return Array.from({ length: count }, (_, i) => ({
+      id: `p${i + 1}`,
+      name: `Player ${i + 1}`,
+      status: 'active' as const,
+      rebuys,
+      addOn,
+      knockouts: 0,
+      seatIndex: i,
+    }));
+  }
+
+  it('computes prizepool with buyIn + rebuy + addOn all active', () => {
+    const players = makePlayers(6, 2, true); // 6 players, 2 rebuys each, all with addon
+    const buyIn = 50;
+    const rebuyCost = 30;
+    const addOnCost = 25;
+    // 6*50 (buy-ins) + 12*30 (rebuys) + 6*25 (add-ons) = 300 + 360 + 150 = 810
+    const pool = computePrizePool(players, buyIn, rebuyCost, addOnCost);
+    expect(pool).toBe(810);
+  });
+
+  it('computes prizepool with separateRebuyPot excludes rebuys', () => {
+    const players = makePlayers(4, 3, true);
+    const buyIn = 20;
+    const rebuyCost = 15;
+    const addOnCost = 10;
+    // 4*20 (buy-ins) + 0 (rebuys excluded) + 4*10 (add-ons) = 80 + 0 + 40 = 120
+    const pool = computePrizePool(players, buyIn, rebuyCost, addOnCost, true);
+    expect(pool).toBe(120);
+  });
+
+  it('computes prizepool for freeroll (0 buyIn) as 0', () => {
+    const players = makePlayers(8);
+    const pool = computePrizePool(players, 0);
+    expect(pool).toBe(0);
+  });
+
+  it('computePayouts with 1 paid place gives winner everything', () => {
+    const payout: PayoutConfig = {
+      mode: 'percent',
+      entries: [{ place: 1, value: 100 }],
+    };
+    const result = computePayouts(payout, 500);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.place).toBe(1);
+    expect(result[0]!.amount).toBe(500);
+  });
+
+  it('computePayouts percent sum matches prizepool (no rounding loss)', () => {
+    const payout: PayoutConfig = {
+      mode: 'percent',
+      entries: [
+        { place: 1, value: 50 },
+        { place: 2, value: 30 },
+        { place: 3, value: 20 },
+      ],
+    };
+    const prizePool = 1000;
+    const result = computePayouts(payout, prizePool);
+    const sum = result.reduce((s, r) => s + r.amount, 0);
+    expect(sum).toBe(prizePool);
+  });
+
+  it('computePayouts with fixed mode returns exact values regardless of pool', () => {
+    const payout: PayoutConfig = {
+      mode: 'fixed',
+      entries: [
+        { place: 1, value: 300 },
+        { place: 2, value: 150 },
+      ],
+    };
+    const result = computePayouts(payout, 9999); // pool ignored for fixed
+    expect(result[0]!.amount).toBe(300);
+    expect(result[1]!.amount).toBe(150);
+  });
+
+  it('computePayouts handles 0 prizepool gracefully', () => {
+    const payout = defaultPayoutConfig();
+    const result = computePayouts(payout, 0);
+    expect(result.every(r => r.amount === 0)).toBe(true);
+  });
+
+  it('rebuy pot computed separately when separatePot is true', () => {
+    const players = makePlayers(5, 2); // 5 players, 2 rebuys each = 10 rebuys total
+    const rebuyCost = 15;
+    const rebuyPot = computeRebuyPot(players, rebuyCost);
+    expect(rebuyPot).toBe(150); // 10 * 15
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatSidePotsAsText
+// ---------------------------------------------------------------------------
+describe('formatSidePotsAsText', () => {
+  it('formats a single main pot correctly', () => {
+    const pots: PotResult[] = [{
+      type: 'main',
+      index: 0,
+      amount: 1500,
+      eligiblePlayerIds: ['p1', 'p2', 'p3'],
+      eligiblePlayerNames: ['Alice', 'Bob', 'Charlie'],
+    }];
+    const text = formatSidePotsAsText(pots, '$');
+    expect(text).toContain('Main Pot');
+    expect(text).toContain('$');
+    expect(text).toContain('Alice, Bob, Charlie');
+    expect(text.endsWith('.')).toBe(true);
+  });
+
+  it('formats main pot + 2 side pots with proper labels', () => {
+    const pots: PotResult[] = [
+      {
+        type: 'main',
+        index: 0,
+        amount: 600,
+        eligiblePlayerIds: ['p1', 'p2', 'p3'],
+        eligiblePlayerNames: ['Alice', 'Bob', 'Charlie'],
+      },
+      {
+        type: 'side',
+        index: 1,
+        amount: 400,
+        eligiblePlayerIds: ['p1', 'p2'],
+        eligiblePlayerNames: ['Alice', 'Bob'],
+      },
+      {
+        type: 'side',
+        index: 2,
+        amount: 200,
+        eligiblePlayerIds: ['p1'],
+        eligiblePlayerNames: ['Alice'],
+      },
+    ];
+    const text = formatSidePotsAsText(pots);
+    expect(text).toContain('Main Pot');
+    expect(text).toContain('Side Pot 1');
+    expect(text).toContain('Side Pot 2');
+    expect(text).toContain('Alice, Bob, Charlie');
+    expect(text).toContain('Alice, Bob');
+    // Ends with period
+    expect(text.endsWith('.')).toBe(true);
+  });
+
+  it('returns empty string for empty pots array', () => {
+    expect(formatSidePotsAsText([])).toBe('');
+  });
+
+  it('shows dash for pot with no eligible players', () => {
+    const pots: PotResult[] = [{
+      type: 'main',
+      index: 0,
+      amount: 100,
+      eligiblePlayerIds: [],
+      eligiblePlayerNames: [],
+    }];
+    const text = formatSidePotsAsText(pots);
+    expect(text).toContain('\u2014'); // em dash
+  });
+
+  it('uses default currency symbol when none provided', () => {
+    const pots: PotResult[] = [{
+      type: 'main',
+      index: 0,
+      amount: 250,
+      eligiblePlayerIds: ['p1'],
+      eligiblePlayerNames: ['Alice'],
+    }];
+    const text = formatSidePotsAsText(pots);
+    expect(text).toContain('\u20AC'); // euro sign
   });
 });

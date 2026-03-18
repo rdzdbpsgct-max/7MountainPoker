@@ -11,7 +11,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { initStorage, getCached, resetStorage } from '../src/domain/storage';
+import { initStorage, getCached, setCachedItem, resetStorage } from '../src/domain/storage';
 import {
   defaultConfig,
   defaultSettings,
@@ -39,9 +39,22 @@ import {
   computeTournamentElapsedSeconds,
   validateConfig,
   validatePayoutConfig,
+  saveLeague,
+  defaultPointSystem,
+  saveGameDay,
+  deleteGameDay,
+  loadGameDaysForLeague,
+  computeExtendedStandings,
+  exportLeagueToJSON,
+  parseLeagueFile,
+  setAudioMapping,
+  loadAudioMappings,
+  removeAudioMapping,
+  getCustomAudioForAnnouncement,
+  saveCustomAudioFile,
 } from '../src/domain/logic';
 import { useTimer } from '../src/hooks/useTimer';
-import type { TournamentConfig, TournamentCheckpoint, Player, TimerState, Level } from '../src/domain/types';
+import type { TournamentConfig, TournamentCheckpoint, Player, TimerState, Level, League, GameDay, GameDayParticipant, Table, TournamentEvent } from '../src/domain/types';
 
 // ---------------------------------------------------------------------------
 // Module-level mocks (must be at top level for Vitest hoisting)
@@ -830,5 +843,510 @@ describe('Mode transition side effects', () => {
     const prev = previousLevel(atZero, levels);
     expect(prev.currentLevelIndex).toBe(0);
     expect(prev.remainingSeconds).toBe(600); // reset to full duration
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 13. Liga GameDay → Standings Refresh
+// ---------------------------------------------------------------------------
+
+describe('Liga GameDay → Standings refresh', () => {
+  const makeLeague = (): League => ({
+    id: 'league_test_1',
+    name: 'Test Liga',
+    pointSystem: defaultPointSystem(),
+    createdAt: new Date().toISOString(),
+  });
+
+  const makeGameDayHelper = (
+    id: string,
+    leagueId: string,
+    date: string,
+    participants: GameDayParticipant[],
+  ): GameDay => ({
+    id,
+    leagueId,
+    date,
+    label: `Spieltag`,
+    participants,
+    totalPrizePool: participants.reduce((s, p) => s + p.payout, 0),
+    totalBuyIns: participants.reduce((s, p) => s + p.buyIn, 0),
+    cashBalance: 0,
+  });
+
+  const makeParticipant = (name: string, place: number, points: number, payout = 0): GameDayParticipant => ({
+    name,
+    place,
+    points,
+    buyIn: 10,
+    rebuys: 0,
+    addOnCost: 0,
+    payout,
+    netBalance: payout - 10,
+  });
+
+  beforeEach(async () => {
+    await initStorage();
+  });
+
+  it('computes standings from 2 game days, updates after adding 3rd', () => {
+    const league = makeLeague();
+    saveLeague(league);
+
+    // Game day 1: Alice wins, Bob 2nd, Charlie 3rd
+    const gd1 = makeGameDayHelper('gd1', league.id, '2025-01-01', [
+      makeParticipant('Alice', 1, 10, 20),
+      makeParticipant('Bob', 2, 7, 10),
+      makeParticipant('Charlie', 3, 5, 0),
+    ]);
+    saveGameDay(gd1);
+
+    // Game day 2: Bob wins, Alice 2nd, Charlie 3rd
+    const gd2 = makeGameDayHelper('gd2', league.id, '2025-01-08', [
+      makeParticipant('Bob', 1, 10, 20),
+      makeParticipant('Alice', 2, 7, 10),
+      makeParticipant('Charlie', 3, 5, 0),
+    ]);
+    saveGameDay(gd2);
+
+    const gameDays = loadGameDaysForLeague(league.id);
+    expect(gameDays).toHaveLength(2);
+
+    const standings = computeExtendedStandings(league, gameDays);
+    expect(standings).toHaveLength(3);
+
+    // Alice: 10+7=17, Bob: 7+10=17, Charlie: 5+5=10
+    expect(standings[0].points).toBe(17);
+    expect(standings[1].points).toBe(17);
+    expect(standings[2].points).toBe(10);
+    expect(standings[2].name).toBe('Charlie');
+
+    // Add 3rd game day: Charlie wins!
+    const gd3 = makeGameDayHelper('gd3', league.id, '2025-01-15', [
+      makeParticipant('Charlie', 1, 10, 20),
+      makeParticipant('Alice', 2, 7, 10),
+      makeParticipant('Bob', 3, 5, 0),
+    ]);
+    saveGameDay(gd3);
+
+    const updatedGameDays = loadGameDaysForLeague(league.id);
+    expect(updatedGameDays).toHaveLength(3);
+
+    const updatedStandings = computeExtendedStandings(league, updatedGameDays);
+    // Alice: 10+7+7=24, Bob: 7+10+5=22, Charlie: 5+5+10=20
+    expect(updatedStandings[0].points).toBe(24);
+    expect(updatedStandings[0].name).toBe('Alice');
+    expect(updatedStandings[1].points).toBe(22);
+    expect(updatedStandings[1].name).toBe('Bob');
+    expect(updatedStandings[2].points).toBe(20);
+    expect(updatedStandings[2].name).toBe('Charlie');
+  });
+
+  it('standings reflect game day deletion', () => {
+    const league = makeLeague();
+    saveLeague(league);
+
+    const gd1 = makeGameDayHelper('gd_del_1', league.id, '2025-02-01', [
+      makeParticipant('Alice', 1, 10, 20),
+      makeParticipant('Bob', 2, 7, 10),
+    ]);
+    const gd2 = makeGameDayHelper('gd_del_2', league.id, '2025-02-08', [
+      makeParticipant('Bob', 1, 10, 20),
+      makeParticipant('Alice', 2, 7, 10),
+    ]);
+    saveGameDay(gd1);
+    saveGameDay(gd2);
+
+    // Delete gd2 — only gd1 remains
+    deleteGameDay('gd_del_2');
+
+    const gameDays = loadGameDaysForLeague(league.id);
+    expect(gameDays).toHaveLength(1);
+
+    const standings = computeExtendedStandings(league, gameDays);
+    expect(standings).toHaveLength(2);
+    expect(standings[0].name).toBe('Alice');
+    expect(standings[0].points).toBe(10);
+    expect(standings[1].name).toBe('Bob');
+    expect(standings[1].points).toBe(7);
+  });
+
+  it('standings correctly track tournaments played and participation rate', () => {
+    const league = makeLeague();
+    saveLeague(league);
+
+    // 3 game days but Bob only plays in 2
+    saveGameDay(makeGameDayHelper('gd_pr_1', league.id, '2025-03-01', [
+      makeParticipant('Alice', 1, 10, 20),
+      makeParticipant('Bob', 2, 7, 10),
+    ]));
+    saveGameDay(makeGameDayHelper('gd_pr_2', league.id, '2025-03-08', [
+      makeParticipant('Alice', 1, 10, 20),
+    ]));
+    saveGameDay(makeGameDayHelper('gd_pr_3', league.id, '2025-03-15', [
+      makeParticipant('Alice', 1, 10, 20),
+      makeParticipant('Bob', 2, 7, 10),
+    ]));
+
+    const gameDays = loadGameDaysForLeague(league.id);
+    const standings = computeExtendedStandings(league, gameDays);
+
+    const alice = standings.find(s => s.name === 'Alice')!;
+    const bob = standings.find(s => s.name === 'Bob')!;
+
+    expect(alice.tournaments).toBe(3);
+    expect(alice.participationRate).toBeCloseTo(1.0, 2);
+    expect(bob.tournaments).toBe(2);
+    expect(bob.participationRate).toBeCloseTo(2 / 3, 2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 14. Liga JSON v2 Export/Import with GameDays
+// ---------------------------------------------------------------------------
+
+describe('Liga JSON v2 export/import with GameDays', () => {
+  beforeEach(async () => {
+    await initStorage();
+  });
+
+  it('export → parse round-trip preserves league and game days', () => {
+    const league: League = {
+      id: 'league_export_1',
+      name: 'Export Test Liga',
+      pointSystem: defaultPointSystem(),
+      createdAt: '2025-01-01T00:00:00.000Z',
+    };
+    saveLeague(league);
+
+    // Save game days for this league
+    const gd1: GameDay = {
+      id: 'gd_exp_1',
+      leagueId: league.id,
+      date: '2025-01-01',
+      label: 'Spieltag 1',
+      participants: [
+        { name: 'Alice', place: 1, points: 10, buyIn: 10, rebuys: 0, addOnCost: 0, payout: 20, netBalance: 10 },
+        { name: 'Bob', place: 2, points: 7, buyIn: 10, rebuys: 1, addOnCost: 0, payout: 10, netBalance: -10 },
+      ],
+      totalPrizePool: 30,
+      totalBuyIns: 30,
+      cashBalance: 0,
+    };
+    const gd2: GameDay = {
+      id: 'gd_exp_2',
+      leagueId: league.id,
+      date: '2025-01-08',
+      label: 'Spieltag 2',
+      participants: [
+        { name: 'Bob', place: 1, points: 10, buyIn: 10, rebuys: 0, addOnCost: 0, payout: 15, netBalance: 5 },
+        { name: 'Alice', place: 2, points: 7, buyIn: 10, rebuys: 0, addOnCost: 0, payout: 5, netBalance: -5 },
+      ],
+      totalPrizePool: 20,
+      totalBuyIns: 20,
+      cashBalance: 0,
+    };
+    saveGameDay(gd1);
+    saveGameDay(gd2);
+
+    // Also save a tournament result linked to this league
+    const result = buildTournamentResult({
+      ...defaultConfig(),
+      name: 'Export Tournament',
+      buyIn: 10,
+      leagueId: league.id,
+      players: [
+        { ...makePlayer('p1', 'Alice'), placement: 1, knockouts: 1 },
+        { ...makePlayer('p2', 'Bob'), status: 'eliminated', placement: 2, eliminatedBy: 'p1', knockouts: 0 },
+      ],
+    }, 1800, 1);
+    saveTournamentResult(result);
+
+    // Export
+    const json = exportLeagueToJSON(league);
+    expect(json).toBeTruthy();
+
+    // Parse
+    const parsed = parseLeagueFile(json);
+    expect(parsed).not.toBeNull();
+    expect(parsed!.version).toBe(2);
+    expect(parsed!.league.name).toBe('Export Test Liga');
+    expect(parsed!.league.id).toBe(league.id);
+
+    // Game days preserved
+    expect(parsed!.gameDays).toBeDefined();
+    expect(parsed!.gameDays!.length).toBe(2);
+    expect(parsed!.gameDays![0].label).toBe('Spieltag 1');
+    expect(parsed!.gameDays![0].participants).toHaveLength(2);
+    expect(parsed!.gameDays![0].participants[0].name).toBe('Alice');
+    expect(parsed!.gameDays![0].participants[1].rebuys).toBe(1);
+    expect(parsed!.gameDays![1].label).toBe('Spieltag 2');
+
+    // Results preserved
+    expect(parsed!.results.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('v1 format (no gameDays) parses with empty gameDays array', () => {
+    const v1Json = JSON.stringify({
+      version: 1,
+      league: {
+        id: 'league_v1',
+        name: 'Old Liga',
+        pointSystem: defaultPointSystem(),
+        createdAt: '2024-01-01T00:00:00.000Z',
+      },
+      results: [],
+      exportedAt: '2024-06-01T00:00:00.000Z',
+    });
+
+    const parsed = parseLeagueFile(v1Json);
+    expect(parsed).not.toBeNull();
+    expect(parsed!.gameDays).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 15. Custom Audio Mapping Persistence
+// ---------------------------------------------------------------------------
+
+describe('Custom audio mapping persistence', () => {
+  beforeEach(async () => {
+    await initStorage();
+  });
+
+  it('set → load → remove audio mapping round-trip', () => {
+    // Save a custom audio file first
+    const audioFile = {
+      id: 'audio_1',
+      name: 'test-sound.mp3',
+      mimeType: 'audio/mpeg',
+      sizeBytes: 1024,
+      data: new ArrayBuffer(1024),
+      createdAt: new Date().toISOString(),
+    };
+    saveCustomAudioFile(audioFile);
+
+    // Set mapping
+    const mapping = setAudioMapping('shuffle-up', 'audio_1', 'all');
+    expect(mapping.id).toBeTruthy();
+    expect(mapping.announcementKey).toBe('shuffle-up');
+    expect(mapping.audioFileId).toBe('audio_1');
+    expect(mapping.language).toBe('all');
+
+    // Load and verify
+    const loaded = loadAudioMappings();
+    expect(loaded.length).toBe(1);
+    expect(loaded[0].announcementKey).toBe('shuffle-up');
+    expect(loaded[0].audioFileId).toBe('audio_1');
+
+    // getCustomAudioForAnnouncement should find it
+    const found = getCustomAudioForAnnouncement('shuffle-up', 'de');
+    expect(found).not.toBeNull();
+    expect(found!.id).toBe('audio_1');
+    expect(found!.name).toBe('test-sound.mp3');
+
+    // Remove mapping
+    removeAudioMapping('shuffle-up', 'all');
+    const afterRemove = loadAudioMappings();
+    expect(afterRemove.length).toBe(0);
+
+    // getCustomAudioForAnnouncement should return null now
+    const notFound = getCustomAudioForAnnouncement('shuffle-up', 'de');
+    expect(notFound).toBeNull();
+  });
+
+  it('language-specific mapping takes priority over "all"', () => {
+    const audioAll = {
+      id: 'audio_all',
+      name: 'all-lang.mp3',
+      mimeType: 'audio/mpeg',
+      sizeBytes: 512,
+      data: new ArrayBuffer(512),
+      createdAt: new Date().toISOString(),
+    };
+    const audioDe = {
+      id: 'audio_de',
+      name: 'german.mp3',
+      mimeType: 'audio/mpeg',
+      sizeBytes: 512,
+      data: new ArrayBuffer(512),
+      createdAt: new Date().toISOString(),
+    };
+    saveCustomAudioFile(audioAll);
+    saveCustomAudioFile(audioDe);
+
+    setAudioMapping('level-change', 'audio_all', 'all');
+    setAudioMapping('level-change', 'audio_de', 'de');
+
+    // German should get the DE-specific mapping
+    const de = getCustomAudioForAnnouncement('level-change', 'de');
+    expect(de!.id).toBe('audio_de');
+
+    // English should fall back to 'all'
+    const en = getCustomAudioForAnnouncement('level-change', 'en');
+    expect(en!.id).toBe('audio_all');
+  });
+
+  it('setCachedItem/getCached work for audioMappings store', () => {
+    setCachedItem('audioMappings', {
+      id: 'map_direct_1',
+      announcementKey: 'bubble',
+      audioFileId: 'file_x',
+      language: 'all' as const,
+    });
+
+    const cached = getCached('audioMappings');
+    expect(cached.length).toBe(1);
+    expect(cached[0].id).toBe('map_direct_1');
+    expect(cached[0].announcementKey).toBe('bubble');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 16. Checkpoint Full Rehydration (tables + events)
+// ---------------------------------------------------------------------------
+
+describe('Checkpoint full rehydration with tables and events', () => {
+  beforeEach(async () => {
+    await initStorage();
+  });
+
+  it('checkpoint with tables array survives save/load round-trip', () => {
+    const tables: Table[] = [
+      {
+        id: 'table_1',
+        name: 'Table 1',
+        maxSeats: 9,
+        seats: [
+          { seatNumber: 1, playerId: 'p1' },
+          { seatNumber: 2, playerId: 'p2' },
+          { seatNumber: 3, playerId: null },
+        ],
+        status: 'active',
+        dealerSeat: 1,
+      },
+      {
+        id: 'table_2',
+        name: 'Table 2',
+        maxSeats: 9,
+        seats: [
+          { seatNumber: 1, playerId: 'p3' },
+          { seatNumber: 2, playerId: null },
+        ],
+        status: 'active',
+        dealerSeat: null,
+      },
+    ];
+
+    const config: TournamentConfig = {
+      ...defaultConfig(),
+      name: 'Multi-Table Checkpoint',
+      players: [
+        makePlayer('p1', 'Alice'),
+        makePlayer('p2', 'Bob'),
+        makePlayer('p3', 'Charlie'),
+      ],
+      tables,
+      multiTable: {
+        numberOfTables: 2,
+        seatsPerTable: 9,
+        dissolveThreshold: 3,
+        autoBalanceOnElimination: true,
+      },
+    };
+
+    const events: TournamentEvent[] = [
+      { id: 'evt_1', type: 'level_start', timestamp: '2025-01-01T20:00:00Z', details: { levelIndex: 0 } },
+      { id: 'evt_2', type: 'elimination', timestamp: '2025-01-01T20:30:00Z', details: { playerName: 'Diana', place: 4 } },
+    ];
+
+    const checkpoint: TournamentCheckpoint = {
+      version: 1,
+      config,
+      settings: defaultSettings(),
+      timer: { currentLevelIndex: 2, remainingSeconds: 180 },
+      savedAt: new Date().toISOString(),
+      events,
+    };
+
+    saveCheckpoint(checkpoint);
+    const loaded = loadCheckpoint();
+
+    expect(loaded).not.toBeNull();
+    expect(loaded!.config.name).toBe('Multi-Table Checkpoint');
+    expect(loaded!.timer.currentLevelIndex).toBe(2);
+    expect(loaded!.timer.remainingSeconds).toBe(180);
+
+    // Tables deeply restored
+    expect(loaded!.config.tables).toBeDefined();
+    expect(loaded!.config.tables).toHaveLength(2);
+    expect(loaded!.config.tables![0].id).toBe('table_1');
+    expect(loaded!.config.tables![0].seats).toHaveLength(3);
+    expect(loaded!.config.tables![0].seats[0].playerId).toBe('p1');
+    expect(loaded!.config.tables![0].seats[2].playerId).toBeNull();
+    expect(loaded!.config.tables![0].dealerSeat).toBe(1);
+    expect(loaded!.config.tables![1].id).toBe('table_2');
+    expect(loaded!.config.tables![1].dealerSeat).toBeNull();
+
+    // Tables are deeply equal but not reference-equal
+    expect(loaded!.config.tables).toEqual(tables);
+    expect(loaded!.config.tables).not.toBe(tables);
+
+    // Events restored
+    expect(loaded!.events).toBeDefined();
+    expect(loaded!.events).toHaveLength(2);
+    expect(loaded!.events![0].type).toBe('level_start');
+    expect(loaded!.events![1].type).toBe('elimination');
+    expect(loaded!.events![1].details).toEqual({ playerName: 'Diana', place: 4 });
+  });
+
+  it('checkpoint without tables loads with undefined tables', () => {
+    const config: TournamentConfig = {
+      ...defaultConfig(),
+      name: 'No Tables',
+      players: [makePlayer('p1', 'Solo')],
+    };
+
+    saveCheckpoint({
+      version: 1,
+      config,
+      settings: defaultSettings(),
+      timer: { currentLevelIndex: 0, remainingSeconds: 600 },
+      savedAt: new Date().toISOString(),
+    });
+
+    const loaded = loadCheckpoint();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.config.tables).toBeUndefined();
+    expect(loaded!.events).toEqual([]);
+  });
+
+  it('checkpoint multiTable config survives round-trip', () => {
+    const config: TournamentConfig = {
+      ...defaultConfig(),
+      name: 'MultiTable Config',
+      players: [makePlayer('p1', 'A'), makePlayer('p2', 'B')],
+      multiTable: {
+        numberOfTables: 3,
+        seatsPerTable: 8,
+        dissolveThreshold: 4,
+        autoBalanceOnElimination: false,
+      },
+    };
+
+    saveCheckpoint({
+      version: 1,
+      config,
+      settings: defaultSettings(),
+      timer: { currentLevelIndex: 1, remainingSeconds: 450 },
+      savedAt: new Date().toISOString(),
+    });
+
+    const loaded = loadCheckpoint();
+    expect(loaded!.config.multiTable).toBeDefined();
+    expect(loaded!.config.multiTable!.numberOfTables).toBe(3);
+    expect(loaded!.config.multiTable!.seatsPerTable).toBe(8);
+    expect(loaded!.config.multiTable!.dissolveThreshold).toBe(4);
+    expect(loaded!.config.multiTable!.autoBalanceOnElimination).toBe(false);
   });
 });
