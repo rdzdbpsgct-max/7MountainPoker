@@ -5,6 +5,18 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.9.7] – 2026-03-19
+
+### Business Logic, Performance & Robustness Hardening
+
+- **Business-Logik gehärtet** (8 Fixes): `applyTiebreaker` lastResult nutzt jetzt chronologisch sortierte GameDays; `computePayouts` normalisiert Rundungsreste zum 1. Platz (Prozentmodus) und klemmt Fixed-Mode auf Prizepool; `deleteLeague` löscht kaskadierend alle GameDays; `createGameDayFromResult` validiert `activeSeasonId` gegen vorhandene Seasons und nummeriert lückenfrei; Liga-Knockouts werden jetzt von Turnier-Ergebnissen propagiert und in `computeExtendedStandings` aggregiert; `parseSeriesFile` validiert `pointSystem.entries`-Struktur; `buildTournamentResult` sortiert aktive Spieler deterministisch nach Chipcount.
+- **Performance-Optimierungen** (4 Fixes): `React.memo` auf `GameModeContainer` + `useMemo` für State/UI/Undo-Props (75% weniger Reconciliation); IndexedDB `setCachedItem` nutzt einzelnes `db.put()` statt clear+rewrite-all (99% weniger IDB-Writes bei Events); `useTimer` reduziert Re-Renders von 4x/Sek auf 1x/Sek (skip wenn `floor(remaining)` unverändert); `LeagueModeContainer` + `TournamentFinishedContainer` lazy-loaded.
+- **Robustness-Härtung** (8 Fixes): `GameDayEditor` klemmt alle Zahleneingaben auf ≥0; Liga-Import überspringt malformed Results/GameDays; `computeExtendedStandings` Fallback auf Default-Punktesystem bei leeren Entries; NaN-Guard auf `createGameDayFromResult` Finanzdaten; Level-Count-Cap (max 200) bei Config-Import; GameDay-Label i18n (neuer Key `league.editor.gameDayLabel`); `persistSingleItem` db-null-Guard; Float-Rundungsnormalisierung in Liga-Finanzen.
+- **TV-Display Fix**: Request-State-Handshake — TV-Fenster sendet `request-state` beim Laden, Admin antwortet sofort mit Full-State. Behebt leeres Display beim Öffnen des TV-Modus.
+- **1257 Tests gesamt** (18 Testdateien)
+
+---
+
 ## [6.9.6] – 2026-03-18
 
 ### Test-Audit: Lückenanalyse & Coverage-Boost

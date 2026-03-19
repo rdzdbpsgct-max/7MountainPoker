@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.9.6
+**Version**: 6.9.7
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -420,6 +420,15 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.9.7 — Business Logic, Performance & Robustness Hardening
+
+- **Business-Logik gehärtet** (8 Fixes): Tiebreaker-Sort, Payout-Rundung normalisiert, League-Cascade-Delete, Season-Validierung, Knockouts-Propagation, Series-Import-Validierung, deterministische Platzierung, GameDay-Nummerierung.
+- **Performance** (4 Fixes): `React.memo` GameModeContainer + `useMemo` Props (4→1x/Sek Re-Renders), IndexedDB single-item `put` statt clear+rewrite, Timer-Tick nur bei `floor(s)` Änderung, Lazy-load LeagueModeContainer + TournamentFinishedContainer.
+- **Robustness** (8 Fixes): GameDayEditor negative-Werte-Guard, Import-Validierung, Empty-PointSystem-Fallback, NaN-Guard Finanzen, Level-Cap 200, GameDay-Label i18n, db-null-Guard, Float-Normalisierung.
+- **TV-Display**: Request-State-Handshake — sofortige Anzeige beim Öffnen des TV-Modus (auch bei pausiertem Timer).
+- **2 neue Translation-Keys** (league.editor.gameDayLabel DE + EN)
+- **1257 Tests gesamt** (18 Testdateien)
 
 ### v6.9.6 — Test-Audit: Lückenanalyse & Coverage-Boost
 
