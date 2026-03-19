@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.9.7
+**Version**: 6.9.8
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -256,17 +256,19 @@ public/
 - `t('key')` or `t('key', { n: 5 })` for parameterized strings (template vars: `{n}`, `{place}`, etc.)
 - All user-facing strings must go through `t()` — no hardcoded UI text
 
-### Feature Gating & Entitlements (v6.9.2)
+### Feature Gating & Entitlements (v6.9.8)
 - **3-Tier Model**: `free` → `premium` → `pro` (defined in `entitlements.ts`)
-- **Default tier**: `'premium'` — all features available. Controlled via `VITE_APP_TIER` env var (or `loadEntitlements()` from localStorage)
-- **5 Premium features**: `tvDisplay`, `remoteControl`, `league`, `multiTable`, `sidePot` — all gated via `isFeatureAvailable(feature, entitlements)`
-- **Gate checks in App.tsx**: `canUseTVDisplay`, `canUseRemoteControl`, `canUseLeagueMode`, `canUseMultiTable`, `canUseSidePot` — `useMemo` based on entitlements
-- **Gate UI flow**: Button click → `canUse*` check → if false: `openFeatureGate(feature)` shows `FeatureGateModal` → if true: normal action
-- **Gate prop threading**: App.tsx → SetupModeContainer → SetupPage (multiTable); App.tsx → GameModeContainer → PlayerPanel (sidePot); GameModeContainer safety-guards MultiTablePanel render
-- **Feature Discovery**: `markFeatureDiscovered(feature)` called at all 5 feature entry points (AppHeader: TV/Remote/Liga, SetupPage: MultiTable, PlayerPanel: SidePot) — persisted in localStorage
-- **Usage Telemetry**: `trackFeatureUsed(feature, context)` called at 5 usage points (App.tsx: TV toggle/Remote start/Liga mode, MultiTablePanel/SidePotCalculator: on mount)
+- **Default tier**: `'premium'` — all features available. Controlled via `VITE_APP_TIER` env var (or `loadEntitlements()` from localStorage). To activate gating: set `VITE_APP_TIER=free` in Vercel/`.env.local`
+- **12 Premium features**: `tvDisplay`, `remoteControl`, `league`, `multiTable`, `sidePot`, `customAccent`, `customBackground`, `customLayout`, `customAudio`, `pdfExport`, `series`, `icmCalculator` — all gated via `isFeatureAvailable(feature, entitlements)`
+- **Gate checks in App.tsx**: `canUseTVDisplay`, `canUseRemoteControl`, `canUseLeagueMode`, `canUseMultiTable`, `canUseSidePot`, `canUseCustomAccent`, `canUseCustomBackground`, `canUseCustomLayout`, `canUseCustomAudio`, `canUseSeries`, `canUseIcm` — `useMemo` based on entitlements
+- **Gate UI flow**: Button click → `canUse*` check → if false: `openFeatureGate(feature)` shows `FeatureGateModal` → "Upgrade" opens `LicenseActivation` modal → if true: normal action
+- **Gate prop threading**: App.tsx → SetupModeContainer → SetupPage (multiTable); App.tsx → GameModeContainer → PlayerPanel (sidePot); App.tsx → GameModeContainer → SettingsPanel (customAccent/Background/Layout); GameModeContainer safety-guards MultiTablePanel render
+- **License Key System**: HMAC-SHA256 signed keys (`7MP-TIER-EXPIRY-SIGNATURE`), offline-verifiable via Web Crypto API. `license.ts` domain module, `LicenseActivation.tsx` modal, `scripts/generate-license.mjs` CLI generator. Keys stored in `poker-timer-license` localStorage. Activation immediately updates entitlements (reactive `useState`)
+- **Free tier defaults**: Emerald accent only, none/felt-green backgrounds, standard display layout. All 5 core features (TV, Remote, Liga, Multi-Table, Side-Pot) gated. Custom Audio, Series, ICM gated
+- **Feature Discovery**: `markFeatureDiscovered(feature)` called at all premium feature entry points — persisted in localStorage
+- **Usage Telemetry**: `trackFeatureUsed(feature, context)` called at premium feature usage points
 - **Session Telemetry**: `trackSessionStarted()` called once per page load in `main.tsx`
-- **Pro tier** (future): `cloudBackup`, `teamRoles`, `multiEvent` — defined in `proBlueprint.ts`, not yet wired
+- **Pro tier** (future): `cloudBackup`, `teamRoles`, `multiEvent` — defined in `proBlueprint.ts`, requires backend
 
 ### Styling
 - Tailwind utility classes + custom `@keyframes` and `@utility` in `index.css` — no CSS modules, no CSS-in-JS
@@ -420,6 +422,17 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.9.8 — Lizenzschlüssel-System & Personalisierungs-Gates
+
+- **HMAC-Lizenzschlüssel**: Selbst-signierende Lizenzschlüssel (`7MP-TIER-EXPIRY-SIGNATURE`) mit Web Crypto API HMAC-SHA256 Verifikation. Offline-verifizierbar, kein Backend. `license.ts` Domain-Modul, `LicenseActivation.tsx` Modal, `scripts/generate-license.mjs` CLI-Generator. Reaktive Entitlements in App.tsx (`useState` statt `useMemo`).
+- **7 neue Personalisierungs-Gates**: `customAccent` (Free: nur Emerald), `customBackground` (Free: none + felt-green), `customLayout` (Free: nur Standard), `customAudio`, `pdfExport`, `series`, `icmCalculator` — alle als Premium-Features definiert.
+- **SettingsPanel Lock-UI**: Gesperrte Optionen mit 🔒-Icon + reduzierter Opacity, Klick öffnet FeatureGateModal.
+- **FeatureGateModal → LicenseActivation**: "Upgrade"-Button öffnet jetzt Lizenz-Eingabe statt Toast.
+- **Neue Dateien**: `license.ts`, `LicenseActivation.tsx`, `scripts/generate-license.mjs`
+- **26 neue Translation-Keys** (13 DE + 13 EN): `license.*` (12) + `paywall.feature.*` (7 neue Features)
+- **Default-Tier bleibt `'premium'`** — alle Features für alle Nutzer freigeschaltet. Gating aktivierbar via `VITE_APP_TIER=free`.
+- **1257 Tests gesamt** (18 Testdateien)
 
 ### v6.9.7 — Business Logic, Performance & Robustness Hardening
 

@@ -6,7 +6,7 @@
 
 **Der Poker-Turnier-Timer für deinen Spieleabend**
 
-[![Version](https://img.shields.io/badge/Version-6.9.6-blue?style=flat-square)](#)
+[![Version](https://img.shields.io/badge/Version-6.9.8-blue?style=flat-square)](#)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-34d399?style=flat-square&logo=github)](https://rdzdbpsgct-max.github.io/7MountainPoker/)
 [![Vercel](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=flat-square&logo=vercel)](https://7mountainpoker.vercel.app/)
 [![Tests](https://img.shields.io/badge/Tests-1257%20passed-brightgreen?style=flat-square)](#)

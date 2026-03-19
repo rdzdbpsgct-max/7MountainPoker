@@ -5,6 +5,17 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.9.8] – 2026-03-19
+
+### Lizenzschlüssel-System & Personalisierungs-Gates
+
+- **HMAC-Lizenzschlüssel**: Selbst-signierende Offline-Lizenzschlüssel (`7MP-TIER-EXPIRY-SIGNATURE`). Web Crypto API HMAC-SHA256 Verifikation. CLI-Generator (`node scripts/generate-license.mjs premium 0`). Aktivierungs-Modal mit Eingabe, Validierung, aktive Lizenz mit Entfernen-Button. Sofortige Feature-Freischaltung ohne Reload.
+- **7 neue Premium-Gates**: Akzentfarben (Free: Emerald), Hintergrundbilder (Free: none + felt-green), Display-Layouts (Free: Standard), Custom Audio, PDF-Export, Turnier-Serien, ICM-Rechner.
+- **SettingsPanel Lock-UI**: Gesperrte Optionen mit Lock-Icon + reduzierter Opacity, Klick öffnet FeatureGateModal → LicenseActivation.
+- **12 Premium-Features gesamt** (5 Core + 7 Personalisierung), alle Gate-bereit. Default-Tier bleibt `'premium'` — alle Features offen.
+
+---
+
 ## [6.9.7] – 2026-03-19
 
 ### Business Logic, Performance & Robustness Hardening
