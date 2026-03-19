@@ -122,8 +122,9 @@ export function importLeague(data: LeagueExport): League {
   };
   saveLeague(league);
 
-  // Import linked tournament results with updated leagueId and new IDs
-  for (const result of data.results) {
+  // Import linked tournament results with updated leagueId and new IDs (cap to prevent DoS)
+  const cappedResults = data.results.slice(0, 100);
+  for (const result of cappedResults) {
     saveTournamentResult({
       ...result,
       id: `result_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -131,9 +132,9 @@ export function importLeague(data: LeagueExport): League {
     });
   }
 
-  // v2: Import game days with updated leagueId and cleared orphaned registeredPlayerId
+  // v2: Import game days with updated leagueId and cleared orphaned registeredPlayerId (cap to 200)
   if (data.gameDays && data.gameDays.length > 0) {
-    for (const gd of data.gameDays) {
+    for (const gd of data.gameDays.slice(0, 200)) {
       saveGameDay({
         ...gd,
         id: `gd_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,

@@ -128,6 +128,7 @@ export function SeriesManager({ onClose, currentConfig, onLinkSeries }: Props) {
     input.onchange = async () => {
       const file = input.files?.[0];
       if (!file) return;
+      if (file.size > 5 * 1024 * 1024) return;
       try {
         const text = await file.text();
         const data = parseSeriesFile(text);
@@ -136,7 +137,7 @@ export function SeriesManager({ onClose, currentConfig, onLinkSeries }: Props) {
           saveSeries(data.series);
           // After importing the series, also save any embedded results to history
           if (data.results && Array.isArray(data.results)) {
-            const validResults = data.results.filter(
+            const validResults = data.results.slice(0, 100).filter(
               (result): result is TournamentResult => result != null && typeof result === 'object' && typeof result.id === 'string',
             );
             if (validResults.length > 0) {

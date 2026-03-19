@@ -27,6 +27,8 @@ export function validateConfig(config: TournamentConfig, t = moduleT): Validatio
     if (level.type === 'level') {
       if (level.smallBlind == null || level.bigBlind == null) {
         errors.push({ levelIndex: i, message: t('logic.blindsMustBeSet', { n: i + 1 }) });
+      } else if (level.smallBlind <= 0 || level.bigBlind <= 0) {
+        errors.push({ levelIndex: i, message: t('logic.blindsMustBePositive', { n: i + 1 }) });
       } else if (level.bigBlind <= level.smallBlind) {
         errors.push({ levelIndex: i, message: t('logic.bbMustBeGreaterThanSb', { n: i + 1 }) });
       }
@@ -40,7 +42,7 @@ export function validateConfig(config: TournamentConfig, t = moduleT): Validatio
 // Payout Validation
 // ---------------------------------------------------------------------------
 
-export function validatePayoutConfig(payout: PayoutConfig, maxPlaces?: number, t = moduleT): string[] {
+export function validatePayoutConfig(payout: PayoutConfig, maxPlaces?: number, t = moduleT, prizePool?: number): string[] {
   const errors: string[] = [];
 
   if (payout.entries.length === 0) {
@@ -71,6 +73,14 @@ export function validatePayoutConfig(payout: PayoutConfig, maxPlaces?: number, t
     const sum = payout.entries.reduce((s, e) => s + e.value, 0);
     if (Math.abs(sum - 100) > 0.01) {
       errors.push(t('logic.percentMustBe100', { sum: Math.round(sum) }));
+    }
+  }
+
+  // In euro mode, warn if fixed payouts exceed the actual prize pool
+  if (payout.mode === 'euro' && prizePool !== undefined && prizePool > 0) {
+    const sum = payout.entries.reduce((s, e) => s + e.value, 0);
+    if (sum > prizePool) {
+      errors.push(t('logic.euroPayoutExceedsPrizePool', { sum: Math.round(sum), pool: Math.round(prizePool) }));
     }
   }
 

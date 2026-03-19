@@ -22,6 +22,8 @@ const de = {
   'app.startTournament': '▶ Turnier starten',
   'app.minPlayersRequired': 'Mindestens 2 Spieler erforderlich',
   'app.morePlacesThanPlayers': 'Mehr Auszahlungsplätze ({places}) als Spieler ({players})',
+  'app.noLevels': 'Mindestens 1 Blind-Level erforderlich',
+  'app.leagueNotFound': 'Verknüpfte Liga existiert nicht mehr',
   'app.backToSetup': '⚙ Zurück zum Setup',
   'app.hidePlayers': 'Spieler ausblenden',
   'app.showPlayers': 'Spieler einblenden',
@@ -421,6 +423,7 @@ const de = {
   'logic.ante': 'Ante',
   'logic.durationMustBePositive': 'Level {n}: Dauer muss > 0 sein',
   'logic.blindsMustBeSet': 'Level {n}: SB und BB müssen gesetzt sein',
+  'logic.blindsMustBePositive': 'Level {n}: SB und BB müssen > 0 sein',
   'logic.bbMustBeGreaterThanSb': 'Level {n}: BB muss > SB sein',
   'logic.defaultPlayerName': 'Spieler {n}',
   'logic.minOnePayoutPlace': 'Mindestens ein Auszahlungsplatz erforderlich',
@@ -428,6 +431,7 @@ const de = {
   'logic.valueMustNotBeNegative': 'Platz {place}: Wert darf nicht negativ sein',
   'logic.duplicatePlaces': 'Platz {place} ist doppelt vergeben',
   'logic.percentMustBe100': 'Prozente müssen 100% ergeben (aktuell: {sum}%)',
+  'logic.euroPayoutExceedsPrizePool': 'Feste Auszahlungen ({sum} €) übersteigen den Preispool ({pool} €)',
 
   // --- Blind Generator ---
   'blindGenerator.title': 'Blindstruktur generieren',
@@ -1352,6 +1356,8 @@ const en: Record<TranslationKey, string> = {
   'app.startTournament': '▶ Start Tournament',
   'app.minPlayersRequired': 'At least 2 players required',
   'app.morePlacesThanPlayers': 'More payout places ({places}) than players ({players})',
+  'app.noLevels': 'At least 1 blind level required',
+  'app.leagueNotFound': 'Linked league no longer exists',
   'app.backToSetup': '⚙ Back to Setup',
   'app.hidePlayers': 'Hide players',
   'app.showPlayers': 'Show players',
@@ -1751,6 +1757,7 @@ const en: Record<TranslationKey, string> = {
   'logic.ante': 'Ante',
   'logic.durationMustBePositive': 'Level {n}: Duration must be > 0',
   'logic.blindsMustBeSet': 'Level {n}: SB and BB must be set',
+  'logic.blindsMustBePositive': 'Level {n}: SB and BB must be > 0',
   'logic.bbMustBeGreaterThanSb': 'Level {n}: BB must be > SB',
   'logic.defaultPlayerName': 'Player {n}',
   'logic.minOnePayoutPlace': 'At least one payout place required',
@@ -1758,6 +1765,7 @@ const en: Record<TranslationKey, string> = {
   'logic.valueMustNotBeNegative': 'Place {place}: Value must not be negative',
   'logic.duplicatePlaces': 'Place {place} is assigned more than once',
   'logic.percentMustBe100': 'Percentages must add up to 100% (currently: {sum}%)',
+  'logic.euroPayoutExceedsPrizePool': 'Fixed payouts ({sum} €) exceed prize pool ({pool} €)',
 
   // --- Blind Generator ---
   'blindGenerator.title': 'Generate Blind Structure',

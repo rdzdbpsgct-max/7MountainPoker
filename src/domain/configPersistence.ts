@@ -195,16 +195,26 @@ export function getBuiltInPresets(): TournamentPreset[] {
 // Config Parsing
 // ---------------------------------------------------------------------------
 
+/** Strip prototype-pollution keys from a raw parsed object before spread. */
+function sanitize<T extends Record<string, unknown>>(raw: T): T {
+  const result = Object.create(null) as T;
+  for (const key of Object.keys(raw)) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
+    (result as Record<string, unknown>)[key] = raw[key];
+  }
+  return result;
+}
+
 /** Shared parser: normalizes a raw parsed object into a TournamentConfig. */
 export function parseConfigObject(parsed: Record<string, unknown>): TournamentConfig | null {
   if (!parsed || !Array.isArray(parsed.levels)) return null;
-  const buyIn = typeof parsed.buyIn === 'number' ? parsed.buyIn : 10;
-  const startingChips = typeof parsed.startingChips === 'number' ? parsed.startingChips : 20000;
+  const buyIn = typeof parsed.buyIn === 'number' && parsed.buyIn >= 0 ? parsed.buyIn : 10;
+  const startingChips = typeof parsed.startingChips === 'number' && parsed.startingChips > 0 ? parsed.startingChips : 20000;
   const rebuyRaw = parsed.rebuy as Record<string, unknown> | undefined;
   const rebuy: RebuyConfig = rebuyRaw
     ? {
         ...defaultRebuyConfig(buyIn, startingChips),
-        ...(rebuyRaw as Partial<RebuyConfig>),
+        ...sanitize(rebuyRaw as Partial<RebuyConfig> & Record<string, unknown>),
         rebuyCost: typeof rebuyRaw.rebuyCost === 'number' ? rebuyRaw.rebuyCost : buyIn,
         rebuyChips: typeof rebuyRaw.rebuyChips === 'number' ? rebuyRaw.rebuyChips : startingChips,
       }
@@ -213,7 +223,7 @@ export function parseConfigObject(parsed: Record<string, unknown>): TournamentCo
   const addOn: AddOnConfig = addOnRaw
     ? {
         ...defaultAddOnConfig(buyIn, startingChips),
-        ...(addOnRaw as Partial<AddOnConfig>),
+        ...sanitize(addOnRaw as Partial<AddOnConfig> & Record<string, unknown>),
         cost: typeof addOnRaw.cost === 'number' ? addOnRaw.cost : buyIn,
         chips: typeof addOnRaw.chips === 'number' ? addOnRaw.chips : startingChips,
       }
@@ -236,7 +246,7 @@ export function parseConfigObject(parsed: Record<string, unknown>): TournamentCo
     anteMode: (parsed.anteMode === 'bigBlindAnte' ? 'bigBlindAnte' : 'standard'),
     players: Array.isArray(parsed.players)
       ? ((parsed.players as Record<string, unknown>[])
-          .filter((p) => p && typeof p === 'object' && typeof p.id === 'string' && (p.id as string).length > 0 && typeof p.name === 'string')
+          .filter((p) => p && typeof p === 'object' && typeof p.id === 'string' && (p.id as string).length > 0 && typeof p.name === 'string' && (p.name as string).trim().length > 0)
           .map((p) => ({
           id: typeof p.id === 'string' ? p.id : generatePlayerId(),
           name: typeof p.name === 'string' ? p.name : '',
@@ -261,14 +271,14 @@ export function parseConfigObject(parsed: Record<string, unknown>): TournamentCo
       typeof parsed.payout === 'object' &&
       Array.isArray((parsed.payout as Record<string, unknown>).entries)
     )
-      ? { ...defaultPayoutConfig(), ...(parsed.payout as PayoutConfig) }
+      ? { ...defaultPayoutConfig(), ...sanitize(parsed.payout as PayoutConfig & Record<string, unknown>) }
       : defaultPayoutConfig(),
     rebuy,
     addOn,
     bounty: parsed.bounty
       ? {
           ...defaultBountyConfig(),
-          ...(parsed.bounty as Partial<BountyConfig>),
+          ...sanitize(parsed.bounty as Partial<BountyConfig> & Record<string, unknown>),
           type: (parsed.bounty as Record<string, unknown>).type === 'mystery' ? 'mystery' : 'fixed',
           mysteryPool: Array.isArray((parsed.bounty as Record<string, unknown>).mysteryPool)
             ? (parsed.bounty as BountyConfig).mysteryPool
@@ -278,7 +288,7 @@ export function parseConfigObject(parsed: Record<string, unknown>): TournamentCo
     chips: parsed.chips
       ? {
           ...defaultChipConfig(),
-          ...(parsed.chips as ChipConfig),
+          ...sanitize(parsed.chips as ChipConfig & Record<string, unknown>),
           colorUpEnabled: typeof (parsed.chips as Record<string, unknown>).colorUpEnabled === 'boolean'
             ? (parsed.chips as ChipConfig).colorUpEnabled
             : true,
@@ -291,11 +301,11 @@ export function parseConfigObject(parsed: Record<string, unknown>): TournamentCo
     currency: parseCurrency(parsed.currency),
     startingChips,
     lateRegistration: parsed.lateRegistration
-      ? { ...defaultLateRegistrationConfig(), ...(parsed.lateRegistration as Partial<LateRegistrationConfig>) }
+      ? { ...defaultLateRegistrationConfig(), ...sanitize(parsed.lateRegistration as Partial<LateRegistrationConfig> & Record<string, unknown>) }
       : undefined,
     leagueId: typeof parsed.leagueId === 'string' ? parsed.leagueId : undefined,
     multiTable: parsed.multiTable
-      ? { ...defaultMultiTableConfig(), ...(parsed.multiTable as Partial<MultiTableConfig>) }
+      ? { ...defaultMultiTableConfig(), ...sanitize(parsed.multiTable as Partial<MultiTableConfig> & Record<string, unknown>) }
       : undefined,
     tables: Array.isArray(parsed.tables)
       ? (parsed.tables as Record<string, unknown>[])
@@ -412,7 +422,7 @@ export function loadCheckpoint(): TournamentCheckpoint | null {
       version: 1,
       schemaVersion: CHECKPOINT_SCHEMA_VERSION,
       config,
-      settings: raw.settings,
+      settings: { ...defaultSettings(), ...(raw.settings && typeof raw.settings === 'object' ? sanitize(raw.settings as Record<string, unknown>) : {}) },
       timer: timer as TournamentCheckpoint['timer'],
       savedAt: typeof raw.savedAt === 'string' ? raw.savedAt : new Date().toISOString(),
       events: Array.isArray(raw.events) ? raw.events : [],

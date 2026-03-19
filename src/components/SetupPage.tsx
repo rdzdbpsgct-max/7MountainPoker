@@ -206,6 +206,7 @@ export function SetupPage({
     input.onchange = async () => {
       const file = input.files?.[0];
       if (!file) return;
+      if (file.size > 5 * 1024 * 1024) return;
       try {
         const text = await file.text();
         const data = parseLeagueFile(text);

@@ -98,6 +98,7 @@ export function TemplateManager({ config, onLoad, onClose }: Props) {
     input.onchange = async () => {
       const file = input.files?.[0];
       if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { setFileError(true); return; }
       try {
         const text = await file.text();
         const result = parseTemplateFile(text);
