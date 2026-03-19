@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { DisplayStatePayload } from '../domain/displayChannel';
-import { createDisplayChannel, sendDisplayMessage, withDisplayContract } from '../domain/displayChannel';
+import { createDisplayChannel, sendDisplayMessage, withDisplayContract, isDisplayMessage } from '../domain/displayChannel';
 
 interface UseTVDisplayOptions {
   mode: string;
@@ -28,6 +28,8 @@ export function useTVDisplay({
   const [tvWindowActive, setTvWindowActive] = useState(false);
   const tvWindowRef = useRef<Window | null>(null);
   const channelRef = useRef<BroadcastChannel | null>(null);
+  const buildPayloadRef = useRef(buildFullStatePayload);
+  useEffect(() => { buildPayloadRef.current = buildFullStatePayload; }, [buildFullStatePayload]);
 
   // Create/destroy channel based on game mode + tvWindowActive
   useEffect(() => {
@@ -38,12 +40,19 @@ export function useTVDisplay({
       }
       return;
     }
-    channelRef.current = createDisplayChannel();
-    return () => {
-      if (channelRef.current) {
-        channelRef.current.close();
-        channelRef.current = null;
+    const channel = createDisplayChannel();
+    channelRef.current = channel;
+
+    // Listen for request-state from TV window (solves race condition on TV window open)
+    channel.onmessage = (event: MessageEvent<unknown>) => {
+      if (isDisplayMessage(event.data) && event.data.type === 'request-state') {
+        sendDisplayMessage(channel, withDisplayContract({ type: 'full-state', payload: buildPayloadRef.current() }));
       }
+    };
+
+    return () => {
+      channel.close();
+      channelRef.current = null;
     };
   }, [mode, tvWindowActive]);
 

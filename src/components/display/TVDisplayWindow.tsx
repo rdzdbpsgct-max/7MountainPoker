@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import type { DisplayStatePayload, DisplayMessage } from '../../domain/displayChannel';
-import { createDisplayChannel, deserializeColorUpMap, isDisplayMessage } from '../../domain/displayChannel';
+import { createDisplayChannel, deserializeColorUpMap, isDisplayMessage, sendDisplayMessage, withDisplayContract } from '../../domain/displayChannel';
 import { useTranslation } from '../../i18n';
 import { DisplayMode } from './DisplayMode';
 
@@ -61,6 +61,10 @@ export function TVDisplayWindow() {
           break;
       }
     };
+
+    // Request full state from admin window (solves race condition where
+    // admin sends full-state before TV window listener is ready)
+    sendDisplayMessage(channel, withDisplayContract({ type: 'request-state' }));
 
     return () => {
       channel.close();

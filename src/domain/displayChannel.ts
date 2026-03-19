@@ -70,6 +70,7 @@ type DisplayMessageBody =
   | { type: 'timer-tick'; payload: { remainingSeconds: number; status: string; currentLevelIndex: number } }
   | { type: 'call-the-clock'; payload: { durationSeconds: number; soundEnabled: boolean; voiceEnabled: boolean } }
   | { type: 'call-the-clock-dismiss' }
+  | { type: 'request-state' }
   | { type: 'close' };
 
 export type DisplayMessage = DisplayMessageBody & {
@@ -109,6 +110,7 @@ export function isDisplayMessage(value: unknown): value is DisplayMessage {
         && typeof value.payload.soundEnabled === 'boolean'
         && typeof value.payload.voiceEnabled === 'boolean';
     case 'call-the-clock-dismiss':
+    case 'request-state':
     case 'close':
       return true;
     default:
