@@ -276,6 +276,7 @@ export function setCached<K extends StoreKey>(store: K, value: StoreTypeMap[K]):
 /**
  * Upsert an item in a collection store. Updates cache synchronously, persists async.
  * If an item with the same `id` exists, it is replaced; otherwise the item is appended.
+ * Uses single-item IndexedDB put (not clear+rewrite) for much better performance.
  */
 export function setCachedItem<K extends CollectionStore>(store: K, item: CollectionItemMap[K]): void {
   const arr = cache[store] as Array<{ id: string }>;
@@ -285,7 +286,7 @@ export function setCachedItem<K extends CollectionStore>(store: K, item: Collect
   } else {
     arr.push(item as { id: string });
   }
-  persistStore(store);
+  persistSingleItem(store, item as { id: string });
 }
 
 /**
@@ -328,6 +329,23 @@ function persistStore(store: StoreKey): void {
           window.dispatchEvent(new CustomEvent('storage-persist-failed', { detail: { store } }));
         }
       }
+    });
+  persistQueue.set(store, next);
+}
+
+/** Persist a single item to IndexedDB via put (upsert). Much faster than clear+rewrite for frequent operations. */
+function persistSingleItem(store: CollectionStore, item: { id: string }): void {
+  if (useLocalStorageFallback) {
+    persistToLocalStorage(store);
+    return;
+  }
+  if (!db) return;
+  const prev = persistQueue.get(store) ?? Promise.resolve();
+  const next = prev
+    .then(async () => { await db!.put(store, item); })
+    .catch((err) => {
+      console.warn(`[storage] Failed to persist item in "${store}":`, err);
+      persistToLocalStorage(store);
     });
   persistQueue.set(store, next);
 }

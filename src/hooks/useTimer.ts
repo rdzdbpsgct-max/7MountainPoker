@@ -96,6 +96,8 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
         };
       }
 
+      // Only trigger re-render when the displayed second changes (reduces 4x/sec → 1x/sec)
+      if (Math.floor(remaining) === Math.floor(prev.remainingSeconds)) return prev;
       return { ...prev, remainingSeconds: remaining };
     });
   }, [levels, settings.autoAdvance, settings.countdownEnabled, settings.soundEnabled, settings.voiceEnabled, pauseAtLevelIndex]);

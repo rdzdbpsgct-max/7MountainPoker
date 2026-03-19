@@ -55,8 +55,8 @@ import { collectStartErrors } from './domain/startValidation';
 import { SectionErrorBoundary } from './components/ErrorBoundary';
 import { LoadingFallback } from './components/LoadingFallback';
 import { SetupModeContainer } from './components/modes/SetupModeContainer';
-import { LeagueModeContainer } from './components/modes/LeagueModeContainer';
-import { TournamentFinishedContainer } from './components/modes/TournamentFinishedContainer';
+const LeagueModeContainer = lazy(() => import('./components/modes/LeagueModeContainer').then(m => ({ default: m.LeagueModeContainer })));
+const TournamentFinishedContainer = lazy(() => import('./components/modes/TournamentFinishedContainer').then(m => ({ default: m.TournamentFinishedContainer })));
 import { GameModeContainer } from './components/modes/GameModeContainer';
 import { AppHeader } from './components/AppHeader';
 import { FeatureGateModal } from './components/FeatureGateModal';
@@ -789,6 +789,26 @@ function App() {
     handleUpdateTables, handleTableMoves, setSettings, toggleFullscreen, handleExitToSetup,
   ]);
 
+  // Memoize prop objects for GameModeContainer to avoid defeating React.memo
+  const gameModeState = useMemo(() => ({
+    rebuyActive, addOnWindowOpen, currentPlayLevel, tournamentElapsed,
+    averageStack, bubbleActive, showItmFlash, lastHandActive,
+    handForHandActive, lateRegOpen, colorUpMap, recentTableMoves, isBreak,
+  }), [rebuyActive, addOnWindowOpen, currentPlayLevel, tournamentElapsed,
+    averageStack, bubbleActive, showItmFlash, lastHandActive,
+    handForHandActive, lateRegOpen, colorUpMap, recentTableMoves, isBreak]);
+
+  const gameModeUi = useMemo(() => ({
+    cleanView: modals.cleanView, showPlayerPanel: modals.showPlayerPanel,
+    showSidebar: modals.showSidebar, showDealerBadges,
+  }), [modals.cleanView, modals.showPlayerPanel, modals.showSidebar, showDealerBadges]);
+
+  const gameModeUndo = useMemo(() => ({
+    canUndo: undoStack.canUndo, canRedo: undoStack.canRedo,
+    undoLabel: undoStack.undoLabel, redoLabel: undoStack.redoLabel,
+    onUndo: handleUndo, onRedo: handleRedo,
+  }), [undoStack.canUndo, undoStack.canRedo, undoStack.undoLabel, undoStack.redoLabel, handleUndo, handleRedo]);
+
   // Remote Controller Mode — render ONLY the controller view, skip all other UI
   if (isControllerMode && controllerPeerId) {
     return (
@@ -857,7 +877,7 @@ function App() {
       <main id="main-content" className="flex-1 flex">
         {mode === 'league' ? (
           /* League Mode */
-          <LeagueModeContainer
+          <Suspense fallback={<LoadingFallback />}><LeagueModeContainer
             onStartTournament={(leagueId, options) => {
               setConfig(prev => ({ ...prev, leagueId }));
               if (options?.quickStart) {
@@ -871,7 +891,7 @@ function App() {
               }
               setMode('setup');
             }}
-          />
+          /></Suspense>
         ) : mode === 'setup' ? (
           /* Setup Mode */
           <SetupModeContainer
@@ -891,7 +911,7 @@ function App() {
           />
         ) : tournamentFinished && winner ? (
           /* Tournament Finished */
-          <TournamentFinishedContainer
+          <Suspense fallback={<LoadingFallback />}><TournamentFinishedContainer
             players={config.players}
             winner={winner}
             buyIn={config.buyIn}
@@ -903,42 +923,16 @@ function App() {
             onBackToSetup={switchToSetup}
             currency={config.currency}
             events={tournamentEvents}
-          />
+          /></Suspense>
         ) : (
           /* Game Mode */
           <GameModeContainer
             config={config}
             settings={settings}
             timer={timer}
-            undo={{
-              canUndo: undoStack.canUndo,
-              canRedo: undoStack.canRedo,
-              undoLabel: undoStack.undoLabel,
-              redoLabel: undoStack.redoLabel,
-              onUndo: handleUndo,
-              onRedo: handleRedo,
-            }}
-            state={{
-              rebuyActive,
-              addOnWindowOpen,
-              currentPlayLevel,
-              tournamentElapsed,
-              averageStack,
-              bubbleActive,
-              showItmFlash,
-              lastHandActive,
-              handForHandActive,
-              lateRegOpen,
-              colorUpMap,
-              recentTableMoves,
-              isBreak,
-            }}
-            ui={{
-              cleanView: modals.cleanView,
-              showPlayerPanel: modals.showPlayerPanel,
-              showSidebar: modals.showSidebar,
-              showDealerBadges,
-            }}
+            undo={gameModeUndo}
+            state={gameModeState}
+            ui={gameModeUi}
             actions={gameModeActions}
             canUseSidePot={canUseSidePot}
             canUseMultiTable={canUseMultiTable}

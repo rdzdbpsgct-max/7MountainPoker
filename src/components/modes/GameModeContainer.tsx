@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback } from 'react';
+import { lazy, memo, Suspense, useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   ChipDenomination,
@@ -115,7 +115,7 @@ interface Props {
   onOpenFeatureGate?: ((feature: AppFeature) => void) | undefined;
 }
 
-export function GameModeContainer({ config, settings, timer, state, ui, actions, undo, canUseSidePot, canUseMultiTable, onOpenFeatureGate }: Props) {
+export const GameModeContainer = memo(function GameModeContainer({ config, settings, timer, state, ui, actions, undo, canUseSidePot, canUseMultiTable, onOpenFeatureGate }: Props) {
   const { t } = useTranslation();
   const { onUpdateTables } = actions;
 
@@ -321,4 +321,4 @@ export function GameModeContainer({ config, settings, timer, state, ui, actions,
       </div>
     </Suspense></SectionErrorBoundary>
   );
-}
+});
