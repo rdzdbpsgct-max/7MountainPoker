@@ -106,11 +106,13 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
       role="columnheader button"
       aria-sort={sortKey === k ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
       aria-label={`${label} — ${sortKey === k && sortDir === 'asc' ? t('accessibility.sortDescending') : t('accessibility.sortAscending')}`}
-      className={`px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 select-none focus:outline-none focus:ring-2 focus:ring-[var(--accent-ring)] rounded ${className ?? ''}`}
+      className={`group px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 select-none focus:outline-none focus:ring-2 focus:ring-[var(--accent-ring)] rounded ${className ?? ''}`}
     >
       {label}
-      {sortKey === k && (
-        <span className="ml-1">{sortDir === 'asc' ? '▲' : '▼'}</span>
+      {sortKey === k ? (
+        <span className="ml-0.5">{sortDir === 'asc' ? '▲' : '▼'}</span>
+      ) : (
+        <span className="ml-0.5 opacity-0 group-hover:opacity-30 transition-opacity">▼</span>
       )}
     </th>
   );
@@ -217,12 +219,12 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
             {t('league.standings.noData')}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto relative">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700/40">
-                  {renderSortHeader('rank', '#', 'w-10')}
-                  {renderSortHeader('name', t('league.standings.name'))}
+                  {renderSortHeader('rank', '#', 'w-10 sticky left-0 z-10 bg-white dark:bg-gray-800/90')}
+                  {renderSortHeader('name', t('league.standings.name'), 'sticky left-10 z-10 bg-white dark:bg-gray-800/90')}
                   {rankingAlgorithm === 'points' && renderSortHeader('points', t('league.standings.points'))}
                   {rankingAlgorithm === 'elo' && renderSortHeader('eloRating', t('league.ranking.eloColumn'))}
                   {rankingAlgorithm === 'weightedPoints' && renderSortHeader('weightedPoints', t('league.ranking.weightedColumn'))}
@@ -245,10 +247,10 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
                       className={`border-b border-gray-100 dark:border-gray-700/20 hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors ${dimmed ? 'opacity-50' : ''}`}
                       title={dimmed ? t('league.ranking.notQualified') : undefined}
                     >
-                      <td className="px-2 py-2 font-medium text-gray-500 dark:text-gray-400">
+                      <td className="px-2 py-2 font-medium text-gray-500 dark:text-gray-400 sticky left-0 z-10 bg-inherit">
                         {medal(s.rank)}
                       </td>
-                      <td className="px-2 py-2 font-medium text-gray-900 dark:text-white">
+                      <td className="px-2 py-2 font-medium text-gray-900 dark:text-white sticky left-10 z-10 bg-inherit">
                         <button
                           onClick={() => setSelectedPlayer(s.name)}
                           className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-left"

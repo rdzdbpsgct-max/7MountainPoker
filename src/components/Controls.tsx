@@ -144,12 +144,12 @@ export const Controls = memo(function Controls({
         </button>
       )}
 
-      {/* Last Hand + Hand-for-Hand + Clean view */}
-      <div className="flex items-center gap-2">
+      {/* Last Hand + Hand-for-Hand + Clean view + Call Clock */}
+      <div className="flex items-center gap-1.5 flex-wrap justify-center">
         {showHandForHand && onHandForHand && (
           <button
             onClick={onHandForHand}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
               handForHandActive
                 ? 'bg-red-600 dark:bg-red-700 hover:bg-red-500 dark:hover:bg-red-600 text-white border-red-500 dark:border-red-600 shadow-red-300/30 dark:shadow-red-900/30'
                 : 'bg-white dark:bg-gray-800/80 hover:bg-red-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15'
@@ -162,7 +162,7 @@ export const Controls = memo(function Controls({
         {onLastHand && (
           <button
             onClick={onLastHand}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
               lastHandActive
                 ? 'bg-amber-600 dark:bg-amber-700 hover:bg-amber-500 dark:hover:bg-amber-600 text-white border-amber-500 dark:border-amber-600 shadow-amber-300/30 dark:shadow-amber-900/30'
                 : 'bg-white dark:bg-gray-800/80 hover:bg-amber-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15'
@@ -175,7 +175,7 @@ export const Controls = memo(function Controls({
         {onToggleCleanView && (
           <button
             onClick={onToggleCleanView}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
               cleanView
                 ? 'text-white border-transparent'
                 : 'bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15'
@@ -189,7 +189,7 @@ export const Controls = memo(function Controls({
         {onCallTheClock && callTheClockSeconds != null && (
           <button
             onClick={onCallTheClock}
-            className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15"
             title={t('controls.callTheClock')}
           >
             {String.fromCodePoint(0x23F1)} {callTheClockSeconds}s
@@ -198,7 +198,7 @@ export const Controls = memo(function Controls({
       </div>
 
       {!hideSecondaryControls && (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap justify-center">
           {onUndo && (
             <button
               onClick={onUndo}

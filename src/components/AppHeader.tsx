@@ -83,7 +83,7 @@ export const AppHeader = memo(function AppHeader({
           {mode === 'game' && tournamentName ? `♠ ♥ ${tournamentName} ♦ ♣` : t('app.title')}
         </h1>
         {mode === 'game' && (
-          <span className="text-sm text-gray-400 dark:text-gray-500 font-mono tabular-nums">{clockTime}</span>
+          <span className="text-xs sm:text-sm text-gray-400 dark:text-gray-500 font-mono tabular-nums shrink-0">{clockTime}</span>
         )}
       </div>
 

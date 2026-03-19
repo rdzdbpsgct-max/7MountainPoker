@@ -142,8 +142,8 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
         </div>
       </CollapsibleSubSection>
 
-      {/* Section 3: Appearance (default closed) */}
-      <CollapsibleSubSection title={t('settings.sectionAppearance' as Parameters<typeof t>[0])} defaultOpen={false}>
+      {/* Section 3: Appearance (default open) */}
+      <CollapsibleSubSection title={t('settings.sectionAppearance' as Parameters<typeof t>[0])} defaultOpen={true}>
         <div className="space-y-4">
           {/* Accent Color */}
           <div>

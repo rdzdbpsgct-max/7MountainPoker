@@ -173,7 +173,7 @@ export function GameModeContainer({ config, settings, timer, state, ui, actions,
           {config.players.length > 0 && (
             <button
               onClick={actions.onTogglePlayerPanel}
-              className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-30 w-7 h-20 items-center justify-center bg-white dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-r-lg text-xs transition-all duration-200 border-r border-y border-gray-200 dark:border-gray-700/30 shadow-md shadow-gray-300/30 dark:shadow-black/10"
+              className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-30 w-8 h-24 items-center justify-center bg-white/90 dark:bg-gray-800/90 hover:bg-gray-200 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-r-xl text-sm transition-all duration-200 border-r border-y border-gray-200 dark:border-gray-700/30 shadow-lg shadow-gray-300/30 dark:shadow-black/20"
               title={ui.showPlayerPanel ? t('app.hidePlayers') : t('app.showPlayers')}
             >
               {ui.showPlayerPanel ? '\u25C0' : '\u25B6'}
@@ -181,7 +181,7 @@ export function GameModeContainer({ config, settings, timer, state, ui, actions,
           )}
           <button
             onClick={actions.onToggleSidebar}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 w-7 h-20 items-center justify-center bg-white dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-l-lg text-xs transition-all duration-200 border-l border-y border-gray-200 dark:border-gray-700/30 shadow-md shadow-gray-300/30 dark:shadow-black/10"
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 w-8 h-24 items-center justify-center bg-white/90 dark:bg-gray-800/90 hover:bg-gray-200 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-l-xl text-sm transition-all duration-200 border-l border-y border-gray-200 dark:border-gray-700/30 shadow-lg shadow-gray-300/30 dark:shadow-black/20"
             title={ui.showSidebar ? t('app.hideSidebar') : t('app.showSidebar')}
           >
             {ui.showSidebar ? '\u25B6' : '\u25C0'}

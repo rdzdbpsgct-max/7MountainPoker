@@ -935,13 +935,7 @@ describe('SettingsPanel', () => {
     renderWithProviders(
       <SettingsPanel settings={baseSettings} onChange={vi.fn()} onToggleFullscreen={vi.fn()} />
     );
-    // Expand the Appearance section (collapsed by default)
-    const appearanceBtn = screen.getAllByRole('button').find(b =>
-      b.textContent?.includes('Darstellung') || b.textContent?.includes('Appearance')
-    );
-    expect(appearanceBtn).toBeTruthy();
-    fireEvent.click(appearanceBtn!);
-    // Each accent option has a title attribute (Emerald, Blue, Purple, Red, Amber, Cyan)
+    // Appearance section is open by default — accent colors visible immediately
     expect(screen.getByTitle('Emerald')).toBeInTheDocument();
     expect(screen.getByTitle('Blue')).toBeInTheDocument();
     expect(screen.getByTitle('Purple')).toBeInTheDocument();
@@ -954,13 +948,7 @@ describe('SettingsPanel', () => {
     renderWithProviders(
       <SettingsPanel settings={baseSettings} onChange={vi.fn()} onToggleFullscreen={vi.fn()} />
     );
-    // Expand the Appearance section (collapsed by default)
-    const appearanceBtn = screen.getAllByRole('button').find(b =>
-      b.textContent?.includes('Darstellung') || b.textContent?.includes('Appearance')
-    );
-    expect(appearanceBtn).toBeTruthy();
-    fireEvent.click(appearanceBtn!);
-    // BG_OPTIONS has 9 entries rendered in a 3-column grid
+    // Appearance section is open by default — background grid visible immediately
     const bgGrid = document.querySelector('.grid.grid-cols-3');
     expect(bgGrid).toBeTruthy();
     expect(bgGrid!.children.length).toBe(9);

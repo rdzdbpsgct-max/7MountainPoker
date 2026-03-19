@@ -333,10 +333,14 @@ export function SetupPage({
             </div>
 
             {startErrors.length > 0 && (
-              <p className="text-xs text-rose-700 dark:text-rose-300 bg-rose-50/80 dark:bg-rose-900/20 border border-rose-300/70 dark:border-rose-700/50 rounded-lg px-3 py-2">
-                <span className="font-semibold">{t('setupGuide.blockerLabel')}: </span>
-                {startErrors[0]}
-              </p>
+              <ul className="text-xs text-rose-700 dark:text-rose-300 bg-rose-50/80 dark:bg-rose-900/20 border border-rose-300/70 dark:border-rose-700/50 rounded-lg px-3 py-2 space-y-1">
+                {startErrors.map((err, i) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="font-semibold shrink-0">{i === 0 ? `${t('setupGuide.blockerLabel')}:` : '•'}</span>
+                    <span>{err}</span>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </div>
@@ -561,7 +565,7 @@ export function SetupPage({
 
           {/* Multi-Table sub-section */}
           {config.players.length >= 6 && (
-            <CollapsibleSubSection title={t('multiTable.title')} summary={multiTableSummary} defaultOpen={config.tables != null && config.tables.length > 0}>
+            <CollapsibleSubSection title={t('multiTable.title')} summary={multiTableSummary} defaultOpen={(config.tables != null && config.tables.length > 0) || config.players.length > 10}>
               <div className="space-y-3">
                 <button
                   onClick={() => {

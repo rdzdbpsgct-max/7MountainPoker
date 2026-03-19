@@ -89,8 +89,7 @@ export const PlayerPanel = memo(function PlayerPanel({
     const maxLen = players.reduce((max, p) => Math.max(max, p.name.length), 0);
     if (maxLen <= 8) return 'text-sm';
     if (maxLen <= 12) return 'text-xs';
-    if (maxLen <= 18) return 'text-[11px]';
-    return 'text-[10px]';
+    return 'text-xs';
   }, [players]);
 
   const chipLeaderId = useMemo(() => findChipLeader(players), [players]);
