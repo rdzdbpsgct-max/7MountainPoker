@@ -277,6 +277,13 @@ export function parseSeriesFile(json: string): SeriesExport | null {
     if (data.version !== 1) return null;
     if (!data.series || !data.series.id || !data.series.name) return null;
     if (!Array.isArray(data.series.tournamentIds)) return null;
+    // Validate pointSystem structure if present
+    if (data.series.pointSystem) {
+      if (!data.series.pointSystem.entries || !Array.isArray(data.series.pointSystem.entries)) return null;
+      if (data.series.pointSystem.entries.some((e: unknown) =>
+        !e || typeof e !== 'object' || typeof (e as Record<string, unknown>).place !== 'number' || typeof (e as Record<string, unknown>).points !== 'number',
+      )) return null;
+    }
     return data as SeriesExport;
   } catch {
     return null;

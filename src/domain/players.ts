@@ -135,7 +135,9 @@ export function isInTheMoney(activePlayers: number, paidPlaces: number): boolean
 // Average stack
 // ---------------------------------------------------------------------------
 
-/** Computes the average chip stack per active player based on total chips in play. */
+/** Computes the average chip stack per active player based on total chips in play.
+ * Each player entry (including re-entries) contributed a starting stack buy-in.
+ * Eliminated players' chips are redistributed to active players, so total chips = all buy-ins + rebuys + add-ons. */
 export function computeAverageStack(
   players: Player[],
   startingChips: number,

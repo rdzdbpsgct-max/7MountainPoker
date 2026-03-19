@@ -285,19 +285,45 @@ export function resolvePotWinners(
   return { payouts, oddChips, total };
 }
 
-/** Calculate payout amounts per place from a payout config and prize pool. Supports both percent and fixed modes. */
+/** Calculate payout amounts per place from a payout config and prize pool. Supports both percent and fixed modes.
+ * In percent mode: rounds each place individually, then normalizes so sum === prizePool (remainder goes to 1st place).
+ * In euro mode: clamps total to prizePool to prevent over-payout. */
 export function computePayouts(
   payout: PayoutConfig,
   prizePool: number,
 ): { place: number; amount: number }[] {
   const safePrizePool = Math.max(0, prizePool);
-  return payout.entries.map((entry) => ({
+
+  if (payout.mode === 'percent') {
+    const result = payout.entries.map((entry) => ({
+      place: entry.place,
+      amount: Math.round((entry.value / 100) * safePrizePool * 100) / 100,
+    }));
+    // Normalize: only if percentages sum close to 100%, redistribute rounding remainder to 1st place
+    const percentSum = payout.entries.reduce((s, e) => s + e.value, 0);
+    if (Math.abs(percentSum - 100) < 1 && result.length > 0) {
+      const sum = result.reduce((s, r) => s + r.amount, 0);
+      const diff = Math.round((safePrizePool - sum) * 100) / 100;
+      if (diff !== 0) {
+        result[0]!.amount = Math.round((result[0]!.amount + diff) * 100) / 100;
+      }
+    }
+    return result;
+  }
+
+  // Fixed (euro) mode: clamp total to prizePool
+  const result = payout.entries.map((entry) => ({
     place: entry.place,
-    amount:
-      payout.mode === 'percent'
-        ? Math.round((entry.value / 100) * safePrizePool * 100) / 100
-        : entry.value,
+    amount: entry.value,
   }));
+  const sum = result.reduce((s, r) => s + r.amount, 0);
+  if (sum > safePrizePool && safePrizePool > 0) {
+    const scale = safePrizePool / sum;
+    for (const r of result) {
+      r.amount = Math.round(r.amount * scale * 100) / 100;
+    }
+  }
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -388,7 +414,7 @@ export function buildTournamentResult(
   }
 
   // Aggregate re-entry groups into single player results
-  const aggregated: { name: string; bestPlace: number; isActive: boolean; totalRebuys: number; hasAddOn: boolean; totalKnockouts: number; totalBuyIns: number; totalBountyEarned: number }[] = [];
+  const aggregated: { name: string; bestPlace: number; bestChips: number | undefined; isActive: boolean; totalRebuys: number; hasAddOn: boolean; totalKnockouts: number; totalBuyIns: number; totalBountyEarned: number }[] = [];
   for (const group of reEntryGroups.values()) {
     const bestInstance = group.reduce((best, p) => {
       if (p.status === 'active') return p;
@@ -402,6 +428,7 @@ export function buildTournamentResult(
     aggregated.push({
       name: bestInstance.name,
       bestPlace,
+      bestChips: bestInstance.chips,
       isActive,
       totalRebuys: group.reduce((sum, p) => sum + p.rebuys, 0),
       hasAddOn: group.some((p) => p.addOn),
@@ -414,7 +441,11 @@ export function buildTournamentResult(
   const sorted = [...aggregated].sort((a, b) => {
     if (a.isActive && !b.isActive) return -1;
     if (b.isActive && !a.isActive) return 1;
-    if (a.isActive && b.isActive) return 0; // both active → preserve order
+    if (a.isActive && b.isActive) {
+      // Deterministic: sort by chip count desc, then alphabetically by name
+      const chipDiff = (b.bestChips ?? 0) - (a.bestChips ?? 0);
+      return chipDiff !== 0 ? chipDiff : a.name.localeCompare(b.name);
+    }
     return a.bestPlace - b.bestPlace;
   });
 

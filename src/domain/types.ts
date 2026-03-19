@@ -397,6 +397,8 @@ export interface GameDayParticipant {
   payout: number;
   /** payout - buyIn - rebuyCost - addOnCost */
   netBalance: number;
+  /** Number of players eliminated by this player */
+  knockouts?: number | undefined;
   /** When true, this player is a guest and may be excluded from overall standings */
   isGuest?: boolean | undefined;
   /** Optional link to RegisteredPlayer for stable identity */

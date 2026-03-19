@@ -7,7 +7,7 @@ import type {
 } from './types';
 import { parseConfigObject } from './configPersistence';
 import { loadTournamentHistory, saveTournamentResult } from './historyPersistence';
-import { loadGameDaysForLeague, saveGameDay } from './league';
+import { loadGameDaysForLeague, saveGameDay, deleteGameDay } from './league';
 import { getCached, setCachedItem, deleteCachedItem } from './storage';
 
 // ---------------------------------------------------------------------------
@@ -40,8 +40,13 @@ export function saveLeague(league: League): League {
   return league;
 }
 
-/** Delete a league by id. */
+/** Delete a league by id. Also cascade-deletes all associated game days. */
 export function deleteLeague(id: string): void {
+  // Cascade: delete all game days belonging to this league
+  const gameDays = loadGameDaysForLeague(id);
+  for (const gd of gameDays) {
+    deleteGameDay(gd.id);
+  }
   deleteCachedItem('leagues', id);
 }
 

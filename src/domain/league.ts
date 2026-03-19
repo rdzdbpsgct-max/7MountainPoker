@@ -105,6 +105,7 @@ export function createGameDayFromResult(
       addOnCost: addOnCost,
       payout: p.payout,
       netBalance: p.payout + p.bountyEarned - totalCost,
+      knockouts: p.knockouts,
       ...(registeredPlayerId ? { registeredPlayerId } : {}),
     };
   });
@@ -112,14 +113,23 @@ export function createGameDayFromResult(
   const totalBuyIns = participants.reduce((sum, p) => sum + p.buyIn + (result.rebuyEnabled ? p.rebuys * (result.rebuyCost ?? result.buyIn) : 0) + p.addOnCost, 0);
   const totalPrizePool = result.prizePool;
 
-  // Determine next game day number for this league
+  // Determine next game day number for this league (max existing + 1 to avoid gaps after deletions)
   const existingGameDays = loadGameDaysForLeague(league.id);
-  const nextNumber = existingGameDays.length + 1;
+  const maxNumber = existingGameDays.reduce((max, gd) => {
+    const m = gd.label?.match(/\d+/);
+    return m ? Math.max(max, parseInt(m[0], 10)) : max;
+  }, 0);
+  const nextNumber = maxNumber + 1;
+
+  // Validate activeSeasonId refers to an existing season
+  const validSeasonId = league.activeSeasonId && league.seasons?.some(s => s.id === league.activeSeasonId)
+    ? league.activeSeasonId
+    : undefined;
 
   const gameDay: GameDay = {
     id: `gd_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     leagueId: league.id,
-    seasonId: league.activeSeasonId,
+    seasonId: validSeasonId,
     date: result.date,
     label: `Spieltag ${nextNumber}`,
     tournamentResultId: result.id,
@@ -361,6 +371,7 @@ export function computeExtendedStandings(
       if (p.payout > 0) standing.cashes++;
       standing.avgPlace += p.place;
       if (p.place < standing.bestPlace) standing.bestPlace = p.place;
+      standing.knockouts += p.knockouts ?? 0;
       const cost = computeParticipantTotalCost(p);
       standing.totalCost += cost;
       standing.totalPayout += p.payout;
@@ -486,8 +497,9 @@ export function applyTiebreaker(
             diff = b.cashes - a.cashes; // more is better
             break;
           case 'lastResult': {
-            // Compare last game day placement (lower is better)
-            const lastGD = gameDays.length > 0 ? gameDays[gameDays.length - 1] : null;
+            // Compare last game day placement (lower is better) — sort by date to ensure chronological order
+            const sortedGDs = [...gameDays].sort((x, y) => x.date.localeCompare(y.date));
+            const lastGD = sortedGDs.length > 0 ? sortedGDs[sortedGDs.length - 1] : null;
             if (lastGD) {
               const aLast = lastGD.participants.find((p) => normalizePlayerName(p.name) === normalizePlayerName(a.name));
               const bLast = lastGD.participants.find((p) => normalizePlayerName(p.name) === normalizePlayerName(b.name));
