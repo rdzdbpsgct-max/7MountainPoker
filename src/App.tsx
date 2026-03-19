@@ -89,12 +89,13 @@ const SeriesManager = lazy(() => import('./components/SeriesManager').then(m => 
 const CustomAudioEditor = lazy(() => import('./components/CustomAudioEditor').then(m => ({ default: m.CustomAudioEditor })));
 const ShareHub = lazy(() => import('./components/ShareHub').then(m => ({ default: m.ShareHub })));
 const IcmCalculator = lazy(() => import('./components/IcmCalculator').then(m => ({ default: m.IcmCalculator })));
+const LicenseActivation = lazy(() => import('./components/LicenseActivation').then(m => ({ default: m.LicenseActivation })));
 
 type Mode = 'setup' | 'game' | 'league';
 
 function App() {
   const { t, language } = useTranslation();
-  const entitlements = useMemo(() => loadEntitlements(), []);
+  const [entitlements, setEntitlements] = useState(() => loadEntitlements());
   const canUseTVDisplay = useMemo(() => isFeatureAvailable('tvDisplay', entitlements), [entitlements]);
   const canUseRemoteControl = useMemo(() => isFeatureAvailable('remoteControl', entitlements), [entitlements]);
   const canUseLeagueMode = useMemo(() => isFeatureAvailable('league', entitlements), [entitlements]);
@@ -582,12 +583,17 @@ function App() {
     lockedFeature,
     openFeatureGate,
     closeFeatureGate,
-    handleUpgradeIntent,
+    handleUpgradeIntent: _handleUpgradeIntentBase,
   } = useFeatureGate({
     currentTier: entitlements.tier,
     mode,
     t,
   });
+  const [showLicenseActivation, setShowLicenseActivation] = useState(false);
+  const handleUpgradeIntent = useCallback(() => {
+    _handleUpgradeIntentBase();
+    setShowLicenseActivation(true);
+  }, [_handleUpgradeIntentBase]);
 
   const handleToggleTVWindowWithGate = useCallback(() => {
     if (!canUseTVDisplay) {
@@ -1157,6 +1163,17 @@ function App() {
           onClose={closeFeatureGate}
           onUpgrade={handleUpgradeIntent}
         />
+      )}
+      {showLicenseActivation && (
+        <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
+          <LicenseActivation
+            onClose={() => setShowLicenseActivation(false)}
+            onActivated={() => {
+              setEntitlements(loadEntitlements());
+              setShowLicenseActivation(false);
+            }}
+          />
+        </Suspense></SectionErrorBoundary>
       )}
       <ToastContainer />
     </div>

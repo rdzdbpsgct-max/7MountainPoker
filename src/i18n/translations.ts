@@ -56,6 +56,20 @@ const de = {
   'paywall.feature.teamRoles': 'Team-Rollen',
   'paywall.feature.multiEvent': 'Multi-Event',
 
+  // --- License Activation ---
+  'license.title': 'Lizenz aktivieren',
+  'license.placeholder': '7MP-PREMIUM-...',
+  'license.activate': 'Aktivieren',
+  'license.success': '{tier} freigeschaltet!',
+  'license.invalid': 'Ungültiger Lizenzschlüssel',
+  'license.expired': 'Lizenzschlüssel abgelaufen',
+  'license.active': 'Aktive Lizenz',
+  'license.tier': 'Stufe: {tier}',
+  'license.expires': 'Gültig bis: {date}',
+  'license.expiresNever': 'Unbegrenzt gültig',
+  'license.remove': 'Lizenz entfernen',
+  'license.removed': 'Lizenz entfernt',
+
   // --- Confirm Dialogs ---
   'confirm.resetLevel.title': 'Level zurücksetzen?',
   'confirm.resetLevel.message': 'Die verbleibende Zeit des aktuellen Levels wird auf die volle Dauer zurückgesetzt.',
@@ -1390,6 +1404,20 @@ const en: Record<TranslationKey, string> = {
   'paywall.feature.cloudBackup': 'Cloud backup',
   'paywall.feature.teamRoles': 'Team roles',
   'paywall.feature.multiEvent': 'Multi-event',
+
+  // --- License Activation ---
+  'license.title': 'Activate License',
+  'license.placeholder': '7MP-PREMIUM-...',
+  'license.activate': 'Activate',
+  'license.success': '{tier} unlocked!',
+  'license.invalid': 'Invalid license key',
+  'license.expired': 'License key expired',
+  'license.active': 'Active License',
+  'license.tier': 'Tier: {tier}',
+  'license.expires': 'Valid until: {date}',
+  'license.expiresNever': 'Never expires',
+  'license.remove': 'Remove license',
+  'license.removed': 'License removed',
 
   // --- Confirm Dialogs ---
   'confirm.resetLevel.title': 'Reset level?',
