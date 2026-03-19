@@ -101,6 +101,12 @@ function App() {
   const canUseLeagueMode = useMemo(() => isFeatureAvailable('league', entitlements), [entitlements]);
   const canUseMultiTable = useMemo(() => isFeatureAvailable('multiTable', entitlements), [entitlements]);
   const canUseSidePot = useMemo(() => isFeatureAvailable('sidePot', entitlements), [entitlements]);
+  const canUseCustomAccent = useMemo(() => isFeatureAvailable('customAccent', entitlements), [entitlements]);
+  const canUseCustomBackground = useMemo(() => isFeatureAvailable('customBackground', entitlements), [entitlements]);
+  const canUseCustomLayout = useMemo(() => isFeatureAvailable('customLayout', entitlements), [entitlements]);
+  const canUseCustomAudio = useMemo(() => isFeatureAvailable('customAudio', entitlements), [entitlements]);
+  const canUseSeries = useMemo(() => isFeatureAvailable('series', entitlements), [entitlements]);
+  const canUseIcm = useMemo(() => isFeatureAvailable('icmCalculator', entitlements), [entitlements]);
 
   // Sync speech language with app language
   useEffect(() => {
@@ -781,7 +787,7 @@ function App() {
     onNextHand: handleNextHand,
     onShowCallTheClock: () => setShowCallTheClock(true),
     onShowPayoutOverlay: () => setShowPayoutOverlay(true),
-    onShowIcm: () => setShowIcm(true),
+    onShowIcm: () => canUseIcm ? setShowIcm(true) : openFeatureGate('icmCalculator'),
     onUpdateTables: handleUpdateTables,
     onTableMoves: handleTableMoves,
     onSettingsChange: setSettings,
@@ -810,7 +816,9 @@ function App() {
   const gameModeUi = useMemo(() => ({
     cleanView: modals.cleanView, showPlayerPanel: modals.showPlayerPanel,
     showSidebar: modals.showSidebar, showDealerBadges,
-  }), [modals.cleanView, modals.showPlayerPanel, modals.showSidebar, showDealerBadges]);
+    canUseCustomAccent, canUseCustomBackground, canUseCustomLayout,
+  }), [modals.cleanView, modals.showPlayerPanel, modals.showSidebar, showDealerBadges,
+    canUseCustomAccent, canUseCustomBackground, canUseCustomLayout]);
 
   const gameModeUndo = useMemo(() => ({
     canUndo: undoStack.canUndo, canRedo: undoStack.canRedo,
@@ -866,7 +874,7 @@ function App() {
         onShowLog={() => modals.setShowTournamentLog(true)}
         showLogButton={mode === 'game' && !tournamentFinished}
         onOpenFeatureGate={openFeatureGate}
-        onShowSeries={() => modals.setShowSeries(true)}
+        onShowSeries={() => canUseSeries ? modals.setShowSeries(true) : openFeatureGate('series')}
         onShowShareHub={() => {
           if (!remoteHostRef.current) startRemoteHost();
           modals.setShowShareHub(true);
@@ -908,7 +916,7 @@ function App() {
             setConfig={setConfig}
             settings={settings}
             onSettingsChange={setSettings}
-            onShowCustomAudio={() => modals.setShowCustomAudio(true)}
+            onShowCustomAudio={() => canUseCustomAudio ? modals.setShowCustomAudio(true) : openFeatureGate('customAudio')}
             pendingCheckpoint={pendingCheckpoint}
             onRestoreCheckpoint={restoreFromCheckpoint}
             onDismissCheckpoint={dismissCheckpoint}

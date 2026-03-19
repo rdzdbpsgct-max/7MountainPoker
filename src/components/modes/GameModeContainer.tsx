@@ -63,6 +63,9 @@ export interface GameModeUiState {
   showPlayerPanel: boolean;
   showSidebar: boolean;
   showDealerBadges: boolean;
+  canUseCustomAccent?: boolean | undefined;
+  canUseCustomBackground?: boolean | undefined;
+  canUseCustomLayout?: boolean | undefined;
 }
 
 /** All action callbacks for game mode */
@@ -303,6 +306,10 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
               onChange={actions.onSettingsChange}
               onToggleFullscreen={actions.onToggleFullscreen}
               onShowInstallGuide={actions.onShowInstallGuide}
+              canUseCustomAccent={ui.canUseCustomAccent}
+              canUseCustomBackground={ui.canUseCustomBackground}
+              canUseCustomLayout={ui.canUseCustomLayout}
+              onOpenFeatureGate={onOpenFeatureGate ? (f) => onOpenFeatureGate(f as AppFeature) : undefined}
             />
             <button
               onClick={actions.onShowIcm}

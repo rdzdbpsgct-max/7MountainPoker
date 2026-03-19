@@ -11,7 +11,11 @@ interface Props {
   settings: Settings;
   onChange: (settings: Settings) => void;
   onToggleFullscreen: () => void;
-  onShowInstallGuide?: () => void;
+  onShowInstallGuide?: (() => void) | undefined;
+  canUseCustomAccent?: boolean | undefined;
+  canUseCustomBackground?: boolean | undefined;
+  canUseCustomLayout?: boolean | undefined;
+  onOpenFeatureGate?: ((feature: string) => void) | undefined;
 }
 
 function CheckBox({ checked, onChange }: { checked: boolean; onChange: () => void }) {
@@ -58,7 +62,7 @@ const BG_OPTIONS: { value: BackgroundImage; gradient: string; labelKey: string }
   { value: 'sunset',     gradient: 'linear-gradient(135deg, rgba(245,158,11,0.4), rgba(239,68,68,0.4))', labelKey: 'settings.bgSunset' },
 ];
 
-export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, onToggleFullscreen, onShowInstallGuide }: Props) {
+export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, onToggleFullscreen, onShowInstallGuide, canUseCustomAccent = true, canUseCustomBackground = true, canUseCustomLayout = true, onOpenFeatureGate }: Props) {
   const { t } = useTranslation();
   const { accentColor, setAccentColor, backgroundImage, setBackgroundImage } = useTheme();
 
@@ -149,25 +153,30 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
           <div>
             <span className="text-sm text-gray-700 dark:text-gray-300 block mb-1.5">{t('settings.accentColor')}</span>
             <div className="flex items-center gap-2">
-              {ACCENT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setAccentColor(opt.value)}
-                  className={`w-9 h-9 rounded-full transition-all duration-200 ${
-                    accentColor === opt.value
-                      ? 'ring-2 scale-110'
-                      : 'opacity-60 hover:opacity-100 hover:scale-105'
-                  }`}
-                  style={{
-                    backgroundColor: opt.color,
-                    ...(accentColor === opt.value
-                      ? { ringColor: opt.color, boxShadow: `0 0 0 2px var(--accent-ring), 0 0 8px ${opt.color}40` }
-                      : {}),
-                  }}
-                  title={opt.label}
-                  aria-label={opt.label}
-                />
-              ))}
+              {ACCENT_OPTIONS.map((opt) => {
+                const locked = !canUseCustomAccent && opt.value !== 'emerald';
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => locked && onOpenFeatureGate ? onOpenFeatureGate('customAccent') : setAccentColor(opt.value)}
+                    className={`w-9 h-9 rounded-full transition-all duration-200 relative ${
+                      accentColor === opt.value
+                        ? 'ring-2 scale-110'
+                        : locked ? 'opacity-30 cursor-not-allowed' : 'opacity-60 hover:opacity-100 hover:scale-105'
+                    }`}
+                    style={{
+                      backgroundColor: opt.color,
+                      ...(accentColor === opt.value
+                        ? { ringColor: opt.color, boxShadow: `0 0 0 2px var(--accent-ring), 0 0 8px ${opt.color}40` }
+                        : {}),
+                    }}
+                    title={locked ? 'Premium' : opt.label}
+                    aria-label={opt.label}
+                  >
+                    {locked && <span className="absolute inset-0 flex items-center justify-center text-xs">&#x1F512;</span>}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -175,14 +184,17 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
           <div>
             <span className="text-sm text-gray-700 dark:text-gray-300 block mb-1.5">{t('settings.backgroundImage')}</span>
             <div className="grid grid-cols-3 gap-1.5">
-              {BG_OPTIONS.map((opt) => (
+              {BG_OPTIONS.map((opt) => {
+                const FREE_BGS = ['none', 'felt-green'];
+                const bgLocked = !canUseCustomBackground && !FREE_BGS.includes(opt.value);
+                return (
                 <button
                   key={opt.value}
-                  onClick={() => setBackgroundImage(opt.value)}
+                  onClick={() => bgLocked && onOpenFeatureGate ? onOpenFeatureGate('customBackground') : setBackgroundImage(opt.value)}
                   className={`relative w-full aspect-[3/2] rounded-lg overflow-hidden transition-all duration-200 border-2 ${
                     backgroundImage === opt.value
                       ? 'scale-[1.02]'
-                      : 'border-gray-300 dark:border-gray-700/60 hover:border-gray-400 dark:hover:border-gray-600 opacity-70 hover:opacity-100'
+                      : bgLocked ? 'border-gray-300 dark:border-gray-700/60 opacity-30 cursor-not-allowed' : 'border-gray-300 dark:border-gray-700/60 hover:border-gray-400 dark:hover:border-gray-600 opacity-70 hover:opacity-100'
                   }`}
                   style={{
                     background: opt.gradient,
@@ -190,14 +202,15 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
                       ? { borderColor: 'var(--accent-500)', boxShadow: `0 0 0 1px var(--accent-ring)` }
                       : {}),
                   }}
-                  title={t(opt.labelKey as Parameters<typeof t>[0])}
+                  title={bgLocked ? 'Premium' : t(opt.labelKey as Parameters<typeof t>[0])}
                   aria-label={t(opt.labelKey as Parameters<typeof t>[0])}
                 >
                   <span className="absolute bottom-0 inset-x-0 text-[9px] text-center py-0.5 bg-black/30 text-white truncate">
-                    {t(opt.labelKey as Parameters<typeof t>[0])}
+                    {bgLocked ? '\u{1F512} ' : ''}{t(opt.labelKey as Parameters<typeof t>[0])}
                   </span>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -254,20 +267,23 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
               {t('settings.displayLayout' as Parameters<typeof t>[0])}
             </label>
             <div className="grid grid-cols-2 gap-2">
-              {DISPLAY_LAYOUTS.map((l) => (
+              {DISPLAY_LAYOUTS.map((l) => {
+                const layoutLocked = !canUseCustomLayout && l.id !== 'standard';
+                return (
                 <button
                   key={l.id}
-                  onClick={() => onChange({ ...settings, displayLayout: l.id })}
+                  onClick={() => layoutLocked && onOpenFeatureGate ? onOpenFeatureGate('customLayout') : onChange({ ...settings, displayLayout: l.id })}
                   className={`p-2 rounded-lg border text-left text-xs transition-all ${
                     (settings.displayLayout ?? 'standard') === l.id
                       ? 'border-[var(--accent-500)] bg-[color-mix(in_srgb,var(--accent-500)_10%,transparent)]'
-                      : 'border-gray-300 dark:border-gray-700/60 hover:border-gray-400 dark:hover:border-gray-600'
+                      : layoutLocked ? 'border-gray-300 dark:border-gray-700/60 opacity-40 cursor-not-allowed' : 'border-gray-300 dark:border-gray-700/60 hover:border-gray-400 dark:hover:border-gray-600'
                   }`}
                 >
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{t(l.labelKey as Parameters<typeof t>[0])}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{layoutLocked ? '\u{1F512} ' : ''}{t(l.labelKey as Parameters<typeof t>[0])}</div>
                   <div className="text-gray-500 dark:text-gray-400 mt-0.5">{t(l.descKey as Parameters<typeof t>[0])}</div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
 

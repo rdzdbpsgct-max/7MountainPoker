@@ -6,6 +6,13 @@ export type AppFeature =
   | 'multiTable'
   | 'league'
   | 'sidePot'
+  | 'customAccent'
+  | 'customBackground'
+  | 'customLayout'
+  | 'customAudio'
+  | 'pdfExport'
+  | 'series'
+  | 'icmCalculator'
   | 'cloudBackup'
   | 'teamRoles'
   | 'multiEvent';
@@ -32,6 +39,13 @@ const FEATURE_MIN_TIER: Record<AppFeature, AppTier> = {
   multiTable: 'premium',
   league: 'premium',
   sidePot: 'premium',
+  customAccent: 'premium',
+  customBackground: 'premium',
+  customLayout: 'premium',
+  customAudio: 'premium',
+  pdfExport: 'premium',
+  series: 'premium',
+  icmCalculator: 'premium',
   cloudBackup: 'pro',
   teamRoles: 'pro',
   multiEvent: 'pro',
