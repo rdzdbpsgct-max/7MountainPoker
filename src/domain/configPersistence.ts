@@ -230,7 +230,8 @@ export function parseConfigObject(parsed: Record<string, unknown>): TournamentCo
     : defaultAddOnConfig(buyIn, startingChips);
   // Validate individual level objects — filter out malformed entries
   const rawLevels = parsed.levels as Record<string, unknown>[];
-  const validatedLevels = rawLevels.filter((l) =>
+  const MAX_LEVELS = 200;
+  const validatedLevels = rawLevels.slice(0, MAX_LEVELS).filter((l) =>
     l &&
     typeof l === 'object' &&
     typeof l.id === 'string' &&

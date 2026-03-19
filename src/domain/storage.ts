@@ -342,7 +342,7 @@ function persistSingleItem(store: CollectionStore, item: { id: string }): void {
   if (!db) return;
   const prev = persistQueue.get(store) ?? Promise.resolve();
   const next = prev
-    .then(async () => { await db!.put(store, item); })
+    .then(async () => { if (db) await db.put(store, item); })
     .catch((err) => {
       console.warn(`[storage] Failed to persist item in "${store}":`, err);
       persistToLocalStorage(store);

@@ -78,6 +78,7 @@ export function createGameDayFromResult(
   result: TournamentResult,
   league: League,
   registeredPlayers?: { id: string; name: string }[],
+  gameDayLabel?: string,
 ): GameDay {
   const pointMap = new Map(league.pointSystem.entries.map((e) => [e.place, e.points]));
 
@@ -110,8 +111,9 @@ export function createGameDayFromResult(
     };
   });
 
-  const totalBuyIns = participants.reduce((sum, p) => sum + p.buyIn + (result.rebuyEnabled ? p.rebuys * (result.rebuyCost ?? result.buyIn) : 0) + p.addOnCost, 0);
-  const totalPrizePool = result.prizePool;
+  const rawTotalBuyIns = participants.reduce((sum, p) => sum + p.buyIn + (result.rebuyEnabled ? p.rebuys * (result.rebuyCost ?? result.buyIn) : 0) + p.addOnCost, 0);
+  const totalBuyIns = Number.isFinite(rawTotalBuyIns) ? rawTotalBuyIns : 0;
+  const totalPrizePool = Number.isFinite(result.prizePool) ? result.prizePool : 0;
 
   // Determine next game day number for this league (max existing + 1 to avoid gaps after deletions)
   const existingGameDays = loadGameDaysForLeague(league.id);
@@ -131,7 +133,7 @@ export function createGameDayFromResult(
     leagueId: league.id,
     seasonId: validSeasonId,
     date: result.date,
-    label: `Spieltag ${nextNumber}`,
+    label: gameDayLabel ?? `Spieltag ${nextNumber}`,
     tournamentResultId: result.id,
     participants,
     totalPrizePool,
@@ -337,7 +339,13 @@ export function computeExtendedStandings(
   gameDays: GameDay[],
   options?: { excludeGuests?: boolean },
 ): ExtendedLeagueStanding[] {
-  const pointMap = new Map(league.pointSystem.entries.map((e) => [e.place, e.points]));
+  const entries = league.pointSystem?.entries ?? [];
+  // Fallback: if pointSystem is empty, generate default 1st=10, 2nd=7, 3rd=5, 4th=4, ...
+  const effectiveEntries = entries.length > 0 ? entries : [
+    { place: 1, points: 10 }, { place: 2, points: 7 }, { place: 3, points: 5 },
+    { place: 4, points: 4 }, { place: 5, points: 3 }, { place: 6, points: 2 }, { place: 7, points: 1 },
+  ];
+  const pointMap = new Map(effectiveEntries.map((e) => [e.place, e.points]));
   const map = new Map<string, ExtendedLeagueStanding>();
 
   for (const gd of gameDays) {
@@ -397,6 +405,10 @@ export function computeExtendedStandings(
     s.avgPlace = s.tournaments > 0 ? Math.round((s.avgPlace / s.tournaments) * 10) / 10 : 0;
     if (s.bestPlace === Infinity) s.bestPlace = 0;
     s.participationRate = totalGameDays > 0 ? s.tournaments / totalGameDays : 0;
+    // Normalize accumulated floats to avoid display artifacts like "-0.00"
+    s.totalCost = Math.round(s.totalCost * 100) / 100;
+    s.totalPayout = Math.round(s.totalPayout * 100) / 100;
+    s.netBalance = Math.round(s.netBalance * 100) / 100;
   }
 
   // Apply minimum participation flag
@@ -577,9 +589,9 @@ export function computeLeagueFinances(gameDays: GameDay[]): LeagueFinanceSummary
   });
 
   return {
-    totalBuyIns,
-    totalPayouts,
-    totalCashBalance: cumulative,
+    totalBuyIns: Math.round(totalBuyIns * 100) / 100,
+    totalPayouts: Math.round(totalPayouts * 100) / 100,
+    totalCashBalance: Math.round(cumulative * 100) / 100,
     perGameDay,
   };
 }

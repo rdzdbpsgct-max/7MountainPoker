@@ -12,6 +12,7 @@ import {
   saveTournamentResult,
   loadLeagues,
   createGameDayFromResult,
+  loadGameDaysForLeague,
   loadPlayerDatabase,
   createEvent,
   computePrizePool,
@@ -626,7 +627,9 @@ function App() {
           const league = leagues.find(l => l.id === config.leagueId);
           if (league) {
             const registeredPlayers = loadPlayerDatabase();
-            createGameDayFromResult(finishedResult, league, registeredPlayers);
+            const existingCount = loadGameDaysForLeague(league.id).length;
+            const label = t('league.editor.gameDayLabel', { n: existingCount + 1 });
+            createGameDayFromResult(finishedResult, league, registeredPlayers, label);
           }
         }
       }

@@ -36,7 +36,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
   const [label, setLabel] = useState(() => {
     if (editingGameDay?.label) return editingGameDay.label;
     const existing = loadGameDaysForLeague(league.id);
-    return `Spieltag ${existing.length + 1}`;
+    return t('league.editor.gameDayLabel', { n: existing.length + 1 });
   });
   const [venue, setVenue] = useState(editingGameDay?.venue ?? '');
   const [notes, setNotes] = useState(editingGameDay?.notes ?? '');
@@ -244,7 +244,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
             <input
               type="number"
               value={defaultBuyIn}
-              onChange={(e) => setDefaultBuyIn(parseInt(e.target.value, 10) || 0)}
+              onChange={(e) => setDefaultBuyIn(Math.max(0, parseInt(e.target.value, 10) || 0))}
               className="w-20 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-2 py-1 text-sm text-center focus:ring-2 focus:outline-none"
               min={0}
               max={999999}
@@ -317,7 +317,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                           <input
                             type="number"
                             value={p.buyIn}
-                            onChange={(e) => handleUpdateParticipant(p.id, 'buyIn', parseInt(e.target.value, 10) || 0)}
+                            onChange={(e) => handleUpdateParticipant(p.id, 'buyIn', Math.max(0, parseInt(e.target.value, 10) || 0))}
                             className="w-14 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded px-1 py-0.5 text-center text-sm focus:ring-2 focus:outline-none"
                             min={0}
                             max={999999}
@@ -327,7 +327,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                           <input
                             type="number"
                             value={p.rebuys}
-                            onChange={(e) => handleUpdateParticipant(p.id, 'rebuys', parseInt(e.target.value, 10) || 0)}
+                            onChange={(e) => handleUpdateParticipant(p.id, 'rebuys', Math.max(0, parseInt(e.target.value, 10) || 0))}
                             className="w-12 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded px-1 py-0.5 text-center text-sm focus:ring-2 focus:outline-none"
                             min={0}
                             max={99}
@@ -337,7 +337,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                           <input
                             type="number"
                             value={p.addOnCost}
-                            onChange={(e) => handleUpdateParticipant(p.id, 'addOnCost', parseInt(e.target.value, 10) || 0)}
+                            onChange={(e) => handleUpdateParticipant(p.id, 'addOnCost', Math.max(0, parseInt(e.target.value, 10) || 0))}
                             className="w-14 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded px-1 py-0.5 text-center text-sm focus:ring-2 focus:outline-none"
                             min={0}
                             max={999999}
@@ -347,7 +347,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                           <input
                             type="number"
                             value={p.payout}
-                            onChange={(e) => handleUpdateParticipant(p.id, 'payout', parseInt(e.target.value, 10) || 0)}
+                            onChange={(e) => handleUpdateParticipant(p.id, 'payout', Math.max(0, parseInt(e.target.value, 10) || 0))}
                             className="w-16 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded px-1 py-0.5 text-center text-sm focus:ring-2 focus:outline-none"
                             min={0}
                             max={9999999}

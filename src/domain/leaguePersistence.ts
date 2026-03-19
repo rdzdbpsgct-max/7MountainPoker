@@ -123,8 +123,10 @@ export function importLeague(data: LeagueExport): League {
   saveLeague(league);
 
   // Import linked tournament results with updated leagueId and new IDs (cap to prevent DoS)
+  // Validate each result has a valid players array to prevent partial import corruption
   const cappedResults = data.results.slice(0, 100);
   for (const result of cappedResults) {
+    if (!result || !Array.isArray(result.players)) continue; // skip malformed results
     saveTournamentResult({
       ...result,
       id: `result_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -135,6 +137,7 @@ export function importLeague(data: LeagueExport): League {
   // v2: Import game days with updated leagueId and cleared orphaned registeredPlayerId (cap to 200)
   if (data.gameDays && data.gameDays.length > 0) {
     for (const gd of data.gameDays.slice(0, 200)) {
+      if (!gd || !Array.isArray(gd.participants)) continue; // skip malformed game days
       saveGameDay({
         ...gd,
         id: `gd_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
