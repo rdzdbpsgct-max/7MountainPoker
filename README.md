@@ -6,10 +6,10 @@
 
 **Der Poker-Turnier-Timer für deinen Spieleabend**
 
-[![Version](https://img.shields.io/badge/Version-6.9.9-blue?style=flat-square)](#)
+[![Version](https://img.shields.io/badge/Version-6.10.0-blue?style=flat-square)](#)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-34d399?style=flat-square&logo=github)](https://rdzdbpsgct-max.github.io/7MountainPoker/)
 [![Vercel](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=flat-square&logo=vercel)](https://7mountainpoker.vercel.app/)
-[![Tests](https://img.shields.io/badge/Tests-1282%20passed-brightgreen?style=flat-square)](#)
+[![Tests](https://img.shields.io/badge/Tests-1305%20passed-brightgreen?style=flat-square)](#)
 [![Build](https://img.shields.io/badge/Build-passing-brightgreen?style=flat-square)](#)
 [![PWA](https://img.shields.io/badge/PWA-installierbar-7c3aed?style=flat-square)](#)
 
@@ -110,6 +110,9 @@ Eine vollständig clientseitige Web-App zur Verwaltung von Poker-Heimturnieren. 
 | Premium UI | Glassmorphism, Gradient-Buttons, Timer-Glow, benutzerdefinierte Animationen, taktile Interaktionen |
 | Design-System | Einheitliche Abrundungen, Border-Opacities, Focus-Glow, Custom Number-Stepper, SVG-Chevrons |
 | Validierung | Eingabeprüfung vor Turnierstart mit klaren Fehlermeldungen |
+| Offline-Banner | Amber-Warnhinweis im Header bei fehlender Internetverbindung |
+| Turnier-Klon | Turnier-Konfiguration aus der Historie wiederholen — gleiche Blinds, Buy-In, Spieler |
+| Liga-Spielerübernahme | Beim Start aus dem Liga-Modus werden Spieler der letzten 5 Spieltage automatisch übernommen |
 
 ### Mitwirken
 
@@ -222,6 +225,9 @@ A fully client-side web app for managing home poker tournaments. No server, no a
 | Premium UI | Glassmorphism, gradient buttons, timer glow, custom animations, tactile interactions |
 | Design system | Unified rounding, border opacities, focus glow, custom number stepper, SVG chevrons |
 | Validation | Input validation before tournament start with clear error messages |
+| Offline Banner | Amber warning in header when internet connection is lost |
+| Tournament Cloning | Repeat a tournament configuration from history — same blinds, buy-in, players |
+| League Player Pre-fill | When starting from league mode, players from the last 5 game days are auto-suggested |
 
 ### Contributing
 
@@ -243,13 +249,13 @@ Please make sure `npm run lint` and `npm run test` pass without errors.
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7-646cff?style=flat-square&logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06b6d4?style=flat-square&logo=tailwindcss&logoColor=white)
-![Vitest](https://img.shields.io/badge/Vitest-1257_Tests-6e9f18?style=flat-square&logo=vitest&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-1305_Tests-6e9f18?style=flat-square&logo=vitest&logoColor=white)
 
 - **React 19** — Funktionale Komponenten und Hooks / Functional components and hooks
 - **TypeScript 5.9** — Strikte Typisierung / Strict typing
 - **Vite 7** — Build-Tool / Build tool
 - **Tailwind CSS 4** — Styling (keine CSS-Dateien / no CSS files)
-- **Vitest** — 1257 Tests / Unit tests
+- **Vitest** — 1305 Tests / Unit tests
 - **GitHub Actions** — CI/CD mit Deploy auf GitHub Pages / with deploy to GitHub Pages
 - **Vercel** — Automatisches Deploy / Auto-deploy on push
 - **PWA** — vite-plugin-pwa, offline-fähig / offline-capable
@@ -283,7 +289,7 @@ App: `http://localhost:5173/`
 
 ```bash
 npm run lint        # ESLint
-npm run test        # 1257 Tests
+npm run test        # 1305 Tests
 npm run build       # Production-Build → ./dist
 ```
 

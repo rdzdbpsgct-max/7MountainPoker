@@ -493,6 +493,13 @@ export const helpSections: HelpSection[] = [
           en: 'All tournament results are saved automatically (max 50). Access via "History" in header. Contains full standings, player statistics tab, text and CSV export. Players can be imported from here.',
         },
       },
+      {
+        title: { de: 'Turnier wiederholen', en: 'Repeat Tournament' },
+        body: {
+          de: 'In der Turnier-Historie kannst du ein vergangenes Turnier per Klick auf "Wiederholen" klonen. Die komplette Konfiguration (Blindstruktur, Buy-In, Spieler etc.) wird ins Setup übernommen — ideal für regelmäßige Home Games mit den gleichen Einstellungen.',
+          en: 'In the tournament history, you can clone a past tournament by clicking "Repeat". The complete configuration (blind structure, buy-in, players, etc.) is loaded into setup — ideal for regular home games with the same settings.',
+        },
+      },
     ],
   },
   {
@@ -534,6 +541,20 @@ export const helpSections: HelpSection[] = [
         body: {
           de: 'Liga-Tabelle per QR-Code oder als JSON-Datei teilen. Empfänger sehen die Standings direkt in der App. Liga-Tabelle auch im TV-Modus als rotierender Screen verfügbar.',
           en: 'Share league standings via QR code or as JSON file. Recipients see the standings directly in the app. League table also available in TV mode as rotating screen.',
+        },
+      },
+      {
+        title: { de: 'Spieler-Vorbelegung aus Liga', en: 'Player Pre-Fill from League' },
+        body: {
+          de: 'Wenn du ein Turnier aus dem Liga-Modus startest, werden die Liga-Spieler automatisch ins Setup übernommen. So sparst du dir das erneute Eingeben aller Namen.',
+          en: 'When you start a tournament from league mode, the league players are automatically pre-filled in setup. This saves you from re-entering all names.',
+        },
+      },
+      {
+        title: { de: 'Sortierung merken', en: 'Sort Persistence' },
+        body: {
+          de: 'Die Sortierung der Liga-Tabelle (z.B. nach Punkten, Bilanz oder Name) wird gespeichert und beim nächsten Öffnen automatisch wiederhergestellt.',
+          en: 'The sort order of the league standings table (e.g., by points, balance, or name) is saved and automatically restored the next time you open it.',
         },
       },
     ],
@@ -736,6 +757,20 @@ export const faqEntries: FaqEntry[] = [
     answer: {
       de: 'Ja! Aktuell sind alle Features (TV-Modus, Fernsteuerung, Liga, Multi-Table, Side-Pot-Rechner) vollständig und ohne Einschränkungen nutzbar. Die App enthält eine Gate-Infrastruktur für zukünftige Tier-Modelle, aber der Standard-Tier ist „Premium" — alle Features sind freigeschaltet.',
       en: 'Yes! Currently all features (TV mode, remote control, league, multi-table, side pot calculator) are fully available without restrictions. The app includes gate infrastructure for future tier models, but the default tier is "premium" — all features are unlocked.',
+    },
+  },
+  {
+    question: { de: 'Kann ich ein vergangenes Turnier wiederholen?', en: 'Can I repeat a past tournament?' },
+    answer: {
+      de: 'Ja! Öffne die Turnier-Historie über den "Historie"-Button im Setup-Header. Bei jedem Eintrag findest du einen "Wiederholen"-Button, der die komplette Konfiguration (Blindstruktur, Spieler, Buy-In etc.) ins Setup lädt. Perfekt für regelmäßige Home Games.',
+      en: 'Yes! Open the tournament history via the "History" button in the setup header. Each entry has a "Repeat" button that loads the full configuration (blind structure, players, buy-in, etc.) into setup. Perfect for regular home games.',
+    },
+  },
+  {
+    question: { de: 'Was bedeutet das Offline-Banner?', en: 'What does the offline banner mean?' },
+    answer: {
+      de: 'Wenn dein Gerät die Internetverbindung verliert, erscheint ein dezenter Banner am oberen Bildschirmrand. Die App funktioniert weiterhin vollständig offline — alle Daten werden lokal gespeichert. Nur Fernbedienung und Cross-Device Display benötigen eine Verbindung. Der Banner verschwindet automatisch, sobald du wieder online bist.',
+      en: 'When your device loses internet connection, a subtle banner appears at the top of the screen. The app continues to work fully offline — all data is stored locally. Only remote control and cross-device display require a connection. The banner disappears automatically when you are back online.',
     },
   },
 ];

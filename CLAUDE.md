@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.9.9
+**Version**: 6.10.0
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -174,6 +174,9 @@ src/
 │   ├── useDisplayBridge.ts      # Display bridge (BroadcastChannel + PeerJS)
 │   ├── useWakeLock.ts           # Wake Lock API wrapper
 │   ├── useConfirmDialog.ts      # Confirm dialog state management
+│   ├── useEntitlements.ts        # Entitlements state + 11 canUse* feature-gate flags
+│   ├── useGameUiState.ts         # Game-mode UI state (lastHand, handForHand, dealerBadges, sidePot, tableMoves, addOnEndLevel)
+│   ├── useUndoManager.ts         # Undo/Redo stack management (push, undo, redo callbacks)
 │   ├── useOnlineStatus.ts       # Online/offline detection
 │   └── useInstallPrompt.ts      # PWA install prompt
 ├── theme/                       # Dark/Light mode system
@@ -384,8 +387,8 @@ public/
 
 ## Testing
 
-- **1282 tests** across 18 test files + 1 setup file
-- Core files: `logic.test.ts` (681), `components.test.tsx` (117), `edge-cases.test.ts` (101), `sound-speech.test.ts` (59), `events.test.ts` (52), `integration.test.ts` (47), `tournamentActions.test.tsx` (41), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `league-advanced.test.ts` (22), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
+- **1305 tests** across 18 test files + 1 setup file
+- Core files: `logic.test.ts` (695), `components.test.tsx` (117), `edge-cases.test.ts` (101), `sound-speech.test.ts` (59), `events.test.ts` (52), `integration.test.ts` (47), `tournamentActions.test.tsx` (41), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `league-advanced.test.ts` (22), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -422,6 +425,19 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.10.0 — Audit-Pakete: UX, Stability & Architecture
+
+- **Offline-Banner**: Amber-Warnhinweis im Header bei fehlender Internetverbindung.
+- **Liga-Sort-Persistenz**: Sortier-Spalte/-Richtung in Liga-Tabelle wird in localStorage gespeichert.
+- **Turnier-Klon aus Historie**: „Wiederholen"-Button übernimmt komplette Konfiguration als neues Setup. `configSnapshot` in TournamentResult, `cloneConfigFromResult()` in tournament.ts.
+- **Liga→Turnier Spieler-Übernahme**: `getLeaguePlayerNames()` extrahiert Namen der letzten 5 Spieltage. LeagueView reicht Spielernamen an `onStartTournament` weiter.
+- **Quick-Start-Fallback**: Liga-Quick-Start bei Fehler → Fallback zu Setup statt Toast-Only.
+- **Storage-Init-Timeout**: 5s Sicherheits-Timeout in main.tsx für IndexedDB-Init. `renderAppOnce()` Guard gegen Doppel-Render.
+- **PDF-Helper-Export**: `sanitizeFilename()` und `formatDuration()` aus pdfExport.ts exportiert.
+- **App.tsx State-Extraktion**: 3 neue Hooks: `useEntitlements` (11 Feature-Flags + Lizenz-State), `useGameUiState` (6 Game-UI-States + Auto-Dismiss), `useUndoManager` (Undo/Redo-Stack + Callbacks). App.tsx 1236 → 1187 Zeilen.
+- **23 neue Tests** — **1305 Tests gesamt** (18 Testdateien)
+- **6 neue Translation-Keys** (3 DE + 3 EN)
 
 ### v6.9.9 — Holistic Hardening, UX Quick Wins & Test-Coverage
 

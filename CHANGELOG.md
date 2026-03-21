@@ -5,6 +5,21 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.10.0] – 2026-03-21
+
+### Audit-Pakete: UX, Stability & Architecture
+
+- **Offline-Banner**: Amber-Warnhinweis im Header bei fehlender Internetverbindung. Automatisch ausgeblendet bei Reconnect.
+- **Liga-Sort-Persistenz**: Sortier-Spalte und -Richtung in der Liga-Tabelle wird in localStorage gespeichert und bleibt über Sessions erhalten.
+- **Turnier-Klon aus Historie**: „Wiederholen"-Button in der Turnier-Historie übernimmt die komplette Konfiguration (Blindstruktur, Buy-In, Spieler) als neues Turnier-Setup.
+- **Liga→Turnier Spieler-Übernahme**: Beim Starten eines Turniers aus dem Liga-Modus werden automatisch die Spieler der letzten 5 Spieltage vorgeschlagen.
+- **Quick-Start-Fallback**: Wenn der Liga-Quick-Start fehlschlägt (z.B. fehlende Konfiguration), Fallback zum Setup-Modus statt Fehlermeldung ohne Aktion.
+- **Storage-Init-Timeout**: Sicherheits-Timeout (5 Sek.) für IndexedDB-Initialisierung — App rendert auch bei hängender Storage-Init.
+- **PDF-Helper-Export**: `sanitizeFilename()` und `formatDuration()` aus pdfExport.ts exportiert für Wiederverwendung.
+- **App.tsx State-Extraktion**: 3 neue Hooks: `useEntitlements` (11 Feature-Flags + Lizenz-State), `useGameUiState` (6 Game-UI-States), `useUndoManager` (Undo/Redo-Stack). App.tsx von 1236 → 1187 Zeilen.
+- **23 neue Tests** (sanitizeFilename, formatDuration, cloneConfigFromResult, getLeaguePlayerNames, PDF-Helpers) — **1305 Tests gesamt** (18 Testdateien).
+- **6 neue Translation-Keys** (3 DE + 3 EN): `history.clone`, `history.cloneTooltip`, `history.cloneSuccess`.
+
 ## [6.9.9] – 2026-03-21
 
 ### Holistic Hardening, UX Quick Wins & Test-Coverage
