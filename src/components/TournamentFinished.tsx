@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, TournamentResult, TournamentEvent, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
-import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, exportTournamentResultAsPdf, formatEventAsText } from '../domain/logic';
+import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, exportTournamentResultAsPdf, formatEventAsText, formatTime } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
 import { ChevronIcon } from './ChevronIcon';
@@ -194,18 +194,59 @@ export function TournamentFinished({
           </div>
         )}
 
-        {/* Event Log tab */}
-        {activeTab === 'log' && events && events.length > 0 && (
-          <div className="bg-gray-50/90 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700/40 rounded-xl overflow-hidden shadow-lg shadow-gray-300/30 dark:shadow-black/20">
-            <div className="divide-y divide-gray-100 dark:divide-gray-800/30">
-              {events.map(event => (
-                <div key={event.id} className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 font-mono">
-                  {formatEventAsText(event, playerNameMap, t as never)}
+        {/* Event Log tab — visual timeline */}
+        {activeTab === 'log' && events && events.length > 0 && (() => {
+          const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
+          const startTs = sortedEvents.length > 0 ? sortedEvents[0]!.timestamp : 0;
+          const EVENT_ICONS: Record<string, string> = {
+            tournament_started: '\u{1F3AF}', tournament_finished: '\u{1F3C6}',
+            level_start: '\u23EB', level_skip_forward: '\u23E9', level_skip_backward: '\u23EA',
+            timer_paused: '\u23F8\uFE0F', timer_resumed: '\u25B6\uFE0F',
+            player_eliminated: '\u{1F480}', player_reinstated: '\u{1F504}',
+            rebuy_taken: '\u{1F4B0}', addon_taken: '\u2795',
+            late_registration: '\u{1F6AA}', re_entry: '\u{1F501}',
+            dealer_advanced: '\u{1F3B2}', table_move: '\u{1F500}', table_dissolved: '\u{1F5D1}\uFE0F',
+            call_the_clock_started: '\u23F1\uFE0F', call_the_clock_expired: '\u26A0\uFE0F',
+            break_extended: '\u2615', break_skipped: '\u23ED\uFE0F',
+          };
+          const EVENT_COLORS: Record<string, string> = {
+            player_eliminated: 'border-red-500/60', player_reinstated: 'border-blue-500/60',
+            rebuy_taken: 'border-green-500/60', addon_taken: 'border-green-500/60',
+            tournament_started: 'border-emerald-500/60', tournament_finished: 'border-amber-500/60',
+            level_start: 'border-purple-500/60', table_move: 'border-cyan-500/60', table_dissolved: 'border-orange-500/60',
+          };
+          return (
+            <div className="bg-gray-50/90 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700/40 rounded-xl overflow-hidden shadow-lg shadow-gray-300/30 dark:shadow-black/20 p-4">
+              <div className="relative">
+                <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-700/40" />
+                <div className="space-y-3">
+                  {sortedEvents.map(event => {
+                    const elapsed = startTs > 0 ? Math.max(0, Math.floor((event.timestamp - startTs) / 1000)) : 0;
+                    const colorClass = EVENT_COLORS[event.type] ?? 'border-gray-400/60';
+                    return (
+                      <div key={event.id} className="relative flex items-start gap-3 pl-2">
+                        <div className={`relative z-10 w-6 h-6 flex items-center justify-center rounded-full bg-white dark:bg-gray-900 border-2 ${colorClass} text-xs shrink-0`}>
+                          {EVENT_ICONS[event.type] ?? '\u2022'}
+                        </div>
+                        <div className="flex-1 min-w-0 pb-1">
+                          <p className="text-sm text-gray-900 dark:text-gray-100">
+                            {formatEventAsText(event, playerNameMap, t as never)}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatTime(elapsed)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+              </div>
+              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
+                {t('timeline.eventCount', { n: sortedEvents.length })}
+              </p>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Standings / Ergebnis */}
         {activeTab === 'standings' && (<><div>

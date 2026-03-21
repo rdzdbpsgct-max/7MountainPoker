@@ -13,13 +13,13 @@ import {
   computeHeadToHeadMatrix,
 } from '../domain/logic';
 import { useTranslation } from '../i18n';
-import { LeagueStandingsTable } from './LeagueStandingsTable';
-import { LeagueGameDays } from './LeagueGameDays';
-import { LeagueFinances } from './LeagueFinances';
-import { HeadToHeadMatrix } from './HeadToHeadMatrix';
 import { LoadingFallback } from './LoadingFallback';
 import { SectionErrorBoundary } from './ErrorBoundary';
 
+const LeagueStandingsTable = lazy(() => import('./LeagueStandingsTable').then((m) => ({ default: m.LeagueStandingsTable })));
+const LeagueGameDays = lazy(() => import('./LeagueGameDays').then((m) => ({ default: m.LeagueGameDays })));
+const LeagueFinances = lazy(() => import('./LeagueFinances').then((m) => ({ default: m.LeagueFinances })));
+const HeadToHeadMatrix = lazy(() => import('./HeadToHeadMatrix').then((m) => ({ default: m.HeadToHeadMatrix })));
 const GameDayEditor = lazy(() => import('./GameDayEditor').then((m) => ({ default: m.GameDayEditor })));
 const LeagueSettings = lazy(() => import('./LeagueSettings').then((m) => ({ default: m.LeagueSettings })));
 
@@ -357,43 +357,62 @@ export function LeagueView({ onStartTournament }: Props) {
               ))}
             </div>
 
+            {/* Dashboard Stats */}
+            {standings.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { label: t('league.stats.players'), value: standings.length },
+                  { label: t('league.stats.gameDays'), value: gameDays.length },
+                  { label: t('league.stats.leader'), value: standings[0]?.name ?? '-' },
+                  { label: t('league.stats.avgPoints'), value: standings.length > 0 ? Math.round(standings.reduce((s, st) => s + st.points, 0) / standings.length) : 0 },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-white/80 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700/40 rounded-xl px-3 py-2 text-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{value}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Tab Content */}
-            {activeTab === 'standings' && (
-              <LeagueStandingsTable
-                league={selectedLeague}
-                standings={standings}
-                gameDays={gameDays}
-                onUpdatePointSystem={handleUpdatePointSystem}
-                onAddCorrection={() => setShowCorrectionModal(true)}
-                currencySymbol={currencySymbol}
-              />
-            )}
-            {activeTab === 'gameDays' && (
-              <LeagueGameDays
-                gameDays={gameDays}
-                onStartGameDay={handleStartGameDay}
-                onRefresh={refreshData}
-                onManualEntry={() => {
-                  setEditingGameDay(undefined);
-                  setShowGameDayEditor(true);
-                }}
-                onEditGameDay={(gameDay) => {
-                  setEditingGameDay(gameDay);
-                  setShowGameDayEditor(true);
-                }}
-                currencySymbol={currencySymbol}
-              />
-            )}
-            {activeTab === 'finances' && (
-              <LeagueFinances
-                gameDays={gameDays}
-                standings={standings}
-                currencySymbol={currencySymbol}
-              />
-            )}
-            {activeTab === 'h2h' && (
-              <HeadToHeadMatrix matrix={h2hMatrix} />
-            )}
+            <Suspense fallback={<LoadingFallback />}>
+              {activeTab === 'standings' && (
+                <LeagueStandingsTable
+                  league={selectedLeague}
+                  standings={standings}
+                  gameDays={gameDays}
+                  onUpdatePointSystem={handleUpdatePointSystem}
+                  onAddCorrection={() => setShowCorrectionModal(true)}
+                  currencySymbol={currencySymbol}
+                />
+              )}
+              {activeTab === 'gameDays' && (
+                <LeagueGameDays
+                  gameDays={gameDays}
+                  onStartGameDay={handleStartGameDay}
+                  onRefresh={refreshData}
+                  onManualEntry={() => {
+                    setEditingGameDay(undefined);
+                    setShowGameDayEditor(true);
+                  }}
+                  onEditGameDay={(gameDay) => {
+                    setEditingGameDay(gameDay);
+                    setShowGameDayEditor(true);
+                  }}
+                  currencySymbol={currencySymbol}
+                />
+              )}
+              {activeTab === 'finances' && (
+                <LeagueFinances
+                  gameDays={gameDays}
+                  standings={standings}
+                  currencySymbol={currencySymbol}
+                />
+              )}
+              {activeTab === 'h2h' && (
+                <HeadToHeadMatrix matrix={h2hMatrix} />
+              )}
+            </Suspense>
           </>
         )}
       </div>

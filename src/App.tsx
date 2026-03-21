@@ -62,6 +62,7 @@ import { SetupModeContainer } from './components/modes/SetupModeContainer';
 const LeagueModeContainer = lazy(() => import('./components/modes/LeagueModeContainer').then(m => ({ default: m.LeagueModeContainer })));
 const TournamentFinishedContainer = lazy(() => import('./components/modes/TournamentFinishedContainer').then(m => ({ default: m.TournamentFinishedContainer })));
 import { GameModeContainer } from './components/modes/GameModeContainer';
+import { TournamentProvider } from './context/TournamentContext';
 import { AppHeader } from './components/AppHeader';
 import { FeatureGateModal } from './components/FeatureGateModal';
 import { useFeatureGate } from './hooks/useFeatureGate';
@@ -661,7 +662,7 @@ function App() {
     if (!tournamentFinished) {
       resultSavedRef.current = false;
     }
-  }, [mode, tournamentFinished, finishedResult, config.leagueId, config.seriesId]);
+  }, [mode, tournamentFinished, finishedResult, config.leagueId, config.seriesId, t]);
 
   // Warn before navigating away during active tournament
   useEffect(() => {
@@ -814,6 +815,7 @@ function App() {
     addLatePlayer, handleReEntry, setSidePotData, handleSkipBreak, handleExtendBreak,
     handleResetLevel, handleRestart, handleLastHand, handleHandForHand, handleNextHand,
     handleUpdateTables, handleTableMoves, setSettings, toggleFullscreen, handleExitToSetup,
+    canUseIcm, openFeatureGate,
   ]);
 
   // Memoize prop objects for GameModeContainer to avoid defeating React.memo
@@ -955,18 +957,20 @@ function App() {
           /></Suspense>
         ) : (
           /* Game Mode */
-          <GameModeContainer
-            config={config}
-            settings={settings}
-            timer={timer}
-            undo={gameModeUndo}
-            state={gameModeState}
-            ui={gameModeUi}
-            actions={gameModeActions}
-            canUseSidePot={canUseSidePot}
-            canUseMultiTable={canUseMultiTable}
-            onOpenFeatureGate={openFeatureGate}
-          />
+          <TournamentProvider config={config} settings={settings} currency={config.currency ?? 'EUR'}>
+            <GameModeContainer
+              config={config}
+              settings={settings}
+              timer={timer}
+              undo={gameModeUndo}
+              state={gameModeState}
+              ui={gameModeUi}
+              actions={gameModeActions}
+              canUseSidePot={canUseSidePot}
+              canUseMultiTable={canUseMultiTable}
+              onOpenFeatureGate={openFeatureGate}
+            />
+          </TournamentProvider>
         )}
       </main>
 

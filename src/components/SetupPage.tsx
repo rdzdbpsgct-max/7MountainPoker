@@ -21,6 +21,7 @@ import {
   shufflePlayersToTables,
   resizeTable,
   defaultPlayers,
+  loadTournamentHistory,
 } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { ConfigEditor } from './ConfigEditor';
@@ -72,6 +73,20 @@ export function SetupPage({
 
   // Load leagues for the dropdown (refresh when SetupPage mounts)
   const [leagues, setLeagues] = useState<League[]>(() => loadLeagues());
+
+  // Backup reminder: show after 5+ tournaments and 30+ days since last backup
+  const BACKUP_KEY = 'poker-timer-last-backup';
+  const [showBackupReminder, setShowBackupReminder] = useState(() => {
+    const historyCount = loadTournamentHistory().length;
+    if (historyCount < 5) return false;
+    const lastBackup = localStorage.getItem(BACKUP_KEY);
+    const daysSinceBackup = lastBackup ? (Date.now() - Number(lastBackup)) / (1000 * 60 * 60 * 24) : Infinity;
+    return daysSinceBackup >= 30;
+  });
+  const dismissBackupReminder = useCallback(() => {
+    localStorage.setItem(BACKUP_KEY, String(Date.now()));
+    setShowBackupReminder(false);
+  }, []);
 
   // --- Section summaries for collapsed CollapsibleSection cards ---
   const chipsSummary = useMemo(() => {
@@ -285,6 +300,42 @@ export function SetupPage({
           </div>
         )}
 
+        {/* Backup reminder banner */}
+        {showBackupReminder && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-600/40 rounded-xl p-4 space-y-2 shadow-md animate-fade-in">
+            <p className="text-blue-700 dark:text-blue-300 text-sm font-medium">{t('backup.reminderTitle')}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-xs">{t('backup.reminderDetail')}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={dismissBackupReminder}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700/40"
+              >
+                {t('backup.dismiss')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile quick-nav — horizontally scrollable section shortcuts */}
+        <div className="sm:hidden flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+          {[
+            { id: 'setup-basics', label: t('app.tournamentBasics') },
+            { id: 'setup-players', label: t('app.players') },
+            { id: 'setup-blinds', label: t('app.blindStructure') },
+            { id: 'setup-payout', label: t('app.payout') },
+            { id: 'setup-format', label: t('app.tournamentFormat') },
+            { id: 'setup-chips', label: t('app.chips') },
+          ].map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800/60 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700/40 active:scale-95 transition-transform"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         {/* Quick-start guidance card */}
         <div className="relative overflow-hidden rounded-2xl border border-teal-300/70 dark:border-teal-700/50 bg-gradient-to-br from-teal-50 via-cyan-50 to-white dark:from-teal-950/35 dark:via-cyan-950/20 dark:to-gray-900/20 shadow-lg shadow-cyan-200/40 dark:shadow-cyan-950/20 p-4 sm:p-5 animate-fade-in">
           <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-teal-200/30 dark:from-teal-500/10 to-transparent pointer-events-none" />
@@ -420,7 +471,7 @@ export function SetupPage({
         </div>
 
         {/* Turnier-Grundlagen (Name + Buy-In + Startchips) */}
-        <CollapsibleSection title={t('app.tournamentBasics')}>
+        <CollapsibleSection id="setup-basics" title={t('app.tournamentBasics')}>
           <div className="space-y-3">
             <input
               type="text"
@@ -534,7 +585,7 @@ export function SetupPage({
         </CollapsibleSection>
 
         {/* Spieler */}
-        <CollapsibleSection title={t('app.players')} summary={playersSummary}>
+        <CollapsibleSection id="setup-players" title={t('app.players')} summary={playersSummary}>
           <PlayerManager
             players={config.players}
             dealerIndex={config.dealerIndex}
@@ -716,7 +767,7 @@ export function SetupPage({
         </CollapsibleSection>
 
         {/* Auszahlung */}
-        <CollapsibleSection title={t('app.payout')} summary={payoutSummary} defaultOpen={false}>
+        <CollapsibleSection id="setup-payout" title={t('app.payout')} summary={payoutSummary} defaultOpen={false}>
           <PayoutEditor
             payout={config.payout}
             onChange={(payout) => setConfig((prev) => ({ ...prev, payout }))}
@@ -728,7 +779,7 @@ export function SetupPage({
         </CollapsibleSection>
 
         {/* Blind-Struktur (Generator + Ante Toggle + Level-Tabelle) */}
-        <CollapsibleSection title={t('app.blindStructure')} summary={blindSummary} data-tour="blind-generator">
+        <CollapsibleSection id="setup-blinds" title={t('app.blindStructure')} summary={blindSummary} data-tour="blind-generator">
           <div className="space-y-4">
             <BlindGenerator
               startingChips={config.startingChips}
@@ -794,11 +845,27 @@ export function SetupPage({
                 anteEnabled={config.anteEnabled}
               />
             </CollapsibleSubSection>
+            {/* Estimated Schedule */}
+            {config.levels.length > 0 && (() => {
+              const totalSeconds = config.levels.reduce((sum, l) => sum + l.durationSeconds, 0);
+              const totalMinutes = Math.floor(totalSeconds / 60);
+              const hours = Math.floor(totalMinutes / 60);
+              const mins = totalMinutes % 60;
+              const playLevels = config.levels.filter(l => l.type === 'level').length;
+              const breaks = config.levels.filter(l => l.type === 'break').length;
+              return (
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                  <span>{t('schedule.totalDuration')}: <strong className="text-gray-700 dark:text-gray-300">{hours > 0 ? `${hours}h ${mins}m` : `${mins}m`}</strong></span>
+                  <span>{playLevels} {t('schedule.levels')}</span>
+                  <span>{breaks} {t('schedule.breaks')}</span>
+                </div>
+              );
+            })()}
           </div>
         </CollapsibleSection>
 
         {/* Turnier-Format: Rebuy + Add-On + Bounty (collapsed by default) */}
-        <CollapsibleSection title={t('app.tournamentFormat')} summary={formatSummary} defaultOpen={false}>
+        <CollapsibleSection id="setup-format" title={t('app.tournamentFormat')} summary={formatSummary} defaultOpen={false}>
           <div className="space-y-4">
             {/* Rebuy */}
             <div>
@@ -895,7 +962,7 @@ export function SetupPage({
 
 
         {/* Chip-Werte (collapsed by default) */}
-        <CollapsibleSection title={t('app.chips')} summary={chipsSummary} defaultOpen={false}>
+        <CollapsibleSection id="setup-chips" title={t('app.chips')} summary={chipsSummary} defaultOpen={false}>
           <ChipEditor
             chips={config.chips}
             onChange={(chips) => setConfig((prev) => ({ ...prev, chips }))}

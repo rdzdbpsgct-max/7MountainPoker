@@ -6,14 +6,15 @@ interface Props {
   summary?: string;
   defaultOpen?: boolean;
   children: ReactNode;
+  id?: string | undefined;
   'data-tour'?: string;
 }
 
-export function CollapsibleSection({ title, summary, defaultOpen = true, children, 'data-tour': dataTour }: Props) {
+export function CollapsibleSection({ title, summary, defaultOpen = true, children, id, 'data-tour': dataTour }: Props) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="bg-gray-200/90 dark:bg-gray-800/40 backdrop-blur-sm border border-gray-300 dark:border-gray-700/40 rounded-xl overflow-hidden shadow-lg shadow-gray-400/30 dark:shadow-black/20" data-tour={dataTour}>
+    <div id={id} className="bg-gray-200/90 dark:bg-gray-800/40 backdrop-blur-sm border border-gray-300 dark:border-gray-700/40 rounded-xl overflow-hidden shadow-lg shadow-gray-400/30 dark:shadow-black/20" data-tour={dataTour}>
       <button
         type="button"
         onClick={() => setIsOpen((v) => !v)}

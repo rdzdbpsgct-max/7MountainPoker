@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { TournamentConfig } from '../domain/types';
 import type { TournamentTemplate } from '../domain/logic';
-import { loadTemplates, saveTemplate, deleteTemplate, exportTemplateToJSON, parseTemplateFile, exportConfigJSON, importConfigJSON } from '../domain/logic';
+import { loadTemplates, saveTemplate, deleteTemplate, exportTemplateToJSON, parseTemplateFile, exportConfigJSON, importConfigJSON, exportFullBackup, parseFullBackup, restoreFullBackup, downloadExport } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { ChevronIcon } from './ChevronIcon';
 import { BottomSheet } from './BottomSheet';
@@ -33,6 +33,8 @@ export function TemplateManager({ config, onLoad, onClose }: Props) {
   const [showJson, setShowJson] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
+  const [showBackup, setShowBackup] = useState(false);
+  const [backupError, setBackupError] = useState('');
 
   // Detect native save picker support (Chromium only)
   const hasNativeSavePicker = useMemo(() => {
@@ -141,6 +143,30 @@ export function TemplateManager({ config, onLoad, onClose }: Props) {
     }
     onLoad(parsed);
     onClose();
+  };
+
+  const handleFullBackupExport = () => {
+    const result = exportFullBackup('6.9.9');
+    downloadExport(result);
+    try { localStorage.setItem('poker-timer-last-backup', String(Date.now())); } catch { /* ignore */ }
+  };
+
+  const handleFullBackupImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result as string;
+      const backup = parseFullBackup(text);
+      if (!backup) {
+        setBackupError(t('backup.invalidFile'));
+        return;
+      }
+      restoreFullBackup(backup);
+      setBackupError('');
+      window.location.reload();
+    };
+    reader.readAsText(file);
   };
 
   const formatDate = (iso: string) => {
@@ -292,6 +318,35 @@ export function TemplateManager({ config, onLoad, onClose }: Props) {
                 >
                   {t('templates.jsonImport')}
                 </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Full Backup Section */}
+        <div className="border border-gray-200 dark:border-gray-700/40 rounded-xl p-3">
+          <button
+            onClick={() => setShowBackup((prev) => !prev)}
+            className="w-full flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-gray-400 group"
+          >
+            <span className="uppercase tracking-wider">{t('backup.section')}</span>
+            <ChevronIcon open={showBackup} className="text-gray-500 dark:text-gray-400" />
+          </button>
+          {showBackup && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('backup.description')}</p>
+              {backupError && <p className="text-red-400 text-xs">{backupError}</p>}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleFullBackupExport}
+                  className="px-3 py-1.5 bg-accent-700 text-white rounded text-xs font-medium transition-colors"
+                >
+                  {t('backup.export')}
+                </button>
+                <label className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded text-xs font-medium transition-colors cursor-pointer">
+                  {t('backup.import')}
+                  <input type="file" accept=".json" className="hidden" onChange={handleFullBackupImport} />
+                </label>
               </div>
             </div>
           )}

@@ -4,6 +4,7 @@
 
 import type { TournamentResult, TournamentConfig } from './types';
 import { formatResultAsCSV, formatResultAsText } from './tournament';
+import { getCached, setCached, type StoreKey } from './storage';
 
 export type ExportFormat = 'json' | 'csv' | 'text';
 
@@ -84,6 +85,87 @@ export async function shareExport(result: ExportResult): Promise<boolean> {
     // User cancelled or share failed
     return false;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Full Database Backup / Restore
+// ---------------------------------------------------------------------------
+
+const BACKUP_VERSION = 1;
+const ALL_STORES: StoreKey[] = [
+  'config', 'settings', 'checkpoint',
+  'templates', 'history', 'players', 'leagues', 'gameDays',
+  'events', 'series', 'customAudio', 'audioMappings',
+];
+
+export interface FullBackup {
+  _backupVersion: number;
+  _exportedAt: string;
+  _appVersion: string;
+  stores: Record<string, unknown>;
+}
+
+/**
+ * Create a full backup of all IndexedDB stores as a JSON-serializable object.
+ * Note: CustomAudio data (ArrayBuffers) are excluded as they can't be serialized to JSON.
+ */
+export function createFullBackup(appVersion: string): FullBackup {
+  const stores: Record<string, unknown> = {};
+  for (const key of ALL_STORES) {
+    if (key === 'customAudio') continue; // ArrayBuffer can't be JSON-serialized
+    stores[key] = getCached(key);
+  }
+  return {
+    _backupVersion: BACKUP_VERSION,
+    _exportedAt: new Date().toISOString(),
+    _appVersion: appVersion,
+    stores,
+  };
+}
+
+/**
+ * Export a full backup as a downloadable JSON file.
+ */
+export function exportFullBackup(appVersion: string): ExportResult {
+  const backup = createFullBackup(appVersion);
+  const date = new Date().toISOString().split('T')[0];
+  return {
+    filename: `7mountain-poker-backup_${date}.json`,
+    mimeType: 'application/json',
+    content: JSON.stringify(backup, null, 2),
+  };
+}
+
+/**
+ * Validate and parse a full backup JSON string.
+ * Returns the parsed backup or null if invalid.
+ */
+export function parseFullBackup(json: string): FullBackup | null {
+  try {
+    const data = JSON.parse(json) as Record<string, unknown>;
+    if (typeof data !== 'object' || data === null) return null;
+    if (typeof data._backupVersion !== 'number') return null;
+    if (typeof data.stores !== 'object' || data.stores === null) return null;
+    return data as unknown as FullBackup;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Restore all stores from a full backup.
+ * Overwrites all existing data.
+ */
+export function restoreFullBackup(backup: FullBackup): void {
+  for (const key of ALL_STORES) {
+    if (key === 'customAudio') continue;
+    const value = (backup.stores as Record<string, unknown>)[key];
+    if (value !== undefined) {
+      setCached(key, value as never);
+    }
+  }
+  // Mark backup timestamp
+  try { localStorage.setItem('poker-timer-last-backup', String(Date.now())); } catch { /* ignore */ }
 }
 
 /**

@@ -52,7 +52,10 @@ import {
   removeAudioMapping,
   getCustomAudioForAnnouncement,
   saveCustomAudioFile,
+  computePrizePool,
+  computePayouts,
 } from '../src/domain/logic';
+import { createFullBackup, parseFullBackup, restoreFullBackup } from '../src/domain/cloudExport';
 import { useTimer } from '../src/hooks/useTimer';
 import type { TournamentConfig, TournamentCheckpoint, Player, TimerState, Level, League, GameDay, GameDayParticipant, Table, TournamentEvent } from '../src/domain/types';
 
@@ -1348,5 +1351,136 @@ describe('Checkpoint full rehydration with tables and events', () => {
     expect(loaded!.config.multiTable!.seatsPerTable).toBe(8);
     expect(loaded!.config.multiTable!.dissolveThreshold).toBe(4);
     expect(loaded!.config.multiTable!.autoBalanceOnElimination).toBe(false);
+  });
+});
+
+// ===========================================================================
+// Full Backup Round-Trip
+// ===========================================================================
+
+describe('Full Backup Round-Trip', () => {
+  beforeEach(async () => {
+    await initStorage();
+  });
+
+  it('creates backup, serializes to JSON, parses back, and restores', () => {
+    // Seed some data
+    const config = defaultConfig();
+    config.name = 'Backup Test Tournament';
+    saveConfig(config);
+    saveSettings(defaultSettings());
+
+    // Create and serialize backup
+    const backup = createFullBackup('6.9.9');
+    const json = JSON.stringify(backup);
+    expect(json.length).toBeGreaterThan(100);
+
+    // Parse it back
+    const parsed = parseFullBackup(json);
+    expect(parsed).not.toBeNull();
+    expect(parsed!._backupVersion).toBe(1);
+    expect(parsed!._appVersion).toBe('6.9.9');
+
+    // Restore
+    expect(() => restoreFullBackup(parsed!)).not.toThrow();
+
+    // Verify config is restored
+    const restoredConfig = loadConfig();
+    expect(restoredConfig).not.toBeNull();
+    expect(restoredConfig!.name).toBe('Backup Test Tournament');
+  });
+
+  it('backup includes tournament history', () => {
+    const histConfig = { ...defaultConfig(), name: 'Hist Test' };
+    histConfig.players = [
+      { id: 'p1', name: 'A', status: 'active', rebuys: 0, addOnTaken: false, knockouts: 0, seatIndex: 0 },
+    ];
+    const result = buildTournamentResult(histConfig, 0, 1);
+    saveTournamentResult(result);
+
+    const backup = createFullBackup('6.9.9');
+    const history = (backup.stores as Record<string, unknown>).history as unknown[];
+    expect(history.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+// ===========================================================================
+// Tournament Lifecycle: Elimination → Result → History
+// ===========================================================================
+
+describe('Tournament Lifecycle — Elimination to Result', () => {
+  beforeEach(async () => {
+    await initStorage();
+  });
+
+  it('eliminates players, builds result, saves to history', () => {
+    const config = defaultConfig();
+    config.buyIn = 20;
+    config.payout.entries = [{ place: 1, value: 100 }];
+    config.payout.mode = 'percent';
+    config.players = [
+      { id: 'p1', name: 'Alice', status: 'active', rebuys: 0, addOnTaken: false, knockouts: 0, seatIndex: 0 },
+      { id: 'p2', name: 'Bob', status: 'eliminated', rebuys: 0, addOnTaken: false, knockouts: 0, seatIndex: 1, placement: 2 },
+      { id: 'p3', name: 'Charlie', status: 'eliminated', rebuys: 0, addOnTaken: false, knockouts: 0, seatIndex: 2, placement: 3 },
+    ];
+
+    const winner = config.players.find(p => p.status === 'active')!;
+    expect(winner.name).toBe('Alice');
+
+    const prizePool = computePrizePool(config.players, config.buyIn, 0, 0, false);
+    expect(prizePool).toBe(60);
+
+    const payouts = computePayouts(config.payout, prizePool);
+    expect(payouts[0]!.amount).toBe(60);
+
+    // Build and save result (signature: config, elapsedSeconds, levelsPlayed)
+    const result = buildTournamentResult(config, 300, 5);
+    expect(result.playerCount).toBe(3);
+    saveTournamentResult(result);
+
+    const history = loadTournamentHistory();
+    expect(history.length).toBeGreaterThanOrEqual(1);
+    expect(history.some(h => h.id === result.id)).toBe(true);
+  });
+});
+
+// ===========================================================================
+// League Game Day Integration
+// ===========================================================================
+
+describe('League — GameDay creation and standings flow', () => {
+  beforeEach(async () => {
+    await initStorage();
+  });
+
+  it('creates league, adds game day, computes standings', () => {
+    const league: League = {
+      id: 'lg-int1',
+      name: 'Integration Liga',
+      createdAt: new Date().toISOString(),
+      pointSystem: defaultPointSystem(),
+    };
+    saveLeague(league);
+
+    const gameDay: GameDay = {
+      id: 'gd-int1',
+      leagueId: 'lg-int1',
+      date: new Date().toISOString(),
+      participants: [
+        { name: 'Alice', place: 1, points: 10, buyIn: 20, rebuys: 0, addOnCost: 0, payout: 40, netBalance: 20, knockouts: 2 },
+        { name: 'Bob', place: 2, points: 7, buyIn: 20, rebuys: 0, addOnCost: 0, payout: 20, netBalance: 0, knockouts: 0 },
+      ],
+    };
+    saveGameDay(gameDay);
+
+    const gameDays = loadGameDaysForLeague('lg-int1');
+    expect(gameDays).toHaveLength(1);
+
+    const standings = computeExtendedStandings(league, gameDays);
+    expect(standings).toHaveLength(2);
+    expect(standings[0]!.name).toBe('Alice');
+    expect(standings[0]!.points).toBe(10);
+    expect(standings[1]!.name).toBe('Bob');
+    expect(standings[1]!.points).toBe(7);
   });
 });

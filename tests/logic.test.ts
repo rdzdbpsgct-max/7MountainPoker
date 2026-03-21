@@ -172,7 +172,7 @@ import {
   migrations,
   DB_VERSION,
 } from '../src/domain/logic';
-import { exportTournamentResult, exportConfigBackup } from '../src/domain/cloudExport';
+import { exportTournamentResult, exportConfigBackup, createFullBackup, exportFullBackup, parseFullBackup, restoreFullBackup } from '../src/domain/cloudExport';
 import { setAudioMasterVolume, setAudioLanguage } from '../src/domain/audioService';
 import { isValidAudioFile } from '../src/domain/customAudio';
 import { parseLicenseKey, isLicenseExpired } from '../src/domain/license';
@@ -8316,6 +8316,51 @@ describe('cloudExport', () => {
     const exported = exportConfigBackup(config);
     expect(exported.filename).not.toMatch(/[!#\s]/);
     expect(exported.filename).toMatch(/_backup\.json$/);
+  });
+});
+
+describe('cloudExport — full backup', () => {
+  it('createFullBackup returns valid backup object with all stores', () => {
+    const backup = createFullBackup('6.9.9');
+    expect(backup._backupVersion).toBe(1);
+    expect(backup._appVersion).toBe('6.9.9');
+    expect(backup._exportedAt).toBeTruthy();
+    expect(typeof backup.stores).toBe('object');
+    // Should not include customAudio (ArrayBuffer)
+    expect(backup.stores).not.toHaveProperty('customAudio');
+    // Should include these stores
+    expect(backup.stores).toHaveProperty('config');
+    expect(backup.stores).toHaveProperty('history');
+    expect(backup.stores).toHaveProperty('templates');
+  });
+
+  it('exportFullBackup returns downloadable JSON', () => {
+    const result = exportFullBackup('6.9.9');
+    expect(result.filename).toMatch(/7mountain-poker-backup.*\.json$/);
+    expect(result.mimeType).toBe('application/json');
+    expect(() => JSON.parse(result.content)).not.toThrow();
+  });
+
+  it('parseFullBackup validates input', () => {
+    expect(parseFullBackup('not json')).toBeNull();
+    expect(parseFullBackup('{}')).toBeNull();
+    expect(parseFullBackup('{"_backupVersion": 1}')).toBeNull();
+    const valid = JSON.stringify({ _backupVersion: 1, _exportedAt: '2026-01-01', _appVersion: '6.9.9', stores: {} });
+    expect(parseFullBackup(valid)).not.toBeNull();
+  });
+
+  it('createFullBackup + parseFullBackup round-trips', () => {
+    const backup = createFullBackup('6.9.9');
+    const json = JSON.stringify(backup);
+    const parsed = parseFullBackup(json);
+    expect(parsed).not.toBeNull();
+    expect(parsed!._backupVersion).toBe(1);
+    expect(parsed!._appVersion).toBe('6.9.9');
+  });
+
+  it('restoreFullBackup does not throw on valid backup', () => {
+    const backup = createFullBackup('6.9.9');
+    expect(() => restoreFullBackup(backup)).not.toThrow();
   });
 });
 

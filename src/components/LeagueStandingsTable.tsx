@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo, lazy, Suspense } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { League, ExtendedLeagueStanding, GameDay, RankingAlgorithm } from '../domain/types';
-import { formatLeagueStandingsAsText, formatLeagueStandingsAsCSV, encodeLeagueStandingsForQR } from '../domain/logic';
+import { formatLeagueStandingsAsText, formatLeagueStandingsAsCSV, encodeLeagueStandingsForQR, normalizePlayerName, exportLeagueStandingsAsPdf } from '../domain/logic';
+import { Sparkline } from './Sparkline';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
 import { LoadingFallback } from './LoadingFallback';
@@ -97,6 +98,29 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
     return base + encodeLeagueStandingsForQR(league, standings);
   }, [league, standings]);
 
+  // Build cumulative points per player for sparklines
+  const sparklineData = useMemo(() => {
+    const map = new Map<string, number[]>();
+    if (gameDays.length === 0) return map;
+    const sortedGDs = [...gameDays].sort((a, b) => a.date.localeCompare(b.date));
+    for (const s of standings) {
+      const key = normalizePlayerName(s.name);
+      let cum = 0;
+      const pts: number[] = [];
+      for (const gd of sortedGDs) {
+        const p = gd.participants.find(pp => normalizePlayerName(pp.name) === key);
+        if (p) {
+          cum += p.points;
+          pts.push(cum);
+        }
+      }
+      if (pts.length >= 2) {
+        map.set(key, pts);
+      }
+    }
+    return map;
+  }, [gameDays, standings]);
+
   const renderSortHeader = (k: SortKey, label: string, className?: string) => (
     <th
       key={k}
@@ -165,6 +189,16 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
             >
               🖨️
             </button>
+            {standings.length > 0 && (
+              <button
+                onClick={() => exportLeagueStandingsAsPdf(league, standings, currencySymbol, t)}
+                className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded transition-colors"
+                title="PDF"
+                aria-label={t('league.standings.downloadPdf')}
+              >
+                PDF
+              </button>
+            )}
             {standings.length > 0 && (
               <button
                 onClick={() => setShowQR(!showQR)}
@@ -236,6 +270,9 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
                   {renderSortHeader('totalPayout', t('league.standings.payout'))}
                   {renderSortHeader('netBalance', t('league.standings.balance'))}
                   {renderSortHeader('participationRate', t('league.standings.participation'))}
+                  {gameDays.length >= 2 && (
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">{t('league.standings.trend')}</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -288,6 +325,14 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
                       <td className="px-2 py-2 text-gray-600 dark:text-gray-300">
                         {(s.participationRate * 100).toFixed(0)}%
                       </td>
+                      {gameDays.length >= 2 && (
+                        <td className="px-2 py-2">
+                          {(() => {
+                            const pts = sparklineData.get(normalizePlayerName(s.name));
+                            return pts ? <Sparkline data={pts} /> : null;
+                          })()}
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

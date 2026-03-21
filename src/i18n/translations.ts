@@ -646,6 +646,21 @@ const de = {
   'checkpoint.seriesMissing': 'Hinweis: Die verknüpfte Serie existiert nicht mehr. Das Turnier wurde ohne Serien-Bezug wiederhergestellt.',
   'checkpoint.incompatible': 'Gespeichertes Turnier konnte nach App-Update nicht wiederhergestellt werden.',
 
+  // --- Backup Reminder ---
+  'backup.reminderTitle': 'Daten-Backup empfohlen',
+  'backup.reminderDetail': 'Du hast mehrere Turniere gespielt, aber noch kein Backup erstellt. Exportiere deine Vorlagen und Historie unter „Vorlagen", um deine Daten zu sichern.',
+  'backup.dismiss': 'Verstanden',
+  'backup.section': 'Vollständiges Backup',
+  'backup.description': 'Exportiere oder importiere alle App-Daten (Turniere, Ligen, Vorlagen, Einstellungen) als eine JSON-Datei.',
+  'backup.export': 'Backup exportieren',
+  'backup.import': 'Backup importieren',
+  'backup.invalidFile': 'Ungültige Backup-Datei.',
+
+  // --- Schedule ---
+  'schedule.totalDuration': 'Gesamtdauer',
+  'schedule.levels': 'Levels',
+  'schedule.breaks': 'Pausen',
+
   // --- Theme ---
   'theme.system': 'System',
   'theme.light': 'Hell',
@@ -865,6 +880,10 @@ const de = {
   'league.view.deleteLeague': 'Liga löschen',
   'league.view.confirmDelete': 'Wirklich löschen?',
   'league.view.cancel': 'Abbrechen',
+  'league.stats.players': 'Spieler',
+  'league.stats.gameDays': 'Spieltage',
+  'league.stats.leader': 'Führender',
+  'league.stats.avgPoints': 'Ø Punkte',
   'league.tabs.standings': 'Tabelle',
   'league.tabs.gameDays': 'Spieltage',
   'league.tabs.finances': 'Finanzen',
@@ -878,6 +897,8 @@ const de = {
   'league.standings.payout': 'Auszahlung',
   'league.standings.balance': 'Bilanz',
   'league.standings.participation': 'Teilnahme',
+  'league.standings.trend': 'Trend',
+  'league.standings.downloadPdf': 'PDF herunterladen',
   'league.standings.noData': 'Noch keine Spieltage gespielt.',
   'league.standings.pointSystem': 'Punktesystem',
   'league.standings.copyText': 'Text kopieren',
@@ -2015,6 +2036,21 @@ const en: Record<TranslationKey, string> = {
   'checkpoint.seriesMissing': 'Note: linked series was not found. Tournament was restored without series link.',
   'checkpoint.incompatible': 'Saved tournament could not be restored after app update.',
 
+  // --- Backup Reminder ---
+  'backup.reminderTitle': 'Data backup recommended',
+  'backup.reminderDetail': 'You have played several tournaments but haven\'t created a backup yet. Export your templates and history under "Templates" to back up your data.',
+  'backup.dismiss': 'Got it',
+  'backup.section': 'Full Backup',
+  'backup.description': 'Export or import all app data (tournaments, leagues, templates, settings) as a single JSON file.',
+  'backup.export': 'Export backup',
+  'backup.import': 'Import backup',
+  'backup.invalidFile': 'Invalid backup file.',
+
+  // --- Schedule ---
+  'schedule.totalDuration': 'Total duration',
+  'schedule.levels': 'Levels',
+  'schedule.breaks': 'Breaks',
+
   // --- Theme ---
   'theme.system': 'System',
   'theme.light': 'Light',
@@ -2231,6 +2267,10 @@ const en: Record<TranslationKey, string> = {
   'league.view.deleteLeague': 'Delete league',
   'league.view.confirmDelete': 'Really delete?',
   'league.view.cancel': 'Cancel',
+  'league.stats.players': 'Players',
+  'league.stats.gameDays': 'Game Days',
+  'league.stats.leader': 'Leader',
+  'league.stats.avgPoints': 'Avg Points',
   'league.tabs.standings': 'Standings',
   'league.tabs.gameDays': 'Game Days',
   'league.tabs.finances': 'Finances',
@@ -2244,6 +2284,8 @@ const en: Record<TranslationKey, string> = {
   'league.standings.payout': 'Payout',
   'league.standings.balance': 'Balance',
   'league.standings.participation': 'Attendance',
+  'league.standings.trend': 'Trend',
+  'league.standings.downloadPdf': 'Download PDF',
   'league.standings.noData': 'No game days played yet.',
   'league.standings.pointSystem': 'Point System',
   'league.standings.copyText': 'Copy Text',
