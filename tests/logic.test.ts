@@ -175,6 +175,7 @@ import {
 import { exportTournamentResult, exportConfigBackup } from '../src/domain/cloudExport';
 import { setAudioMasterVolume, setAudioLanguage } from '../src/domain/audioService';
 import { isValidAudioFile } from '../src/domain/customAudio';
+import { parseLicenseKey, isLicenseExpired } from '../src/domain/license';
 import {
   applyChipPreset,
   chipPresets,
@@ -8413,5 +8414,69 @@ describe('generateBlindStructure edge cases', () => {
     const playLevel = levels.find(l => l.type === 'level');
     expect(playLevel).toBeDefined();
     expect(playLevel!.bigBlind).toBeGreaterThan(0);
+  });
+});
+
+// ===========================================================================
+// license.ts — parse, verify, expiry
+// ===========================================================================
+
+describe('license', () => {
+  it('parseLicenseKey parses valid premium key with no expiry', () => {
+    const info = parseLicenseKey('7MP-PREMIUM-0-35156DF5C1EA');
+    expect(info).not.toBeNull();
+    expect(info!.tier).toBe('premium');
+    expect(info!.expiresAt).toBeNull();
+  });
+
+  it('parseLicenseKey rejects wrong prefix', () => {
+    expect(parseLicenseKey('ABC-PREMIUM-0-35156DF5C1EA')).toBeNull();
+  });
+
+  it('parseLicenseKey rejects invalid tier', () => {
+    expect(parseLicenseKey('7MP-GOLD-0-35156DF5C1EA')).toBeNull();
+  });
+
+  it('parseLicenseKey rejects malformed signature', () => {
+    expect(parseLicenseKey('7MP-PREMIUM-0-SHORT')).toBeNull();
+    expect(parseLicenseKey('7MP-PREMIUM-0-GGGGGGGGGGGG')).toBeNull();
+  });
+
+  it('parseLicenseKey parses key with expiry date', () => {
+    const info = parseLicenseKey('7MP-PREMIUM-20271231-AABBCCDDEE11');
+    expect(info).not.toBeNull();
+    expect(info!.expiresAt).toBeInstanceOf(Date);
+    expect(info!.expiresAt!.getFullYear()).toBe(2027);
+  });
+
+  it('parseLicenseKey rejects malformed expiry', () => {
+    expect(parseLicenseKey('7MP-PREMIUM-2027-AABBCCDDEE11')).toBeNull();
+    expect(parseLicenseKey('7MP-PREMIUM-ABCDEFGH-AABBCCDDEE11')).toBeNull();
+  });
+
+  it('isLicenseExpired returns false for null expiry', () => {
+    expect(isLicenseExpired({ tier: 'premium', expiresAt: null, key: 'test' })).toBe(false);
+  });
+
+  it('isLicenseExpired returns true for past date', () => {
+    expect(isLicenseExpired({ tier: 'premium', expiresAt: new Date(2020, 0, 1), key: 'test' })).toBe(true);
+  });
+
+  it('isLicenseExpired returns false for future date', () => {
+    expect(isLicenseExpired({ tier: 'premium', expiresAt: new Date(2030, 11, 31), key: 'test' })).toBe(false);
+  });
+
+  it('parseLicenseKey is case-insensitive', () => {
+    const lower = parseLicenseKey('7mp-premium-0-35156df5c1ea');
+    const upper = parseLicenseKey('7MP-PREMIUM-0-35156DF5C1EA');
+    expect(lower).not.toBeNull();
+    expect(upper).not.toBeNull();
+    expect(lower!.tier).toBe(upper!.tier);
+  });
+
+  it('parseLicenseKey rejects too few parts', () => {
+    expect(parseLicenseKey('7MP-PREMIUM-0')).toBeNull();
+    expect(parseLicenseKey('7MP-PREMIUM')).toBeNull();
+    expect(parseLicenseKey('')).toBeNull();
   });
 });

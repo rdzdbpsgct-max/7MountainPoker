@@ -14,6 +14,9 @@ import {
   createGameDayFromResult,
   loadGameDaysForLeague,
   loadPlayerDatabase,
+  loadAllSeries,
+  addTournamentToSeries,
+  saveSeries,
   createEvent,
   computePrizePool,
 } from './domain/logic';
@@ -644,12 +647,21 @@ function App() {
             createGameDayFromResult(finishedResult, league, registeredPlayers, label);
           }
         }
+        // Auto-link result to series when tournament is linked to a series
+        if (config.seriesId && finishedResult.id) {
+          const allSeries = loadAllSeries();
+          const series = allSeries.find(s => s.id === config.seriesId);
+          if (series) {
+            const updated = addTournamentToSeries(series, finishedResult.id);
+            saveSeries(updated);
+          }
+        }
       }
     }
     if (!tournamentFinished) {
       resultSavedRef.current = false;
     }
-  }, [mode, tournamentFinished, finishedResult, config.leagueId]);
+  }, [mode, tournamentFinished, finishedResult, config.leagueId, config.seriesId]);
 
   // Warn before navigating away during active tournament
   useEffect(() => {
