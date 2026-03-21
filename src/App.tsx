@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
-import type { TournamentConfig, Settings, TournamentCheckpoint, Table, TableMove, PotResult, PlayerPayout } from './domain/types';
+import type { TournamentConfig, Settings, TournamentCheckpoint, Table, TableMove } from './domain/types';
 import {
   defaultConfig,
   defaultSettings,
@@ -20,7 +20,10 @@ import {
   createEvent,
   computePrizePool,
 } from './domain/logic';
-import { UndoStack, createUndoSnapshot } from './domain/undoStack';
+import { UndoStack } from './domain/undoStack';
+import { useGameUiState } from './hooks/useGameUiState';
+import { useEntitlements } from './hooks/useEntitlements';
+import { useUndoManager } from './hooks/useUndoManager';
 import { useTimer } from './hooks/useTimer';
 import { useVoiceAnnouncements } from './hooks/useVoiceAnnouncements';
 import { useGameEvents } from './hooks/useGameEvents';
@@ -35,8 +38,6 @@ import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useTranslation } from './i18n';
 import { showToast } from './domain/toast';
 import {
-  loadEntitlements,
-  isFeatureAvailable,
   getRequiredTier,
 } from './domain/entitlements';
 import { trackFeatureUsed } from './domain/monetizationTelemetry';
@@ -100,18 +101,12 @@ type Mode = 'setup' | 'game' | 'league';
 
 function App() {
   const { t, language } = useTranslation();
-  const [entitlements, setEntitlements] = useState(() => loadEntitlements());
-  const canUseTVDisplay = useMemo(() => isFeatureAvailable('tvDisplay', entitlements), [entitlements]);
-  const canUseRemoteControl = useMemo(() => isFeatureAvailable('remoteControl', entitlements), [entitlements]);
-  const canUseLeagueMode = useMemo(() => isFeatureAvailable('league', entitlements), [entitlements]);
-  const canUseMultiTable = useMemo(() => isFeatureAvailable('multiTable', entitlements), [entitlements]);
-  const canUseSidePot = useMemo(() => isFeatureAvailable('sidePot', entitlements), [entitlements]);
-  const canUseCustomAccent = useMemo(() => isFeatureAvailable('customAccent', entitlements), [entitlements]);
-  const canUseCustomBackground = useMemo(() => isFeatureAvailable('customBackground', entitlements), [entitlements]);
-  const canUseCustomLayout = useMemo(() => isFeatureAvailable('customLayout', entitlements), [entitlements]);
-  const canUseCustomAudio = useMemo(() => isFeatureAvailable('customAudio', entitlements), [entitlements]);
-  const canUseSeries = useMemo(() => isFeatureAvailable('series', entitlements), [entitlements]);
-  const canUseIcm = useMemo(() => isFeatureAvailable('icmCalculator', entitlements), [entitlements]);
+  const {
+    entitlements, refreshEntitlements, showLicenseActivation, setShowLicenseActivation,
+    canUseTVDisplay, canUseRemoteControl, canUseLeagueMode, canUseMultiTable,
+    canUseSidePot, canUseCustomAccent, canUseCustomBackground, canUseCustomLayout,
+    canUseCustomAudio, canUseSeries, canUseIcm,
+  } = useEntitlements();
 
   // Sync speech language with app language
   useEffect(() => {
@@ -144,11 +139,11 @@ function App() {
     sharedLeague,
     setSharedLeague,
   } = useSharedPayloads();
-  const [lastHandActive, setLastHandActive] = useState(false);
-  const [handForHandActive, setHandForHandActive] = useState(false);
-  const [showDealerBadges, setShowDealerBadges] = useState(true);
-  const [sidePotData, setSidePotData] = useState<{ pots: PotResult[]; total: number; payouts?: PlayerPayout[] | undefined } | null>(null);
-  const [recentTableMoves, setRecentTableMoves] = useState<TableMove[]>([]);
+  const {
+    lastHandActive, setLastHandActive, handForHandActive, setHandForHandActive,
+    showDealerBadges, setShowDealerBadges, sidePotData, setSidePotData,
+    recentTableMoves, setRecentTableMoves, addOnEndLevelIndex, setAddOnEndLevelIndex,
+  } = useGameUiState();
   const { confirmAction, dialogRef: confirmDialogRef, confirm: confirmBeforeAction, dismiss: dismissConfirm, execute: executeConfirm } = useConfirmDialog();
 
   const [pendingCheckpoint, setPendingCheckpoint] = useState<TournamentCheckpoint | null>(() => loadCheckpoint());
@@ -204,45 +199,24 @@ function App() {
   });
 
   // --- Undo/Redo stack ---
-  const [undoStack, setUndoStack] = useState(() => new UndoStack());
-
-  const pushUndoSnapshot = useCallback((actionKey: string) => {
-    setUndoStack(prev => prev.push(
-      createUndoSnapshot(actionKey, config.players, config.tables, tournamentEvents, config.dealerIndex)
-    ));
-  }, [config.players, config.tables, tournamentEvents, config.dealerIndex]);
-
-  const handleUndo = useCallback(() => {
-    const currentSnapshot = createUndoSnapshot('current', config.players, config.tables, tournamentEvents, config.dealerIndex);
-    const result = undoStack.undo(currentSnapshot);
-    if (!result) return;
-    const [newStack, entry] = result;
-    setUndoStack(newStack);
-    setConfig(prev => ({
-      ...prev,
-      players: entry.players,
-      tables: entry.tables,
-      dealerIndex: entry.dealerIndex,
-    }));
-    setTournamentEvents(entry.events);
-  }, [undoStack, config.players, config.tables, tournamentEvents, config.dealerIndex, setConfig, setTournamentEvents]);
-
-  const handleRedo = useCallback(() => {
-    const currentSnapshot = createUndoSnapshot('current', config.players, config.tables, tournamentEvents, config.dealerIndex);
-    const result = undoStack.redo(currentSnapshot);
-    if (!result) return;
-    const [newStack, entry] = result;
-    setUndoStack(newStack);
-    setConfig(prev => ({
-      ...prev,
-      players: entry.players,
-      tables: entry.tables,
-      dealerIndex: entry.dealerIndex,
-    }));
-    setTournamentEvents(entry.events);
-  }, [undoStack, config.players, config.tables, tournamentEvents, config.dealerIndex, setConfig, setTournamentEvents]);
+  const { undoStack, setUndoStack, pushUndoSnapshot, handleUndo, handleRedo } = useUndoManager({
+    players: config.players,
+    tables: config.tables,
+    tournamentEvents,
+    dealerIndex: config.dealerIndex,
+    setConfig,
+    setTournamentEvents,
+  });
 
   // Clear undo stack when entering game mode (fresh start)
+  const prevModeForUndo = useRef(mode);
+  useEffect(() => {
+    if (prevModeForUndo.current !== 'game' && mode === 'game') {
+      setUndoStack(new UndoStack());
+    }
+    prevModeForUndo.current = mode;
+  }, [mode, setUndoStack]);
+
   // Cleanup wizard-to-tour timeout on unmount
   const wizardTourTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -250,14 +224,6 @@ function App() {
       if (wizardTourTimeoutRef.current) clearTimeout(wizardTourTimeoutRef.current);
     };
   }, []);
-
-  const prevModeForUndo = useRef(mode);
-  useEffect(() => {
-    if (prevModeForUndo.current !== 'game' && mode === 'game') {
-      setUndoStack(new UndoStack());
-    }
-    prevModeForUndo.current = mode;
-  }, [mode]);
 
   // Auto-save checkpoint in game mode (debounced + periodic)
   useCheckpointManager({
@@ -269,9 +235,6 @@ function App() {
     timerStatus: timer.timerState.status,
     tournamentEvents,
   });
-
-  // Track the level where rebuy ended (for one-level add-on window)
-  const [addOnEndLevelIndex, setAddOnEndLevelIndex] = useState<number | null>(null);
 
   // Rename default player names when language changes
   const defaultNamePattern = /^(Spieler|Player) (\d+)$/;
@@ -420,16 +383,6 @@ function App() {
   const handleToggleDealerBadges = useCallback(() => {
     setShowDealerBadges((prev) => !prev);
   }, []);
-
-  // Auto-dismiss recent table moves after 30 seconds
-  useEffect(() => {
-    if (recentTableMoves.length === 0) return;
-    const timerId = setTimeout(() => {
-      const cutoff = Date.now() - 30_000;
-      setRecentTableMoves(prev => prev.filter(m => m.timestamp > cutoff));
-    }, 30_000);
-    return () => clearTimeout(timerId);
-  }, [recentTableMoves]);
 
   // --- Computed game state (extracted to useGameComputedState hook) ---
   const displaySeconds = Math.floor(timer.timerState.remainingSeconds);
@@ -600,11 +553,10 @@ function App() {
     mode,
     t,
   });
-  const [showLicenseActivation, setShowLicenseActivation] = useState(false);
   const handleUpgradeIntent = useCallback(() => {
     _handleUpgradeIntentBase();
     setShowLicenseActivation(true);
-  }, [_handleUpgradeIntentBase]);
+  }, [_handleUpgradeIntentBase, setShowLicenseActivation]);
 
   const handleToggleTVWindowWithGate = useCallback(() => {
     if (!canUseTVDisplay) {
@@ -1220,7 +1172,7 @@ function App() {
           <LicenseActivation
             onClose={() => setShowLicenseActivation(false)}
             onActivated={() => {
-              setEntitlements(loadEntitlements());
+              refreshEntitlements();
               setShowLicenseActivation(false);
             }}
           />
