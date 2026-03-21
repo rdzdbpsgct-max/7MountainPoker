@@ -119,6 +119,7 @@ export const AppHeader = memo(function AppHeader({
                   : 'bg-amber-50 dark:bg-amber-900/25 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700/60'
               }`}
               title={canUseRemoteControl ? t('remote.openRemote') : lockedTitle(t('paywall.feature.remoteControl'))}
+              aria-label={canUseRemoteControl ? t('remote.openRemote') : t('paywall.feature.remoteControl')}
             >
               {String.fromCodePoint(0x1F4F1)} {!canUseRemoteControl ? String.fromCodePoint(0x1F512) : ''}
               {canUseRemoteControl && remoteHostConnected && (
@@ -140,6 +141,7 @@ export const AppHeader = memo(function AppHeader({
               }`}
               style={canUseTVDisplay && tvWindowActive ? { backgroundColor: 'var(--accent-600)', borderColor: 'var(--accent-500)', boxShadow: `0 1px 2px var(--accent-900)` } : undefined}
               title={canUseTVDisplay ? (tvWindowActive ? t('display.tvWindowActive') : t('display.activate')) : lockedTitle(t('paywall.feature.tvDisplay'))}
+              aria-label={canUseTVDisplay ? t('display.activate') : t('paywall.feature.tvDisplay')}
             >
               📺 {!canUseTVDisplay ? String.fromCodePoint(0x1F512) : ''}
             </button>

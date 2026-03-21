@@ -156,7 +156,7 @@ export function TournamentFinished({
   const placeLabel = (place: number) => `${place}.`;
 
   return (
-    <div className="flex-1 flex items-start justify-center p-6 overflow-y-auto">
+    <div role="dialog" aria-modal="true" aria-labelledby="finished-title" className="flex-1 flex items-start justify-center p-6 overflow-y-auto">
       <div ref={resultsRef} className="w-full max-w-lg space-y-6 py-8">
         {/* Winner celebration */}
         <div className="text-center space-y-3 py-6 px-4 rounded-2xl border-2 border-amber-500/30 bg-gradient-to-b from-amber-900/20 to-transparent shadow-xl shadow-amber-900/10">
@@ -166,7 +166,7 @@ export function TournamentFinished({
           <p className="text-lg font-medium tracking-wide" style={{ color: 'var(--accent-400)' }}>
             {t('finished.congratulations')}
           </p>
-          <p className="text-4xl font-bold text-gray-900 dark:text-white">
+          <p id="finished-title" className="text-4xl font-bold text-gray-900 dark:text-white">
             {winner.name}
           </p>
           <p className="text-amber-400/70 text-sm uppercase tracking-widest">

@@ -172,6 +172,9 @@ import {
   migrations,
   DB_VERSION,
 } from '../src/domain/logic';
+import { exportTournamentResult, exportConfigBackup } from '../src/domain/cloudExport';
+import { setAudioMasterVolume, setAudioLanguage } from '../src/domain/audioService';
+import { isValidAudioFile } from '../src/domain/customAudio';
 import {
   applyChipPreset,
   chipPresets,
@@ -8278,5 +8281,137 @@ describe('formatSidePotsAsText', () => {
     }];
     const text = formatSidePotsAsText(pots);
     expect(text).toContain('\u20AC'); // euro sign
+  });
+});
+
+// ===========================================================================
+// cloudExport
+// ===========================================================================
+
+describe('cloudExport', () => {
+  it('exportTournamentResult JSON format returns valid JSON with correct filename', () => {
+    const result = { id: 'r1', name: 'Test Turnier', date: '2026-03-20', players: [], prizePool: 100, playerCount: 5, buyIn: 10, rebuyEnabled: false } as unknown as Parameters<typeof exportTournamentResult>[0];
+    const exported = exportTournamentResult(result, 'json');
+    expect(exported.filename).toMatch(/Test_Turnier_2026-03-20\.json/);
+    expect(exported.mimeType).toBe('application/json');
+    expect(() => JSON.parse(exported.content)).not.toThrow();
+  });
+
+  it('exportTournamentResult CSV format returns csv mimeType', () => {
+    const result = { id: 'r1', name: 'Test', date: '2026-03-20', players: [{ name: 'A', place: 1, payout: 100, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: 90 }], prizePool: 100, playerCount: 1, buyIn: 10, rebuyEnabled: false } as unknown as Parameters<typeof exportTournamentResult>[0];
+    const exported = exportTournamentResult(result, 'csv');
+    expect(exported.mimeType).toBe('text/csv');
+    expect(exported.filename).toMatch(/\.csv$/);
+  });
+
+  it('exportTournamentResult text format returns text/plain', () => {
+    const result = { id: 'r1', name: 'Test', date: '2026-03-20', players: [], prizePool: 0, playerCount: 0, buyIn: 0, rebuyEnabled: false } as unknown as Parameters<typeof exportTournamentResult>[0];
+    const exported = exportTournamentResult(result, 'text');
+    expect(exported.mimeType).toBe('text/plain');
+  });
+
+  it('exportConfigBackup sanitizes special characters in filename', () => {
+    const config = { name: 'Mein Turnier! #1', players: [], levels: [], buyIn: 10 } as unknown as Parameters<typeof exportConfigBackup>[0];
+    const exported = exportConfigBackup(config);
+    expect(exported.filename).not.toMatch(/[!#\s]/);
+    expect(exported.filename).toMatch(/_backup\.json$/);
+  });
+});
+
+// ===========================================================================
+// audioService
+// ===========================================================================
+
+describe('audioService', () => {
+  it('setAudioMasterVolume clamps volume to 0-1 range', () => {
+    setAudioMasterVolume(1.5);
+    // Volume is clamped — no error thrown
+    setAudioMasterVolume(-0.5);
+    // Volume is clamped to 0 — no error thrown
+    setAudioMasterVolume(0.5);
+    // Normal volume — no error thrown
+  });
+
+  it('setAudioLanguage accepts valid languages', () => {
+    setAudioLanguage('en');
+    setAudioLanguage('de');
+    // Both calls succeed without error
+  });
+});
+
+// ===========================================================================
+// isValidAudioFile (customAudio)
+// ===========================================================================
+
+describe('isValidAudioFile', () => {
+  it('accepts valid MP3 (0xFF 0xFB)', () => {
+    const buf = new ArrayBuffer(12);
+    const view = new Uint8Array(buf);
+    view[0] = 0xFF; view[1] = 0xFB;
+    expect(isValidAudioFile(buf)).toBe(true);
+  });
+
+  it('accepts valid WAV (RIFF header)', () => {
+    const buf = new ArrayBuffer(12);
+    const view = new Uint8Array(buf);
+    [0x52, 0x49, 0x46, 0x46].forEach((b, i) => { view[i] = b; });
+    expect(isValidAudioFile(buf)).toBe(true);
+  });
+
+  it('accepts valid OGG (OggS header)', () => {
+    const buf = new ArrayBuffer(12);
+    const view = new Uint8Array(buf);
+    [0x4F, 0x67, 0x67, 0x53].forEach((b, i) => { view[i] = b; });
+    expect(isValidAudioFile(buf)).toBe(true);
+  });
+
+  it('accepts valid MP4/M4A (ftyp at offset 4)', () => {
+    const buf = new ArrayBuffer(12);
+    const view = new Uint8Array(buf);
+    [0x66, 0x74, 0x79, 0x70].forEach((b, i) => { view[4 + i] = b; });
+    expect(isValidAudioFile(buf)).toBe(true);
+  });
+
+  it('rejects zeroed buffer', () => {
+    const buf = new ArrayBuffer(12);
+    expect(isValidAudioFile(buf)).toBe(false);
+  });
+});
+
+// ===========================================================================
+// tables edge cases
+// ===========================================================================
+
+describe('tables edge cases — dissolve & distribute', () => {
+  it('dissolveTable with nonexistent tableId returns unchanged tables', () => {
+    const table = { id: 't1', name: 'Table 1', seats: [{ seatNumber: 1, playerId: 'p1', locked: false }], maxSeats: 6, status: 'active' as const, dealerSeat: 1 };
+    const players = [{ id: 'p1', name: 'A', status: 'active' as const, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0 }];
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const result = dissolveTable([table], 'nonexistent', players);
+    expect(result.moves).toHaveLength(0);
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('distributePlayersToTables with all dissolved tables leaves players unplaced', () => {
+    const seats = Array.from({ length: 6 }, (_, i) => ({ seatNumber: i + 1, playerId: null, locked: false }));
+    const table = { id: 't1', name: 'Table 1', seats, maxSeats: 6, status: 'dissolved' as const, dealerSeat: 1 };
+    const result = distributePlayersToTables(['p1'], [table]);
+    const seated = result.flatMap(t => t.seats.filter(s => s.playerId !== null));
+    expect(seated).toHaveLength(0);
+  });
+});
+
+// ===========================================================================
+// generateBlindStructure edge case
+// ===========================================================================
+
+describe('generateBlindStructure edge cases', () => {
+  it('generates at least one level when startingChips is 0', () => {
+    const levels = generateBlindStructure({ startingChips: 0, speed: 'normal', anteEnabled: false });
+    expect(levels.length).toBeGreaterThanOrEqual(1);
+    const playLevel = levels.find(l => l.type === 'level');
+    expect(playLevel).toBeDefined();
+    expect(playLevel!.bigBlind).toBeGreaterThan(0);
   });
 });

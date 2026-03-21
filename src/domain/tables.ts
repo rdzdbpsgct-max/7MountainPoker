@@ -376,7 +376,10 @@ export function dissolveTable(
   }));
 
   const dissolvedTable = updated.find(t => t.id === tableId);
-  if (!dissolvedTable) return { tables: updated, moves, skipped };
+  if (!dissolvedTable) {
+    console.warn('[tables] dissolveTable: tableId not found:', tableId);
+    return { tables: updated, moves, skipped };
+  }
 
   const activeIds = new Set(players.filter(p => p.status === 'active').map(p => p.id));
   const playerMap = new Map(players.map(p => [p.id, p]));
