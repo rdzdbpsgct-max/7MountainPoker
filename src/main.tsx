@@ -96,12 +96,29 @@ function renderApp() {
 
 // Initialize IndexedDB storage before mounting React.
 // Typically completes in <50ms. Falls back to localStorage if unavailable.
+// Safety timeout: if storage init hangs, render app after 5 seconds anyway.
+const STORAGE_INIT_TIMEOUT_MS = 5000;
+let appRendered = false;
+
+function renderAppOnce() {
+  if (appRendered) return;
+  appRendered = true;
+  trackSessionStarted();
+  renderApp();
+}
+
+const timeoutId = window.setTimeout(() => {
+  console.warn('[storage] init timed out after 5s — rendering with fallback');
+  renderAppOnce();
+}, STORAGE_INIT_TIMEOUT_MS);
+
 initStorage()
   .then(() => {
-    trackSessionStarted();
-    renderApp();
+    window.clearTimeout(timeoutId);
+    renderAppOnce();
   })
   .catch((err) => {
+    window.clearTimeout(timeoutId);
     console.warn('[storage] init failed:', err);
-    renderApp();
+    renderAppOnce();
   });

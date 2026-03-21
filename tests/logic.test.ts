@@ -171,7 +171,10 @@ import {
   createUndoSnapshot,
   migrations,
   DB_VERSION,
+  cloneConfigFromResult,
+  getLeaguePlayerNames,
 } from '../src/domain/logic';
+import { sanitizeFilename, formatDuration } from '../src/domain/pdfExport';
 import { exportTournamentResult, exportConfigBackup, createFullBackup, exportFullBackup, parseFullBackup, restoreFullBackup } from '../src/domain/cloudExport';
 import { setAudioMasterVolume, setAudioLanguage } from '../src/domain/audioService';
 import { isValidAudioFile } from '../src/domain/customAudio';
@@ -8523,5 +8526,149 @@ describe('license', () => {
     expect(parseLicenseKey('7MP-PREMIUM-0')).toBeNull();
     expect(parseLicenseKey('7MP-PREMIUM')).toBeNull();
     expect(parseLicenseKey('')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PDF Export Helpers
+// ---------------------------------------------------------------------------
+
+describe('sanitizeFilename', () => {
+  it('removes special characters and lowercases', () => {
+    expect(sanitizeFilename('My Tournament #1!')).toBe('my-tournament-1');
+  });
+
+  it('collapses multiple spaces and dashes', () => {
+    expect(sanitizeFilename('foo   bar---baz')).toBe('foo-bar-baz');
+  });
+
+  it('preserves German umlauts', () => {
+    expect(sanitizeFilename('Übungsturnier')).toBe('übungsturnier');
+  });
+
+  it('truncates to 80 characters', () => {
+    const long = 'a'.repeat(100);
+    expect(sanitizeFilename(long).length).toBe(80);
+  });
+
+  it('returns "tournament" for empty input', () => {
+    expect(sanitizeFilename('')).toBe('tournament');
+    expect(sanitizeFilename('!!!')).toBe('tournament');
+  });
+});
+
+describe('formatDuration', () => {
+  it('formats minutes only when < 1 hour', () => {
+    expect(formatDuration(900)).toBe('15m');
+    expect(formatDuration(0)).toBe('0m');
+  });
+
+  it('formats hours and minutes', () => {
+    expect(formatDuration(3600)).toBe('1h 0m');
+    expect(formatDuration(8100)).toBe('2h 15m');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// cloneConfigFromResult
+// ---------------------------------------------------------------------------
+
+describe('cloneConfigFromResult', () => {
+  const baseConfig = defaultConfig();
+
+  it('returns null when no configSnapshot exists', () => {
+    const result = buildTournamentResult(baseConfig, 3600, 10);
+    // Simulate old result without snapshot
+    const oldResult = { ...result, configSnapshot: undefined };
+    expect(cloneConfigFromResult(oldResult)).toBeNull();
+  });
+
+  it('reconstructs players from result player names', () => {
+    const result = buildTournamentResult(baseConfig, 3600, 10);
+    const cloned = cloneConfigFromResult(result);
+    expect(cloned).not.toBeNull();
+    // Players should match result players by name
+    expect(cloned!.players.map((p) => p.name)).toEqual(result.players.map((p) => p.name));
+    // All players should be active with fresh state
+    for (const p of cloned!.players) {
+      expect(p.status).toBe('active');
+      expect(p.rebuys).toBe(0);
+      expect(p.addOn).toBe(false);
+      expect(p.placement).toBeNull();
+    }
+  });
+
+  it('generates fresh player IDs (not reusing old IDs)', () => {
+    const result = buildTournamentResult(baseConfig, 3600, 10);
+    const cloned = cloneConfigFromResult(result);
+    expect(cloned).not.toBeNull();
+    const ids = cloned!.players.map((p) => p.id);
+    const unique = new Set(ids);
+    expect(unique.size).toBe(ids.length);
+  });
+
+  it('clears leagueId and seriesId from cloned config', () => {
+    const configWithLeague = { ...baseConfig, leagueId: 'league-1', seriesId: 'series-1' };
+    const result = buildTournamentResult(configWithLeague, 3600, 10);
+    const cloned = cloneConfigFromResult(result);
+    expect(cloned).not.toBeNull();
+    expect(cloned!.leagueId).toBeUndefined();
+    expect(cloned!.seriesId).toBeUndefined();
+  });
+
+  it('preserves blind structure from original config', () => {
+    const result = buildTournamentResult(baseConfig, 3600, 10);
+    const cloned = cloneConfigFromResult(result);
+    expect(cloned).not.toBeNull();
+    expect(cloned!.levels).toEqual(baseConfig.levels);
+    expect(cloned!.buyIn).toBe(baseConfig.buyIn);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getLeaguePlayerNames
+// ---------------------------------------------------------------------------
+
+describe('getLeaguePlayerNames', () => {
+  beforeEach(() => {
+    resetStorage();
+    initStorage();
+  });
+
+  it('returns empty array for league with no game days', () => {
+    const names = getLeaguePlayerNames('nonexistent-league');
+    expect(names).toEqual([]);
+  });
+
+  it('extracts and deduplicates player names from game days', () => {
+    const league = saveLeague({
+      id: 'test-league-players',
+      name: 'Test Liga',
+      pointSystem: defaultPointSystem(),
+    } as ReturnType<typeof saveLeague>);
+
+    // Create two game days with overlapping players
+    saveGameDay({
+      id: 'gd1',
+      leagueId: league.id,
+      date: '2025-01-01',
+      participants: [
+        { name: 'Alice', place: 1, points: 10, buyIn: 10, payout: 30 },
+        { name: 'Bob', place: 2, points: 7, buyIn: 10, payout: 15 },
+      ],
+    } as Parameters<typeof saveGameDay>[0]);
+
+    saveGameDay({
+      id: 'gd2',
+      leagueId: league.id,
+      date: '2025-01-08',
+      participants: [
+        { name: 'Alice', place: 1, points: 10, buyIn: 10, payout: 30 },
+        { name: 'Charlie', place: 2, points: 7, buyIn: 10, payout: 15 },
+      ],
+    } as Parameters<typeof saveGameDay>[0]);
+
+    const names = getLeaguePlayerNames(league.id);
+    expect(names).toEqual(['Alice', 'Bob', 'Charlie']); // sorted, deduplicated
   });
 });

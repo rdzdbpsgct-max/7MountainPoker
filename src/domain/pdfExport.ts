@@ -7,7 +7,7 @@ type TranslateFn = (key: TranslationKey, params?: Record<string, string | number
 /**
  * Sanitize a string for use as a filename (remove special characters, collapse spaces).
  */
-function sanitizeFilename(name: string): string {
+export function sanitizeFilename(name: string): string {
   return name
     .replace(/[^a-zA-Z0-9äöüÄÖÜß _-]/g, '')
     .replace(/\s+/g, '-')
@@ -19,7 +19,7 @@ function sanitizeFilename(name: string): string {
 /**
  * Format seconds into a human-readable duration string (e.g. "2h 15m").
  */
-function formatDuration(seconds: number): string {
+export function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   if (h > 0) return `${h}h ${m}m`;
