@@ -21,6 +21,7 @@ interface Props {
   canUseLeagueMode: boolean;
   remoteHostConnected: boolean;
   tvWindowActive: boolean;
+  isOnline?: boolean | undefined;
   onStartRemoteHost: () => void;
   onToggleTVWindow: () => void;
   onToggleSetupGame: () => void;
@@ -56,6 +57,7 @@ export const AppHeader = memo(function AppHeader({
   canUseLeagueMode,
   remoteHostConnected,
   tvWindowActive,
+  isOnline,
   onStartRemoteHost,
   onToggleTVWindow,
   onToggleSetupGame,
@@ -76,7 +78,7 @@ export const AppHeader = memo(function AppHeader({
 }: Props) {
   const { t } = useTranslation();
 
-  return (
+  return (<>
     <header className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 border-b border-gray-300 dark:border-gray-700/30 bg-white/95 dark:bg-gray-900/50 backdrop-blur-sm">
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
         <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white tracking-tight truncate">
@@ -286,5 +288,11 @@ export const AppHeader = memo(function AppHeader({
         </button>
       </div>
     </header>
-  );
+    {isOnline === false && (
+      <div className="flex items-center justify-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/30 border-b border-amber-300 dark:border-amber-700/60 text-amber-700 dark:text-amber-300 text-xs font-medium animate-fade-in">
+        <span aria-hidden="true">{String.fromCodePoint(0x26A0, 0xFE0F)}</span>
+        <span>{t('app.offlineNotice')}</span>
+      </div>
+    )}
+  </>);
 });

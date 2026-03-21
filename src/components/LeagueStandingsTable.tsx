@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, lazy, Suspense } from 'react';
+import { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { League, ExtendedLeagueStanding, GameDay, RankingAlgorithm } from '../domain/types';
 import { formatLeagueStandingsAsText, formatLeagueStandingsAsCSV, encodeLeagueStandingsForQR, normalizePlayerName, exportLeagueStandingsAsPdf } from '../domain/logic';
@@ -14,6 +14,24 @@ const LeaguePlayerDetail = lazy(() => import('./LeaguePlayerDetail').then(m => (
 type SortKey = 'rank' | 'name' | 'points' | 'tournaments' | 'wins' | 'cashes' | 'avgPlace' | 'bestPlace' | 'knockouts' | 'totalCost' | 'totalPayout' | 'netBalance' | 'participationRate' | 'eloRating' | 'weightedPoints';
 type SortDir = 'asc' | 'desc';
 
+const SORT_STORAGE_KEY = 'poker-timer-league-sort';
+const VALID_SORT_KEYS = new Set<SortKey>(['rank', 'name', 'points', 'tournaments', 'wins', 'cashes', 'avgPlace', 'bestPlace', 'knockouts', 'totalCost', 'totalPayout', 'netBalance', 'participationRate', 'eloRating', 'weightedPoints']);
+
+function loadPersistedSort(): { key: SortKey; dir: SortDir } {
+  try {
+    const raw = localStorage.getItem(SORT_STORAGE_KEY);
+    if (!raw) return { key: 'rank', dir: 'asc' };
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null) return { key: 'rank', dir: 'asc' };
+    const obj = parsed as Record<string, unknown>;
+    const key = VALID_SORT_KEYS.has(obj.key as SortKey) ? (obj.key as SortKey) : 'rank';
+    const dir = obj.dir === 'asc' || obj.dir === 'desc' ? obj.dir : 'asc';
+    return { key, dir };
+  } catch {
+    return { key: 'rank', dir: 'asc' };
+  }
+}
+
 interface Props {
   league: League;
   standings: ExtendedLeagueStanding[];
@@ -26,8 +44,14 @@ interface Props {
 export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePointSystem, onAddCorrection, currencySymbol }: Props) {
   const { t } = useTranslation();
   const { resolved: theme } = useTheme();
-  const [sortKey, setSortKey] = useState<SortKey>('rank');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [sortKey, setSortKey] = useState<SortKey>(() => loadPersistedSort().key);
+  const [sortDir, setSortDir] = useState<SortDir>(() => loadPersistedSort().dir);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify({ key: sortKey, dir: sortDir }));
+    } catch { /* quota exceeded — ignore */ }
+  }, [sortKey, sortDir]);
   const [showPointSystem, setShowPointSystem] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);

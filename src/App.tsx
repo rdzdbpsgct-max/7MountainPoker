@@ -873,6 +873,7 @@ function App() {
         canUseLeagueMode={canUseLeagueMode}
         remoteHostConnected={remoteHostStatus === 'connected'}
         tvWindowActive={tvWindowActive}
+        isOnline={isOnline}
         onStartRemoteHost={() => { trackFeatureUsed('remoteControl', 'game'); startRemoteHost(); }}
         onToggleTVWindow={handleToggleTVWindow}
         onToggleSetupGame={() => {
