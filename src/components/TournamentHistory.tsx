@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { TournamentResult, PlayerStat } from '../domain/types';
+import type { TournamentConfig } from '../domain/types';
 import {
   loadTournamentHistory,
   deleteTournamentResult,
@@ -8,6 +9,7 @@ import {
   formatResultAsCSV,
   formatElapsedTime,
   computePlayerStats,
+  cloneConfigFromResult,
   MAX_HISTORY,
 } from '../domain/logic';
 import { useTranslation } from '../i18n';
@@ -18,9 +20,10 @@ type Tab = 'history' | 'stats';
 
 interface Props {
   onClose: () => void;
+  onCloneConfig?: ((config: TournamentConfig) => void) | undefined;
 }
 
-export function TournamentHistory({ onClose }: Props) {
+export function TournamentHistory({ onClose, onCloneConfig }: Props) {
   const { t, language } = useTranslation();
   const [history, setHistory] = useState<TournamentResult[]>(() => loadTournamentHistory());
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -123,6 +126,10 @@ export function TournamentHistory({ onClose }: Props) {
                   onDelete={() => handleDelete(result.id)}
                   onCopyText={() => handleCopyText(result)}
                   onDownloadCSV={() => handleDownloadCSV(result)}
+                  onClone={onCloneConfig && result.configSnapshot ? () => {
+                    const cloned = cloneConfigFromResult(result);
+                    if (cloned) { onCloneConfig(cloned); onClose(); }
+                  } : undefined}
                   copied={copiedId === result.id}
                 />
               ))
@@ -173,6 +180,7 @@ function HistoryEntry({
   onDelete,
   onCopyText,
   onDownloadCSV,
+  onClone,
   copied,
 }: {
   result: TournamentResult;
@@ -181,6 +189,7 @@ function HistoryEntry({
   onDelete: () => void;
   onCopyText: () => void;
   onDownloadCSV: () => void;
+  onClone?: (() => void) | undefined;
   copied: boolean;
 }) {
   const { t, language } = useTranslation();
@@ -294,6 +303,16 @@ function HistoryEntry({
             >
               {t('finished.downloadCSV')}
             </button>
+            {onClone && (
+              <button
+                onClick={onClone}
+                className="px-3 py-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-xs font-medium transition-colors border border-gray-200 dark:border-gray-700/40"
+                style={{ backgroundColor: 'color-mix(in srgb, var(--accent-500) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--accent-500) 30%, transparent)' }}
+                title={t('history.cloneTooltip')}
+              >
+                {t('history.clone')}
+              </button>
+            )}
             <div className="flex-1" />
             <button
               onClick={onDelete}

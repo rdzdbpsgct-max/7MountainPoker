@@ -17,6 +17,7 @@ import type {
   SidePotPayoutResult,
 } from './types';
 import { CURRENCY_SYMBOLS } from './types';
+import { generatePlayerId } from './helpers';
 import { t as moduleT } from '../i18n/translations';
 
 // ---------------------------------------------------------------------------
@@ -497,6 +498,36 @@ export function buildTournamentResult(
       ? computeRebuyPot(config.players, config.rebuy.enabled ? config.rebuy.rebuyCost : config.buyIn)
       : undefined,
     events: events ?? [],
+    // Store config snapshot for tournament cloning (without players — those are in result.players)
+    configSnapshot: {
+      ...config,
+      players: [], // Players reconstructed from result on clone
+    },
+  };
+}
+
+/**
+ * Reconstruct a TournamentConfig from a finished TournamentResult for cloning.
+ * Uses the configSnapshot if available, otherwise creates a minimal config from result metadata.
+ * Players are created fresh from the result player names.
+ */
+export function cloneConfigFromResult(result: TournamentResult): TournamentConfig | null {
+  if (!result.configSnapshot) return null;
+  const players: Player[] = result.players.map((p) => ({
+    id: generatePlayerId(),
+    name: p.name,
+    rebuys: 0,
+    addOn: false,
+    status: 'active' as const,
+    placement: null,
+    eliminatedBy: null,
+    knockouts: 0,
+  }));
+  return {
+    ...result.configSnapshot,
+    players,
+    leagueId: undefined, // Don't inherit league linkage
+    seriesId: undefined, // Don't inherit series linkage
   };
 }
 

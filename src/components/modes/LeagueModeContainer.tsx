@@ -5,7 +5,7 @@ import { LoadingFallback } from '../LoadingFallback';
 const LeagueView = lazy(() => import('../LeagueView').then((m) => ({ default: m.LeagueView })));
 
 interface Props {
-  onStartTournament: (leagueId: string, options?: { quickStart?: boolean }) => void;
+  onStartTournament: (leagueId: string, options?: { quickStart?: boolean | undefined; playerNames?: string[] | undefined }) => void;
 }
 
 export function LeagueModeContainer({ onStartTournament }: Props) {

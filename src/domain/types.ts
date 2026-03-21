@@ -254,6 +254,8 @@ export interface TournamentResult {
   rebuyPot?: number | undefined;
   /** Full event log for the tournament (optional, populated from v6.5.0+) */
   events?: TournamentEvent[] | undefined;
+  /** Snapshot of tournament config for cloning (optional, populated from v7.0.0+) */
+  configSnapshot?: TournamentConfig | undefined;
 }
 
 export interface PlayerStat {

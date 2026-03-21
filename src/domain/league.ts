@@ -49,6 +49,23 @@ export function loadGameDaysForLeague(leagueId: string): GameDay[] {
   return getCached('gameDays').filter((gd) => gd.leagueId === leagueId);
 }
 
+/**
+ * Extract unique player names from recent game days for a league.
+ * Returns names from the most recent game days, deduplicated and sorted.
+ */
+export function getLeaguePlayerNames(leagueId: string, maxGameDays = 5): string[] {
+  const gameDays = loadGameDaysForLeague(leagueId)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, maxGameDays);
+  const names = new Set<string>();
+  for (const gd of gameDays) {
+    for (const p of gd.participants) {
+      names.add(p.name);
+    }
+  }
+  return [...names].sort((a, b) => a.localeCompare(b));
+}
+
 /** Load game days for a specific league season. */
 export function loadGameDaysForSeason(leagueId: string, seasonId: string): GameDay[] {
   return getCached('gameDays').filter((gd) => gd.leagueId === leagueId && gd.seasonId === seasonId);

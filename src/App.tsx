@@ -56,6 +56,7 @@ import { useModalManager } from './hooks/useModalManager';
 import { ToastContainer } from './components/Toast';
 import { useRemoteHostBridge } from './hooks/useRemoteHostBridge';
 import { collectStartErrors } from './domain/startValidation';
+import { generatePlayerId } from './domain/helpers';
 import { SectionErrorBoundary } from './components/ErrorBoundary';
 import { LoadingFallback } from './components/LoadingFallback';
 import { SetupModeContainer } from './components/modes/SetupModeContainer';
@@ -911,14 +912,32 @@ function App() {
           /* League Mode */
           <Suspense fallback={<LoadingFallback />}><LeagueModeContainer
             onStartTournament={(leagueId, options) => {
-              setConfig(prev => ({ ...prev, leagueId }));
+              // Pre-fill players from league game days if available
+              const leaguePlayers = options?.playerNames?.length
+                ? options.playerNames.map((name) => ({
+                    id: generatePlayerId(),
+                    name,
+                    rebuys: 0,
+                    addOn: false,
+                    status: 'active' as const,
+                    placement: null,
+                    eliminatedBy: null,
+                    knockouts: 0,
+                  }))
+                : undefined;
+              setConfig(prev => ({
+                ...prev,
+                leagueId,
+                ...(leaguePlayers ? { players: leaguePlayers } : {}),
+              }));
               if (options?.quickStart) {
-                const quickConfig = { ...config, leagueId };
+                const quickConfig = { ...config, leagueId, ...(leaguePlayers ? { players: leaguePlayers } : {}) };
                 const quickStartErrors = collectStartErrors(quickConfig, t);
                 if (quickStartErrors.length === 0) {
                   switchToGame();
                   return;
                 }
+                // Fallback: switch to setup mode instead of staying in league view
                 showToast(quickStartErrors[0]!);
               }
               setMode('setup');
@@ -1040,7 +1059,14 @@ function App() {
 
       {modals.showHistory && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
-          <TournamentHistory onClose={() => modals.setShowHistory(false)} />
+          <TournamentHistory
+            onClose={() => modals.setShowHistory(false)}
+            onCloneConfig={(clonedConfig) => {
+              setConfig(clonedConfig);
+              setMode('setup');
+              showToast(t('history.cloneSuccess'));
+            }}
+          />
         </Suspense></SectionErrorBoundary>
       )}
 

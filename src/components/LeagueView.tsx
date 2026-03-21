@@ -11,6 +11,7 @@ import {
   computeExtendedStandings,
   getActiveSeason,
   computeHeadToHeadMatrix,
+  getLeaguePlayerNames,
 } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { LoadingFallback } from './LoadingFallback';
@@ -26,7 +27,7 @@ const LeagueSettings = lazy(() => import('./LeagueSettings').then((m) => ({ defa
 type Tab = 'standings' | 'gameDays' | 'finances' | 'h2h';
 
 interface Props {
-  onStartTournament: (leagueId: string, options?: { quickStart?: boolean }) => void;
+  onStartTournament: (leagueId: string, options?: { quickStart?: boolean | undefined; playerNames?: string[] | undefined }) => void;
 }
 
 export function LeagueView({ onStartTournament }: Props) {
@@ -134,12 +135,14 @@ export function LeagueView({ onStartTournament }: Props) {
 
   const handleStartGameDay = useCallback(() => {
     if (!selectedLeagueId || !selectedLeague) return;
-    onStartTournament(selectedLeagueId);
+    const playerNames = getLeaguePlayerNames(selectedLeagueId);
+    onStartTournament(selectedLeagueId, { playerNames: playerNames.length > 0 ? playerNames : undefined });
   }, [selectedLeagueId, selectedLeague, onStartTournament]);
 
   const handleQuickStartGameDay = useCallback(() => {
     if (!selectedLeagueId || !selectedLeague) return;
-    onStartTournament(selectedLeagueId, { quickStart: true });
+    const playerNames = getLeaguePlayerNames(selectedLeagueId);
+    onStartTournament(selectedLeagueId, { quickStart: true, playerNames: playerNames.length > 0 ? playerNames : undefined });
   }, [selectedLeagueId, selectedLeague, onStartTournament]);
 
   // Corrections (Step 17)
