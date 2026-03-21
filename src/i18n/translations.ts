@@ -1352,6 +1352,10 @@ const de = {
 
   // --- Storage ---
   'storage.persistFailed': 'Speicher voll — Daten könnten beim Neuladen verloren gehen.',
+
+  // --- Footer ---
+  'footer.impressum': 'Impressum',
+  'footer.privacy': 'Datenschutz',
 } as const;
 
 export type TranslationKey = keyof typeof de;
@@ -2705,6 +2709,10 @@ const en: Record<TranslationKey, string> = {
 
   // --- Storage ---
   'storage.persistFailed': 'Storage full — data may be lost on reload.',
+
+  // --- Footer ---
+  'footer.impressum': 'Legal Notice',
+  'footer.privacy': 'Privacy Policy',
 };
 
 export const translations: Record<Language, Record<TranslationKey, string>> = { de, en };

@@ -1037,6 +1037,17 @@ export function SetupPage({
         <Suspense fallback={null}>
           <SetupQRCode />
         </Suspense>
+
+        {/* Legal footer links */}
+        <div className="flex justify-center gap-4 text-xs text-gray-400 dark:text-gray-500 pt-4 pb-2 no-print">
+          <a href="https://7mountain-poker.vercel.app/impressum" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+            {t('footer.impressum')}
+          </a>
+          <span>·</span>
+          <a href="https://7mountain-poker.vercel.app/datenschutz" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+            {t('footer.privacy')}
+          </a>
+        </div>
       </div>
     </div>
   );
