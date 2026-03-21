@@ -5,6 +5,24 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.9.9] – 2026-03-21
+
+### Holistic Hardening, UX Quick Wins & Test-Coverage
+
+- **Duplikat-Spielernamen-Warnung**: Amber-Border + Tooltip bei doppelten Namen im PlayerManager. Verhindert Liga-Statistik-Verwechslungen durch identische Spielernamen.
+- **Spielersuche**: Suchfeld im PlayerPanel ab 10 Spielern. Filtert aktive + eliminierte Spieler sofort beim Tippen.
+- **Stack-to-Blind-Warnung**: Amber-Farbe + ⚠-Icon in TournamentStats bei ≤15 BB Durchschnittsstack. Tooltip empfiehlt Late-Reg-Schließung (≤15 BB) bzw. signalisiert Turnierend (≤10 BB).
+- **4 neue Preflight-Validierungen**: `startingChips > 0`, `bounty.amount > 0` bei Fixed-Bounty, Blind-Monotonie (BB aufsteigend), Payout-Plätze lückenlos.
+- **Serien Auto-Link**: Turnierergebnis wird automatisch mit verknüpfter Serie verbunden (analog Liga-GameDay). Kein manuelles Verknüpfen mehr nötig.
+- **Sieger-Bounty**: Gewinner erhält in `buildTournamentResult` eigenes Bounty-Chip (Fixed-Modus).
+- **Bounty Heads-Up**: Automatische Killer-Auswahl bei nur einem möglichen Eliminator.
+- **A11y-Verbesserungen**: `TournamentFinished` dialog-Rolle, AppHeader aria-labels, ErrorBoundary zweisprachig.
+- **Robustheit**: `sanitizeRecoveredConfig` prüft stale `seriesId`, Heads-Up-Ansage-Guard, `dissolveTable`-Warnung, `paidPlaces` memoized.
+- **Legal Footer**: Impressum + Datenschutz Links auf Setup-Seite.
+- **25 neue Tests** (cloudExport, audioService, isValidAudioFile, tables, blinds, license) — **1282 Tests gesamt**.
+
+---
+
 ## [6.9.8] – 2026-03-19
 
 ### Lizenzschlüssel-System & Personalisierungs-Gates

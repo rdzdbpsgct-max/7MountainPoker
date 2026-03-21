@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.9.8
+**Version**: 6.9.9
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1257 tests, single run)
+npm run test         # Vitest run (1282 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -191,10 +191,10 @@ src/
     └── useTranslation.ts        # Hook: t(key, params) + language state
 
 tests/
-├── logic.test.ts                # 656 unit tests for domain logic + PeerJS remote control + undo/redo + ICM + cloud export + series + prizepool + side-pots
+├── logic.test.ts                # 681 unit tests for domain logic + PeerJS remote control + undo/redo + ICM + cloud export + series + prizepool + side-pots + license
 ├── components.test.tsx          # 117 UI component tests (NumberStepper, CollapsibleSection, PrintView, CallTheClock, BubbleIndicator, RebuyStatus, ChevronIcon, CollapsibleSubSection, LanguageSwitcher, ThemeSwitcher, ErrorBoundary, useTimer, useConfirmDialog, LoadingFallback, ConfigEditor, SettingsPanel, PlayerPanel, TournamentLog)
 ├── edge-cases.test.ts           # 101 edge case tests (timer, blinds, players, multi-table, format, tournament, validation, helpers)
-├── sound-speech.test.ts         # 41 sound effects + speech announcement + AudioBuffer cache tests
+├── sound-speech.test.ts         # 59 sound effects + speech announcement + AudioBuffer cache tests
 ├── events.test.ts               # 52 tournament event creation, filtering, i18n formatting tests
 ├── integration.test.ts          # 47 cross-module integration tests (checkpoint, timer, config compat, tournament flow, league, audio)
 ├── tournamentActions.test.tsx   # 41 useTournamentActions hook tests
@@ -384,8 +384,8 @@ public/
 
 ## Testing
 
-- **1257 tests** across 18 test files + 1 setup file
-- Core files: `logic.test.ts` (656), `components.test.tsx` (117), `edge-cases.test.ts` (101), `events.test.ts` (52), `integration.test.ts` (47), `sound-speech.test.ts` (41), `tournamentActions.test.tsx` (41), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `league-advanced.test.ts` (22), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
+- **1282 tests** across 18 test files + 1 setup file
+- Core files: `logic.test.ts` (681), `components.test.tsx` (117), `edge-cases.test.ts` (101), `sound-speech.test.ts` (59), `events.test.ts` (52), `integration.test.ts` (47), `tournamentActions.test.tsx` (41), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `league-advanced.test.ts` (22), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -422,6 +422,17 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.9.9 — Holistic Hardening, UX Quick Wins & Test-Coverage
+
+- **UX Quick Wins**: Duplikat-Spielernamen-Warnung (amber Border + Tooltip im PlayerManager), Spielersuche ab 10 Spielern (Filterfeld im PlayerPanel), Stack-to-Blind-Warnung ≤15 BB (amber + ⚠ in TournamentStats).
+- **Validierungs-Härtung** (4 neue Preflight-Checks): `startingChips > 0`, `bounty.amount > 0` (Fixed), Blind-Monotonie (BB aufsteigend), Payout-Plätze lückenlos (1,2,3,…).
+- **Fachliche Vollständigkeit**: Serien Auto-Link bei Turnierende (analog Liga-GameDay); Sieger erhält eigenes Bounty-Chip; Bounty Heads-Up auto-selektiert einzigen Killer.
+- **A11y**: TournamentFinished `role="dialog"` + `aria-modal` + `aria-labelledby`; AppHeader aria-labels auf Remote/TV Buttons; ErrorBoundary + SectionErrorBoundary zweisprachig (DE/EN aus localStorage).
+- **Robustheit**: `sanitizeRecoveredConfig` validiert stale `seriesId`; `dissolveTable` warnt bei unbekannter tableId; `computeExtendedStandings` Fallback bei leerem PointSystem; Heads-Up-Ansage-Guard gegen Doppelansage nach Re-Entry; Elimination-Voice sauber umstrukturiert; `paidPlaces` memoized.
+- **Legal**: Impressum + Datenschutz Footer-Links auf Setup-Seite (→ Marketing-Website).
+- **25 neue Tests** (cloudExport 4, audioService 2, isValidAudioFile 5, tables 2, blinds 1, license 11) — **1282 Tests gesamt** (18 Testdateien)
+- **~20 neue Translation-Keys** (10 DE + 10 EN)
 
 ### v6.9.8 — Lizenzschlüssel-System & Personalisierungs-Gates
 
