@@ -137,6 +137,7 @@ const de = {
   'playerPanel.place': 'Platz',
   'playerPanel.avgStack': 'Ø Stack',
   'playerPanel.activePlayers': 'Aktive Spieler',
+  'playerPanel.searchPlayers': 'Spieler suchen…',
   'playerPanel.eliminate': 'Raus',
   'playerPanel.eliminateTooltip': 'Spieler ist ausgeschieden',
   'playerPanel.whoEliminated': 'Wer hat {name} eliminiert?',
@@ -310,6 +311,7 @@ const de = {
   'players.shuffleToTables': 'Zufällig auslosen',
   'playerManager.setDealer': 'Als Dealer setzen',
   'playerManager.dealer': 'Dealer',
+  'playerManager.duplicateName': 'Doppelter Spielername — kann zu Verwechslungen in Liga-Statistiken führen',
   'playerManager.dragTooltip': 'Ziehen zum Sortieren',
 
   // --- Payout Editor ---
@@ -482,6 +484,8 @@ const de = {
   'stats.players': 'Spieler',
   'stats.prizePool': 'Preisgeld',
   'stats.avgStackBB': 'Ø Stack',
+  'stats.stackLow': 'Niedriger Durchschnittsstack — Late Registration ggf. schließen',
+  'stats.stackCritical': 'Kritisch niedriger Stack — Turnier nähert sich dem Ende',
   'stats.elapsed': 'Spielzeit',
   'stats.remaining': 'Restzeit',
   'stats.liveEstimate': 'Gesch. Restzeit',
@@ -1502,6 +1506,7 @@ const en: Record<TranslationKey, string> = {
   'playerPanel.place': 'Place',
   'playerPanel.avgStack': 'Avg Stack',
   'playerPanel.activePlayers': 'Active Players',
+  'playerPanel.searchPlayers': 'Search players…',
   'playerPanel.eliminate': 'Out',
   'playerPanel.eliminateTooltip': 'Player is eliminated',
   'playerPanel.whoEliminated': 'Who eliminated {name}?',
@@ -1675,6 +1680,7 @@ const en: Record<TranslationKey, string> = {
   'players.shuffleToTables': 'Random seating',
   'playerManager.setDealer': 'Set as Dealer',
   'playerManager.dealer': 'Dealer',
+  'playerManager.duplicateName': 'Duplicate player name — may cause confusion in league statistics',
   'playerManager.dragTooltip': 'Drag to reorder',
 
   // --- Payout Editor ---
@@ -1847,6 +1853,8 @@ const en: Record<TranslationKey, string> = {
   'stats.players': 'Players',
   'stats.prizePool': 'Prize Pool',
   'stats.avgStackBB': 'Avg Stack',
+  'stats.stackLow': 'Low average stack — consider closing late registration',
+  'stats.stackCritical': 'Critically low stacks — tournament nearing conclusion',
   'stats.elapsed': 'Elapsed',
   'stats.remaining': 'Remaining',
   'stats.liveEstimate': 'Est. remaining',

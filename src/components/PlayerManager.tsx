@@ -48,6 +48,16 @@ function PlayerManagerInner({ players, dealerIndex, onChange, multiTableEnabled,
     onChange(updated, dealerIndex);
   };
 
+  // Detect duplicate player names (case-insensitive)
+  const duplicateNames = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of players) {
+      const key = p.name.trim().toLowerCase();
+      if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return new Set([...counts.entries()].filter(([, c]) => c > 1).map(([k]) => k));
+  }, [players]);
+
   const handleMove = useCallback((index: number, direction: -1 | 1) => {
     const dealerPlayerId = players[dealerIndex]?.id;
     const moved = movePlayer(players, index, direction);
@@ -180,7 +190,12 @@ function PlayerManagerInner({ players, dealerIndex, onChange, multiTableEnabled,
                 list="registered-players"
                 placeholder={t('playerManager.playerN', { n: i + 1 })}
                 maxLength={50}
-                className="flex-1 min-w-0 px-2 py-1 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--accent-500)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-all duration-200"
+                className={`flex-1 min-w-0 px-2 py-1 bg-white dark:bg-gray-800/80 border rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 transition-all duration-200 ${
+                  duplicateNames.has(player.name.trim().toLowerCase())
+                    ? 'border-amber-500 dark:border-amber-500 focus:border-amber-500 focus:ring-amber-500/25'
+                    : 'border-gray-300 dark:border-gray-700/60 focus:border-[var(--accent-500)] focus:ring-[var(--accent-ring)]'
+                }`}
+                title={duplicateNames.has(player.name.trim().toLowerCase()) ? t('playerManager.duplicateName') : undefined}
               />
 
               {/* Arrow buttons */}

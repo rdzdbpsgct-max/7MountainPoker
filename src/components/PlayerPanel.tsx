@@ -96,10 +96,21 @@ export const PlayerPanel = memo(function PlayerPanel({
   const hasAnyStacks = useMemo(() => players.some((p) => p.chips !== undefined), [players]);
   const multiTableActive = tables && tables.filter(tbl => tbl.status === 'active').length > 0;
 
-  const activePlayers = useMemo(() => players.filter((p) => p.status === 'active'), [players]);
-  const eliminatedPlayers = useMemo(() => [...players]
+  const allActivePlayers = useMemo(() => players.filter((p) => p.status === 'active'), [players]);
+  const allEliminatedPlayers = useMemo(() => [...players]
     .filter((p) => p.status === 'eliminated')
     .sort((a, b) => (a.placement ?? 0) - (b.placement ?? 0)), [players]);
+
+  // Player search filter (shown when 10+ total players)
+  const [playerFilter, setPlayerFilter] = useState('');
+  const showFilter = players.length >= 10;
+  const filterLower = playerFilter.trim().toLowerCase();
+  const activePlayers = filterLower
+    ? allActivePlayers.filter(p => p.name.toLowerCase().includes(filterLower))
+    : allActivePlayers;
+  const eliminatedPlayers = filterLower
+    ? allEliminatedPlayers.filter(p => p.name.toLowerCase().includes(filterLower))
+    : allEliminatedPlayers;
 
   const handleEliminate = (playerId: string) => {
     if (bountyConfig.enabled) {
@@ -229,11 +240,22 @@ export const PlayerPanel = memo(function PlayerPanel({
         </div>
       )}
 
+      {/* Player search filter */}
+      {showFilter && (
+        <input
+          type="text"
+          value={playerFilter}
+          onChange={(e) => setPlayerFilter(e.target.value)}
+          placeholder={t('playerPanel.searchPlayers')}
+          className="w-full px-2 py-1 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-ring)] mb-2"
+        />
+      )}
+
       {/* Active Players */}
       <div>
         <div className="space-y-1">
           <h3 className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-            {t('playerPanel.activePlayers')} ({activePlayers.length})
+            {t('playerPanel.activePlayers')} ({allActivePlayers.length}{filterLower ? ` / ${activePlayers.length}` : ''})
           </h3>
           <div className="flex flex-wrap items-center gap-1">
             {lateRegOpen && onAddLatePlayer && (

@@ -78,7 +78,12 @@ export function TournamentStats({
         <StatItem label={t('rebuy.separatePotLabel')} value={`${rebuyPot} ${sym}`} />
       )}
       {currentBB > 0 && (
-        <StatItem label={t('stats.avgStackBB')} value={`${avgStackBB} BB`} />
+        <StatItem
+          label={t('stats.avgStackBB')}
+          value={`${avgStackBB} BB`}
+          tooltip={avgStackBB <= 10 ? t('stats.stackCritical') : avgStackBB <= 15 ? t('stats.stackLow') : undefined}
+          warn={avgStackBB <= 15}
+        />
       )}
       <StatItem label={t('stats.elapsed')} value={formatElapsedTime(elapsedSeconds)} />
       <StatItem
@@ -97,11 +102,12 @@ export function TournamentStats({
   );
 }
 
-function StatItem({ label, value, tooltip }: { label: string; value: string; tooltip?: string }) {
+function StatItem({ label, value, tooltip, warn }: { label: string; value: string; tooltip?: string | undefined; warn?: boolean | undefined }) {
   return (
     <div className="flex items-center gap-1" title={tooltip}>
       <span className="text-gray-500 dark:text-gray-500">{label}:</span>
-      <span className="text-gray-800 dark:text-gray-100 font-medium font-mono">{value}</span>
+      <span className={`font-medium font-mono ${warn ? 'text-amber-600 dark:text-amber-400' : 'text-gray-800 dark:text-gray-100'}`}>{value}</span>
+      {warn && <span className="text-amber-500">⚠</span>}
     </div>
   );
 }
