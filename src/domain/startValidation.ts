@@ -28,6 +28,36 @@ export function collectStartErrors(config: TournamentConfig, t: Translate): stri
     );
   }
 
+  // Starting chips must be positive
+  if (config.startingChips <= 0) {
+    errors.push(t('app.startingChipsMustBePositive'));
+  }
+
+  // Bounty amount must be positive when bounty is enabled
+  if (config.bounty.enabled && config.bounty.amount <= 0 && config.bounty.type === 'fixed') {
+    errors.push(t('app.bountyAmountMustBePositive'));
+  }
+
+  // Blind levels must be monotonically increasing (BB[i] >= BB[i-1])
+  const playLevels = config.levels.filter((l) => l.type === 'level');
+  for (let i = 1; i < playLevels.length; i++) {
+    const prevBB = playLevels[i - 1]?.bigBlind ?? 0;
+    const currBB = playLevels[i]?.bigBlind ?? 0;
+    if (currBB < prevBB) {
+      errors.push(t('app.blindsNotMonotonic', { n: i + 1, bb: currBB, prevBb: prevBB }));
+      break; // one warning is enough
+    }
+  }
+
+  // Payout places must be contiguous (1, 2, 3, ...)
+  if (config.payout.entries.length > 0) {
+    const sortedPlaces = [...config.payout.entries].map(e => e.place).sort((a, b) => a - b);
+    const isContiguous = sortedPlaces.every((p, i) => p === i + 1);
+    if (!isContiguous) {
+      errors.push(t('app.payoutPlacesNotContiguous'));
+    }
+  }
+
   // Dangling league reference check
   if (config.leagueId) {
     const leagues = loadLeagues();
