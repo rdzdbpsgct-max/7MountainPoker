@@ -146,7 +146,7 @@ export function useGameComputedState({
     [config.players],
   );
 
-  const paidPlaces = config.payout.entries.length;
+  const paidPlaces = useMemo(() => config.payout.entries.length, [config.payout.entries]);
 
   const bubbleActive = useMemo(
     () => isBubble(activePlayerCount, paidPlaces),

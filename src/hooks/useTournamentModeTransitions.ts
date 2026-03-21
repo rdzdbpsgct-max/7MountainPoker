@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { SetStateAction } from 'react';
 import type { Settings, TableMove, TournamentCheckpoint, TournamentConfig, TournamentEvent } from '../domain/types';
-import { clearCheckpoint, distributePlayersToTables, loadLeagues, sanitizeRecoveredConfig } from '../domain/logic';
+import { clearCheckpoint, distributePlayersToTables, loadLeagues, loadAllSeries, sanitizeRecoveredConfig } from '../domain/logic';
 import { announceTournamentStart, cancelSpeech, initSpeech } from '../domain/speech';
 import { showToast } from '../domain/toast';
 import type { TranslationKey } from '../i18n';
@@ -197,12 +197,16 @@ export function useTournamentModeTransitions({
   const restoreFromCheckpoint = useCallback(() => {
     if (!pendingCheckpoint) return;
 
-    const { config: sanitizedConfig, removedMissingLeagueLink } = sanitizeRecoveredConfig(
+    const { config: sanitizedConfig, removedMissingLeagueLink, removedMissingSeriesLink } = sanitizeRecoveredConfig(
       pendingCheckpoint.config,
       loadLeagues(),
+      loadAllSeries(),
     );
     if (removedMissingLeagueLink) {
       showToast(t('checkpoint.leagueMissing'));
+    }
+    if (removedMissingSeriesLink) {
+      showToast(t('checkpoint.seriesMissing'));
     }
 
     setConfig(sanitizedConfig);

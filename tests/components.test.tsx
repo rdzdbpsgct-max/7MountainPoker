@@ -690,8 +690,8 @@ describe('ErrorBoundary', () => {
         <ThrowingComponent />
       </ErrorBoundary>,
     );
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    expect(screen.getByText('Reload')).toBeInTheDocument();
+    expect(screen.getByText('Etwas ist schiefgelaufen')).toBeInTheDocument();
+    expect(screen.getByText('Neu laden')).toBeInTheDocument();
   });
 });
 
@@ -713,14 +713,14 @@ describe('SectionErrorBoundary', () => {
     expect(screen.getByTestId('child')).toBeInTheDocument();
   });
 
-  it('renders compact fallback with Retry button on error', () => {
+  it('renders compact fallback with retry button on error', () => {
     render(
       <SectionErrorBoundary>
         <ThrowingComponent />
       </SectionErrorBoundary>,
     );
-    expect(screen.getByText('Failed to load this section.')).toBeInTheDocument();
-    expect(screen.getByText('Retry')).toBeInTheDocument();
+    expect(screen.getByText('Dieser Bereich konnte nicht geladen werden.')).toBeInTheDocument();
+    expect(screen.getByText('Erneut versuchen')).toBeInTheDocument();
   });
 
   it('recovers when Retry is clicked and child no longer throws', () => {
@@ -735,15 +735,15 @@ describe('SectionErrorBoundary', () => {
       </SectionErrorBoundary>,
     );
     // Should show error fallback
-    expect(screen.getByText('Retry')).toBeInTheDocument();
+    expect(screen.getByText('Erneut versuchen')).toBeInTheDocument();
 
     // Fix the error and click Retry
     shouldThrow = false;
-    fireEvent.click(screen.getByText('Retry'));
+    fireEvent.click(screen.getByText('Erneut versuchen'));
 
     // Should now render the child successfully
     expect(screen.getByTestId('recovered')).toBeInTheDocument();
-    expect(screen.queryByText('Retry')).not.toBeInTheDocument();
+    expect(screen.queryByText('Erneut versuchen')).not.toBeInTheDocument();
   });
 });
 
@@ -1605,8 +1605,8 @@ describe('SectionErrorBoundary', () => {
         <ThrowOnce />
       </SectionErrorBoundary>
     );
-    expect(getByText(/failed to load/i)).toBeTruthy();
-    expect(getByText('Retry')).toBeTruthy();
+    expect(getByText(/konnte nicht geladen|failed to load/i)).toBeTruthy();
+    expect(getByText('Erneut versuchen')).toBeTruthy();
     spy.mockRestore();
   });
 });

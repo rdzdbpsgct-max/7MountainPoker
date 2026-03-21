@@ -456,8 +456,10 @@ export function buildTournamentResult(
     const totalCost = p.totalBuyIns * config.buyIn
       + p.totalRebuys * (config.rebuy.enabled ? config.rebuy.rebuyCost : config.buyIn)
       + (p.hasAddOn ? (config.addOn.enabled ? config.addOn.cost : config.buyIn) : 0);
+    // Winner collects their own bounty chip (last player standing keeps their bounty)
+    const selfBounty = p.isActive && config.bounty.enabled && config.bounty.type === 'fixed' ? config.bounty.amount : 0;
     const bountyEarned = config.bounty.enabled
-      ? (config.bounty.type === 'mystery' ? p.totalBountyEarned : p.totalKnockouts * config.bounty.amount)
+      ? (config.bounty.type === 'mystery' ? p.totalBountyEarned : p.totalKnockouts * config.bounty.amount + selfBounty)
       : 0;
     return {
       name: p.name,

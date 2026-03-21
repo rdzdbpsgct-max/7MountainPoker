@@ -162,27 +162,36 @@ export function useVoiceAnnouncements({
     if (mode !== 'game' || !settings.voiceEnabled) return;
     const prev = prevPlayersRef.current;
     prevPlayersRef.current = config.players;
+    // Detect any newly eliminated player(s) — announce once even if multiple eliminated simultaneously
+    let foundElimination = false;
     for (const player of config.players) {
       if (player.status === 'eliminated' && player.placement !== null) {
         const prevPlayer = prev.find(p => p.id === player.id);
         if (prevPlayer && prevPlayer.status === 'active') {
-          announceElimination(t);
-          if (config.bounty.enabled) announceBounty(t);
-          if (rebuyActive) announceRebuyAvailable(t);
-          break;
+          foundElimination = true;
+          break; // one announcement is sufficient regardless of how many eliminated
         }
       }
+    }
+    if (foundElimination) {
+      announceElimination(t);
+      if (config.bounty.enabled) announceBounty(t);
+      if (rebuyActive) announceRebuyAvailable(t);
     }
   }, [mode, config.players, settings.voiceEnabled, config.bounty.enabled, rebuyActive, t]);
 
   // Voice: Player count milestones (dynamic based on paidPlaces) + Heads-Up
   const prevActiveCountRef = useRef(activePlayerCount);
+  const headsUpAnnouncedRef = useRef(false);
   useEffect(() => {
     if (mode === 'game' && settings.voiceEnabled) {
       const prev = prevActiveCountRef.current;
+      // Reset heads-up flag when count goes above 2 (e.g. re-entry)
+      if (activePlayerCount > 2) headsUpAnnouncedRef.current = false;
       if (activePlayerCount < prev) {
-        if (activePlayerCount === 2) {
+        if (activePlayerCount === 2 && !headsUpAnnouncedRef.current) {
           announceHeadsUp(t);
+          headsUpAnnouncedRef.current = true;
         } else if (activePlayerCount === 3) {
           announceThreeRemaining(t);
         } else if (activePlayerCount >= 4 && activePlayerCount <= paidPlaces) {
@@ -347,6 +356,7 @@ export function useVoiceAnnouncements({
     fiveMinWarningRef.current = false;
     breakWarningRef.current = false;
     firedAlertsRef.current = new Set();
+    headsUpAnnouncedRef.current = false;
   }, []);
 
   return { reset };

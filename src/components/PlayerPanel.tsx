@@ -104,7 +104,9 @@ export const PlayerPanel = memo(function PlayerPanel({
   const handleEliminate = (playerId: string) => {
     if (bountyConfig.enabled) {
       setEliminatingId(playerId);
-      setSelectedKiller('');
+      // Auto-select if only one possible killer (heads-up)
+      const eligibleKillers = activePlayers.filter((p) => p.id !== playerId);
+      setSelectedKiller(eligibleKillers.length === 1 ? eligibleKillers[0]!.id : '');
     } else {
       onEliminatePlayer(playerId, null);
     }
