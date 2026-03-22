@@ -106,6 +106,8 @@ Eine vollständig clientseitige Web-App zur Verwaltung von Poker-Heimturnieren. 
 | Turnierdauer-Prognose | Geschätzte Turnierdauer basierend auf Spieleranzahl und Blindstruktur |
 | Undo/Redo | Alle Turnieraktionen rückgängig machen (Cmd+Z / Cmd+Shift+Z) — Elimination, Rebuy, Add-On, Reinstate, Dealer, Late Reg, Re-Entry, Stack-Änderungen |
 | ICM-Rechner | Independent Chip Model Equity-Berechnung — exakt (≤10 Spieler) oder Monte Carlo (>10 Spieler). Modal im Spielmodus |
+| Deal-Making | Chop-Rechner am Final Table (2–6 Spieler) — ICM Chop, Chip Chop oder Even Split. Manuelle Anpassung, Deal-Bestätigung mit Auszahlung |
+| Liga-Charts | SVG-Diagramme im Liga-Modus — kumulative Punkte, Platzierungsverlauf und Finanzbilanz über alle Spieltage |
 | Cloud Export | Einheitlicher Export (JSON/CSV/Text) über Web Share API, File System Access API oder Download |
 | Multi-Controller | Mehrere Smartphones gleichzeitig als Fernsteuerung verbinden |
 | Premium UI | Glassmorphism, Gradient-Buttons, Timer-Glow, benutzerdefinierte Animationen, taktile Interaktionen |
@@ -222,6 +224,8 @@ A fully client-side web app for managing home poker tournaments. No server, no a
 | Duration Estimate | Estimated tournament duration based on player count and blind structure |
 | Undo/Redo | Undo any tournament action (Cmd+Z / Cmd+Shift+Z) — elimination, rebuy, add-on, reinstate, dealer, late reg, re-entry, stack changes |
 | ICM Calculator | Independent Chip Model equity calculation — exact (≤10 players) or Monte Carlo (>10 players). Modal in game mode |
+| Deal-Making | Chop calculator at final table (2–6 players) — ICM Chop, Chip Chop, or Even Split. Manual adjustment, deal confirmation with payout |
+| League Charts | SVG charts in league mode — cumulative points, placement history, and financial balance across all game days |
 | Cloud Export | Unified export (JSON/CSV/text) via Web Share API, File System Access API, or download |
 | Multi-Controller | Connect multiple smartphones as remote controllers simultaneously |
 | Premium UI | Glassmorphism, gradient buttons, timer glow, custom animations, tactile interactions |

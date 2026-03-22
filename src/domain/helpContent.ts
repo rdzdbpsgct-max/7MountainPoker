@@ -272,6 +272,13 @@ export const helpSections: HelpSection[] = [
         },
       },
       {
+        title: { de: 'Deal-Making / Chop-Rechner', en: 'Deal-Making / Chop Calculator' },
+        body: {
+          de: 'Beim Final Table (2–6 Spieler) kannst du über den „Deal"-Button im Spielerpanel ein Deal-Modal öffnen. Drei Methoden: ICM Chop (basierend auf Equity), Chip Chop (proportional zu Stacks) und Even Split (gleiche Aufteilung). Auszahlungen sind manuell per Stepper anpassbar. Bei Bestätigung werden alle Spieler mit den vereinbarten Beträgen ausgezahlt.',
+          en: 'At the final table (2–6 players), open the deal modal via the "Deal" button in the player panel. Three methods: ICM Chop (equity-based), Chip Chop (proportional to stacks), and Even Split (equal division). Payouts are manually adjustable via stepper. On confirmation, all players are paid out with the agreed amounts.',
+        },
+      },
+      {
         title: { de: 'Side-Pot-Rechner', en: 'Side Pot Calculator' },
         body: {
           de: 'Berechnet Main-Pot und Side-Pots bei All-In-Situationen. Gib die Stacks der beteiligten Spieler ein und sieh sofort die Pot-Aufteilung. Zugriff über den PlayerPanel-Header.',
@@ -562,6 +569,13 @@ export const helpSections: HelpSection[] = [
         body: {
           de: 'Die Sortierung der Liga-Tabelle (z.B. nach Punkten, Bilanz oder Name) wird gespeichert und beim nächsten Öffnen automatisch wiederhergestellt.',
           en: 'The sort order of the league standings table (e.g., by points, balance, or name) is saved and automatically restored the next time you open it.',
+        },
+      },
+      {
+        title: { de: 'Liga-Charts', en: 'League Charts' },
+        body: {
+          de: 'Im Charts-Tab der Liga siehst du drei Diagrammtypen: Kumulative Punkte-Entwicklung, Platzierungsverlauf und Finanzbilanz über alle Spieltage. Wähle einzelne Spieler per Toggle an/aus. Benötigt mindestens 2 Spieltage.',
+          en: 'In the Charts tab of the league, you can see three chart types: cumulative points progression, placement history, and financial balance across all game days. Toggle individual players on/off. Requires at least 2 game days.',
         },
       },
     ],

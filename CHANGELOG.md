@@ -5,6 +5,21 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.11.0] – 2026-03-22
+
+### Deal-Making, Liga-Charts, Validierung & Accessibility
+
+- **Deal-Making / Chop-Rechner**: Neues `DealMaker.tsx` Modal im Spielmodus — 3 Deal-Methoden (Equal Chop, ICM-basiert, Chip-proportional) mit Anpassungs-Slider und Winner-Takes-Rest-Option. Lazy-loaded, integriert in GameModeContainer. Tastenkürzel `D`.
+- **Liga Trend-Charts**: Neues `LeagueCharts.tsx` als 5. Tab in LeagueView — SVG-basierte Visualisierung (Punkte-Verlauf, Platz-Verteilung, Teilnahme-Rate pro Spieler). Responsive, Dark-Mode-aware, keine externe Chart-Library.
+- **Point-System-Validierung**: `validatePointSystem()` in league.ts — filtert ungültige Einträge, dedupliziert, sortiert, Fallback auf Default. Wird in `computeExtendedStandings()` genutzt.
+- **Automated Accessibility Tests**: Neue `tests/a11y.test.tsx` mit 6 WCAG 2.1 Prüfungen via `vitest-axe` + `axe-core` (NumberStepper, CollapsibleSection, BubbleIndicator, RebuyStatus, ChevronIcon, LoadingFallback).
+- **NumberStepper a11y**: `label`-Prop für `aria-label` auf dem Input-Element — behebt axe-Violation „Form elements must have labels".
+- **CI Test-Count Gate**: GitHub Actions Pipeline prüft jetzt Mindest-Testanzahl (≥1300) und bricht bei Regression ab.
+- **Neue Dateien**: `DealMaker.tsx`, `LeagueCharts.tsx`, `tests/a11y.test.tsx`
+- **~30 neue Translation-Keys** (deal.*, league.charts.*)
+- **23 neue Tests** — **1328 Tests gesamt** (19 Testdateien)
+- **Docs**: README.md, CLAUDE.md, CHANGELOG.md, helpContent.ts vollständig aktualisiert (DE + EN).
+
 ## [6.10.1] – 2026-03-22
 
 ### Liga-Erstellung: Punktesystem & Einstellungen
