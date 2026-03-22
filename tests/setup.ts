@@ -1,5 +1,9 @@
 import '@testing-library/jest-dom/vitest';
+import * as axeMatchers from 'vitest-axe/matchers';
 import 'fake-indexeddb/auto';
+
+// Extend expect with axe a11y matchers
+expect.extend(axeMatchers);
 import { resetStorage } from '../src/domain/storage';
 
 const originalEmitWarning = process.emitWarning.bind(process);

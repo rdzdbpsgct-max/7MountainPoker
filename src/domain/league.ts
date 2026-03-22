@@ -14,6 +14,43 @@ import { csvSafe } from './tournament';
 import { getCached, setCachedItem, deleteCachedItem } from './storage';
 
 // ---------------------------------------------------------------------------
+// Point System Validation
+// ---------------------------------------------------------------------------
+
+/** Validate a PointSystem and return a sanitized copy with only valid entries. */
+export function validatePointSystem(ps: PointSystem | undefined | null): PointSystem {
+  if (!ps || !Array.isArray(ps.entries) || ps.entries.length === 0) {
+    return { entries: [
+      { place: 1, points: 10 }, { place: 2, points: 7 }, { place: 3, points: 5 },
+      { place: 4, points: 4 }, { place: 5, points: 3 }, { place: 6, points: 2 }, { place: 7, points: 1 },
+    ] };
+  }
+
+  // Filter out invalid entries: place must be positive integer, points must be finite non-negative
+  const valid = ps.entries.filter(
+    (e) => Number.isInteger(e.place) && e.place > 0 && Number.isFinite(e.points) && e.points >= 0,
+  );
+
+  // Deduplicate by place (keep first occurrence)
+  const seen = new Set<number>();
+  const deduped = valid.filter((e) => {
+    if (seen.has(e.place)) return false;
+    seen.add(e.place);
+    return true;
+  });
+
+  // Sort by place ascending
+  deduped.sort((a, b) => a.place - b.place);
+
+  // If nothing survived validation, return default
+  if (deduped.length === 0) {
+    return validatePointSystem(undefined);
+  }
+
+  return { entries: deduped };
+}
+
+// ---------------------------------------------------------------------------
 // Player Name Normalization
 // ---------------------------------------------------------------------------
 
@@ -358,13 +395,8 @@ export function computeExtendedStandings(
   gameDays: GameDay[],
   options?: { excludeGuests?: boolean },
 ): ExtendedLeagueStanding[] {
-  const entries = league.pointSystem?.entries ?? [];
-  // Fallback: if pointSystem is empty, generate default 1st=10, 2nd=7, 3rd=5, 4th=4, ...
-  const effectiveEntries = entries.length > 0 ? entries : [
-    { place: 1, points: 10 }, { place: 2, points: 7 }, { place: 3, points: 5 },
-    { place: 4, points: 4 }, { place: 5, points: 3 }, { place: 6, points: 2 }, { place: 7, points: 1 },
-  ];
-  const pointMap = new Map(effectiveEntries.map((e) => [e.place, e.points]));
+  const validated = validatePointSystem(league.pointSystem);
+  const pointMap = new Map(validated.entries.map((e) => [e.place, e.points]));
   const map = new Map<string, ExtendedLeagueStanding>();
 
   for (const gd of gameDays) {

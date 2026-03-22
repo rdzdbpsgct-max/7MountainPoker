@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.10.1
+**Version**: 6.11.0
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1305 tests, single run)
+npm run test         # Vitest run (1328 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -74,7 +74,9 @@ src/
 │   ├── LeagueStandingsTable.tsx  # Sortable league standings with financial data, QR sharing
 │   ├── LeagueGameDays.tsx        # League game day list with expandable details
 │   ├── LeagueFinances.tsx        # League financial overview — per game day and cumulative
+│   ├── DealMaker.tsx             # Deal-Making / Chop Calculator modal (ICM, Chip, Even)
 │   ├── GameDayEditor.tsx         # Manual game day entry modal with player management
+│   ├── LeagueCharts.tsx           # SVG line charts for league trends (points, placement, balance)
 │   ├── LeagueCreationModal.tsx   # League creation modal — name, point system presets, ranking algorithm
 │   ├── LeagueSettings.tsx        # League settings — tiebreaker config, seasons, point system (with presets)
 │   ├── LeaguePlayerDetail.tsx    # League player detail stats modal
@@ -379,6 +381,9 @@ public/
 - **Share Hub**: Central `ShareHub.tsx` modal (📡 button in game mode header) for all sharing/display options. Sections: Display on another device (QR + link), Remote control (QR + link), This device (second window + fullscreen), Cable & Wireless guides (AirPlay, Chromecast, HDMI). Live connection status indicators. Auto-starts PeerJS host session when opened.
 - **Undo/Redo System**: Full snapshot-based undo/redo for all tournament actions (eliminate, rebuy, add-on, reinstate, dealer, late reg, re-entry, stacks). `UndoStack` class in `undoStack.ts` (immutable, max 30 depth). `createUndoSnapshot()` captures players + tables + config state. Keyboard: Cmd+Z (undo) / Cmd+Shift+Z (redo). Buttons in Controls component with action labels. 20 translation keys.
 - **ICM Calculator**: Independent Chip Model equity calculation. `icm.ts` implements Malmuth-Harville algorithm — exact recursive permutation for ≤10 players, Monte Carlo simulation (10K iterations) for >10. `IcmCalculator.tsx` modal accessible from game mode sidebar. Lazy-loaded.
+- **Deal-Making / Chop Calculator**: 3 methods in `dealMaking.ts`: `computeEvenChop()` (equal split), `computeChipChop()` (stack-proportional), `computeIcmChop()` (ICM equity via Malmuth-Harville). `DealMaker.tsx` lazy-loaded modal in PlayerPanel (2–6 active players). NumberStepper for manual payout adjustment with sum validation. `acceptDeal` action eliminates all players with agreed payouts, creates `deal_accepted` tournament event. `dealApplied` flag in TournamentResult auto-detected from events.
+- **Liga Trend-Charts**: `LeagueCharts.tsx` — lightweight SVG line charts (no external charting library). 3 chart types: cumulative points, placement progression (inverted Y), cumulative financial balance. Per-player data via `computeLeaguePlayerStats()`. 10-color palette, player toggle buttons (default: top 5), responsive `viewBox`. Lazy-loaded as 5th tab in LeagueView. Requires ≥2 game days.
+- **Point-System-Validierung**: `validatePointSystem()` in `league.ts` — sanitizes PointSystem input: filters invalid entries (negative places, NaN/Infinity points, negative points), deduplicates by place, sorts ascending, falls back to default 7-place system if empty/null/undefined.
 - **Cloud Export**: Unified export module `cloudExport.ts` — JSON/CSV/text formats, Web Share API for mobile, File System Access API for desktop save dialogs, Blob download fallback.
 - **Multi-Controller Remote**: `RemoteHost` supports N simultaneous controllers via `Map<string, DataConnection>`. Controller count displayed in ShareHub.
 - **AudioService Facade**: Centralized `audioService.ts` syncs master volume and language across `sounds.ts`, `audioPlayer.ts`, `speech.ts`. Single point for audio configuration changes.
@@ -389,8 +394,8 @@ public/
 
 ## Testing
 
-- **1305 tests** across 18 test files + 1 setup file
-- Core files: `logic.test.ts` (695), `components.test.tsx` (117), `edge-cases.test.ts` (101), `sound-speech.test.ts` (59), `events.test.ts` (52), `integration.test.ts` (47), `tournamentActions.test.tsx` (41), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `league-advanced.test.ts` (22), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `entitlements.test.ts` (12), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
+- **1328 tests** across 19 test files + 1 setup file
+- Core files: `logic.test.ts` (703), `components.test.tsx` (117), `edge-cases.test.ts` (101), `sound-speech.test.ts` (59), `events.test.ts` (52), `integration.test.ts` (47), `tournamentActions.test.tsx` (41), `league-advanced.test.ts` (30), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `entitlements.test.ts` (12), `a11y.test.tsx` (6), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -427,6 +432,17 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.11.0 — Audit-Pakete C/D/E: Deal-Making, Liga-Charts, QA-Härtung
+
+- **Deal-Making / Chop Calculator** (Paket C): `dealMaking.ts` Domain-Modul mit 3 Chop-Methoden (ICM, Chip-Proportional, Even Split). `DealMaker.tsx` lazy-loaded Modal im PlayerPanel (2–6 Spieler). NumberStepper für manuelle Anpassung, Summen-Validierung. `deal_accepted` Event + `dealApplied` in TournamentResult. Integration über useTournamentActions → App.tsx → GameModeContainer → PlayerPanel. 15 neue i18n-Keys pro Sprache.
+- **Liga Trend-Charts** (Paket D): `LeagueCharts.tsx` SVG-Chart-Komponente mit 3 Diagrammtypen (kumulative Punkte, Platzierungsverlauf, Finanzbilanz). Lazy-loaded als 5. Tab in LeagueView. 10-Farben-Palette, Spieler-Toggles, responsive SVG. 8 neue i18n-Keys pro Sprache.
+- **Point-System-Validierung** (Paket E): `validatePointSystem()` in league.ts — filtert ungültige Einträge (negative Plätze, NaN/Infinity Punkte), dedupliziert, sortiert, Fallback auf Standard-System.
+- **a11y-Testing** (Paket E): `vitest-axe` + `axe-core` als DevDependencies. 6 automatisierte WCAG-Tests für NumberStepper, CollapsibleSection, BubbleIndicator, RebuyStatus, ChevronIcon, LoadingFallback. NumberStepper `aria-label`-Prop für Input-Feld.
+- **Test-Count-Validierung in CI** (Paket E): GitHub Actions prüft Minimum 1300 Tests — Pipeline bricht ab wenn Schwelle unterschritten.
+- **Neue Dateien**: `dealMaking.ts`, `DealMaker.tsx`, `LeagueCharts.tsx`, `a11y.test.tsx`
+- **Neue DevDependencies**: `vitest-axe`, `axe-core`
+- **1328 Tests gesamt** (19 Testdateien)
 
 ### v6.10.1 — Liga-Erstellungs-Modal mit flexiblem Punktesystem
 

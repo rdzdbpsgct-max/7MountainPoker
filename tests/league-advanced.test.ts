@@ -12,6 +12,7 @@ import {
   computeWeightedPoints,
   computeHeadToHeadMatrix,
   computeExtendedStandings,
+  validatePointSystem,
 } from '../src/domain/logic';
 
 // ---------------------------------------------------------------------------
@@ -400,4 +401,83 @@ describe('computeExtendedStandings', () => {
     expect(standings[0]!.weightedPoints).toBeGreaterThan(standings[1]!.weightedPoints!);
   });
 
+});
+
+// ---------------------------------------------------------------------------
+// 6. validatePointSystem
+// ---------------------------------------------------------------------------
+
+describe('validatePointSystem', () => {
+  it('returns default for undefined input', () => {
+    const result = validatePointSystem(undefined);
+    expect(result.entries.length).toBeGreaterThan(0);
+    expect(result.entries[0]!.place).toBe(1);
+    expect(result.entries[0]!.points).toBe(10);
+  });
+
+  it('returns default for null input', () => {
+    const result = validatePointSystem(null);
+    expect(result.entries.length).toBe(7);
+  });
+
+  it('returns default for empty entries', () => {
+    const result = validatePointSystem({ entries: [] });
+    expect(result.entries.length).toBe(7);
+  });
+
+  it('filters out negative places', () => {
+    const result = validatePointSystem({ entries: [
+      { place: -1, points: 5 },
+      { place: 1, points: 10 },
+    ] });
+    expect(result.entries).toHaveLength(1);
+    expect(result.entries[0]!.place).toBe(1);
+  });
+
+  it('filters out NaN/Infinity points', () => {
+    const result = validatePointSystem({ entries: [
+      { place: 1, points: NaN },
+      { place: 2, points: Infinity },
+      { place: 3, points: 5 },
+    ] });
+    expect(result.entries).toHaveLength(1);
+    expect(result.entries[0]!.place).toBe(3);
+  });
+
+  it('deduplicates by place (keeps first)', () => {
+    const result = validatePointSystem({ entries: [
+      { place: 1, points: 10 },
+      { place: 1, points: 8 },
+      { place: 2, points: 7 },
+    ] });
+    expect(result.entries).toHaveLength(2);
+    expect(result.entries[0]!.points).toBe(10);
+  });
+
+  it('sorts entries by place ascending', () => {
+    const result = validatePointSystem({ entries: [
+      { place: 3, points: 5 },
+      { place: 1, points: 10 },
+      { place: 2, points: 7 },
+    ] });
+    expect(result.entries.map((e) => e.place)).toEqual([1, 2, 3]);
+  });
+
+  it('allows zero points', () => {
+    const result = validatePointSystem({ entries: [
+      { place: 1, points: 0 },
+    ] });
+    expect(result.entries).toHaveLength(1);
+    expect(result.entries[0]!.points).toBe(0);
+  });
+
+  it('passes through valid point system unchanged', () => {
+    const input = { entries: [
+      { place: 1, points: 10 },
+      { place: 2, points: 7 },
+      { place: 3, points: 5 },
+    ] };
+    const result = validatePointSystem(input);
+    expect(result.entries).toEqual(input.entries);
+  });
 });

@@ -47,7 +47,14 @@ jobs:
         run: npm run lint
 
       - name: Unit and integration tests (Vitest)
-        run: npm run test
+        run: |
+          npm run test 2>&1 | tee test-output.txt
+          TEST_COUNT=$(grep -oP '\d+(?= passed)' test-output.txt | head -1)
+          echo "Test count: $TEST_COUNT"
+          if [ -z "$TEST_COUNT" ] || [ "$TEST_COUNT" -lt 1300 ]; then
+            echo "::error::Test count $TEST_COUNT is below minimum threshold of 1300"
+            exit 1
+          fi
 
       - name: Build (quality gate)
         run: npm run build

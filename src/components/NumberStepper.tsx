@@ -9,6 +9,7 @@ interface Props {
   step?: number;
   snap?: (raw: number, prev: number, step: number) => number;
   inputClassName?: string;
+  label?: string;
 }
 
 export function NumberStepper({
@@ -19,6 +20,7 @@ export function NumberStepper({
   step = 1,
   snap,
   inputClassName = 'w-20',
+  label,
 }: Props) {
   const { t } = useTranslation();
   const [localValue, setLocalValue] = useState(String(value));
@@ -101,6 +103,7 @@ export function NumberStepper({
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={handleBlur}
+        aria-label={label}
         onKeyDown={(e) => {
           if (e.key === 'Enter') e.currentTarget.blur();
         }}
