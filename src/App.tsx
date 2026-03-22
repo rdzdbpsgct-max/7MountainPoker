@@ -340,6 +340,7 @@ function App() {
     handleReEntry,
     reinstatePlayer,
     eliminatePlayer,
+    acceptDeal,
   } = useTournamentActions({
     config,
     setConfig,
@@ -761,6 +762,7 @@ function App() {
     onToggleFullscreen: toggleFullscreen,
     onShowInstallGuide: () => setShowInstallGuideModal(true),
     onExitToSetup: handleExitToSetup,
+    onAcceptDeal: acceptDeal,
   }), [
     setShowPlayerPanel, setShowSidebar, toggleCleanView,
     setShowCallTheClock, setShowPayoutOverlay, setShowIcm, setShowInstallGuideModal,
@@ -769,7 +771,7 @@ function App() {
     addLatePlayer, handleReEntry, setSidePotData, handleSkipBreak, handleExtendBreak,
     handleResetLevel, handleRestart, handleLastHand, handleHandForHand, handleNextHand,
     handleUpdateTables, handleTableMoves, setSettings, toggleFullscreen, handleExitToSetup,
-    canUseIcm, openFeatureGate,
+    canUseIcm, openFeatureGate, acceptDeal,
   ]);
 
   // Memoize prop objects for GameModeContainer to avoid defeating React.memo

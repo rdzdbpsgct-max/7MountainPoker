@@ -256,6 +256,8 @@ export interface TournamentResult {
   events?: TournamentEvent[] | undefined;
   /** Snapshot of tournament config for cloning (optional, populated from v7.0.0+) */
   configSnapshot?: TournamentConfig | undefined;
+  /** Whether the tournament ended via a deal/chop agreement */
+  dealApplied?: boolean | undefined;
 }
 
 export interface PlayerStat {
@@ -622,7 +624,8 @@ export type TournamentEventType =
   | 'break_extended'
   | 'break_skipped'
   | 'tournament_started'
-  | 'tournament_finished';
+  | 'tournament_finished'
+  | 'deal_accepted';
 
 export interface TournamentEvent {
   id: string;

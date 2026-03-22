@@ -741,6 +741,21 @@ const de = {
   'event.callTheClockExpired': '⏱ Call the Clock abgelaufen',
   'event.levelSkipForward': '⏩ Level vorgesprungen',
   'event.levelSkipBackward': '⏪ Level zurückgesprungen',
+  'event.dealAccepted': '🤝 Deal vereinbart ({method})',
+
+  // --- Deal Making ---
+  'deal.title': 'Deal / Chop',
+  'deal.icmChop': 'ICM Chop',
+  'deal.chipChop': 'Chip Chop',
+  'deal.evenChop': 'Even Chop',
+  'deal.confirm': 'Deal bestätigen',
+  'deal.total': 'Gesamt',
+  'deal.remaining': 'Prizepool',
+  'deal.invalidTotal': 'Summe weicht vom Prizepool ab',
+  'deal.button': 'Deal',
+  'deal.description': 'Prizepool unter verbleibenden Spielern aufteilen',
+  'deal.accepted': 'Deal wurde angenommen — Turnier beendet',
+  'deal.adjustHint': 'Beträge können manuell angepasst werden',
 
   // --- Leagues ---
   'app.leagues': 'Ligen',
@@ -2140,6 +2155,21 @@ const en: Record<TranslationKey, string> = {
   'event.callTheClockExpired': '⏱ Call the Clock expired',
   'event.levelSkipForward': '⏩ Level skipped forward',
   'event.levelSkipBackward': '⏪ Level skipped backward',
+  'event.dealAccepted': '🤝 Deal accepted ({method})',
+
+  // --- Deal Making ---
+  'deal.title': 'Deal / Chop',
+  'deal.icmChop': 'ICM Chop',
+  'deal.chipChop': 'Chip Chop',
+  'deal.evenChop': 'Even Chop',
+  'deal.confirm': 'Confirm Deal',
+  'deal.total': 'Total',
+  'deal.remaining': 'Prize Pool',
+  'deal.invalidTotal': 'Total does not match prize pool',
+  'deal.button': 'Deal',
+  'deal.description': 'Split the prize pool among remaining players',
+  'deal.accepted': 'Deal accepted — tournament finished',
+  'deal.adjustHint': 'Amounts can be adjusted manually',
 
   // --- Leagues ---
   'app.leagues': 'Leagues',

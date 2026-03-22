@@ -10,6 +10,7 @@ import { NumberStepper } from './NumberStepper';
 import { SectionErrorBoundary } from './ErrorBoundary';
 
 const SidePotCalculator = lazy(() => import('./SidePotCalculator').then(m => ({ default: m.SidePotCalculator })));
+const DealMaker = lazy(() => import('./DealMaker').then(m => ({ default: m.DealMaker })));
 
 interface Props {
   players: Player[];
@@ -41,6 +42,7 @@ interface Props {
   currency?: Currency | undefined;
   canUseSidePot?: boolean | undefined;
   onOpenFeatureGate?: ((feature: AppFeature) => void) | undefined;
+  onAcceptDeal?: ((payouts: Map<string, number>, method: string) => void) | undefined;
 }
 
 export const PlayerPanel = memo(function PlayerPanel({
@@ -73,12 +75,14 @@ export const PlayerPanel = memo(function PlayerPanel({
   currency,
   canUseSidePot,
   onOpenFeatureGate,
+  onAcceptDeal,
 }: Props) {
   const { t } = useTranslation();
   const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const [eliminatingId, setEliminatingId] = useState<string | null>(null);
   const [selectedKiller, setSelectedKiller] = useState<string>('');
   const [showSidePot, setShowSidePot] = useState(false);
+  const [showDealMaker, setShowDealMaker] = useState(false);
 
   const totalRebuys = useMemo(() => computeTotalRebuys(players), [players]);
   const totalAddOns = useMemo(() => computeTotalAddOns(players), [players]);
@@ -304,6 +308,15 @@ export const PlayerPanel = memo(function PlayerPanel({
             >
               {t('sidePot.titleShort')}
             </button>
+            {onAcceptDeal && activePlayers.length >= 2 && activePlayers.length <= 6 && (
+              <button
+                onClick={() => setShowDealMaker(true)}
+                className="px-2 py-1 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
+                title={t('deal.description')}
+              >
+                {t('deal.button')}
+              </button>
+            )}
             {onShowPayoutOverlay && (
               <button
                 onClick={onShowPayoutOverlay}
@@ -546,6 +559,18 @@ export const PlayerPanel = memo(function PlayerPanel({
     {showSidePot && (
       <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
         <SidePotCalculator onClose={() => setShowSidePot(false)} onResultChange={onSidePotResultChange} tournamentPlayers={players} />
+      </Suspense></SectionErrorBoundary>
+    )}
+    {showDealMaker && onAcceptDeal && (
+      <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
+        <DealMaker
+          onClose={() => setShowDealMaker(false)}
+          players={players}
+          payout={payout}
+          prizePool={prizePool}
+          currency={currency}
+          onAcceptDeal={(payoutMap, method) => { setShowDealMaker(false); onAcceptDeal(payoutMap, method); }}
+        />
       </Suspense></SectionErrorBoundary>
     )}
     </>

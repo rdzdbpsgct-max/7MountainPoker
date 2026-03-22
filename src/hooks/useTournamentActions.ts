@@ -371,6 +371,39 @@ export function useTournamentActions({
     }
   }, [config.tables, settings.voiceEnabled, t, setRecentTableMoves]);
 
+  /** Accept a deal: eliminate all active players with agreed payouts. */
+  const acceptDeal = useCallback((payoutMap: Map<string, number>, method: string) => {
+    pushUndo('deal.accepted');
+    startTransition(() => {
+    setConfig((prev) => {
+      const activePlayers = prev.players.filter((p) => p.status === 'active');
+      // Assign placements: sorted by payout descending, then by name for tie
+      const sorted = [...activePlayers].sort((a, b) => {
+        const pa = payoutMap.get(a.id) ?? 0;
+        const pb = payoutMap.get(b.id) ?? 0;
+        return pb - pa || a.name.localeCompare(b.name);
+      });
+      const placementBase = prev.players.filter((p) => p.status === 'eliminated').length + 1;
+      const placementMap = new Map<string, number>();
+      sorted.forEach((p, i) => placementMap.set(p.id, placementBase + i));
+
+      const updatedPlayers = prev.players.map((p) => {
+        if (p.status !== 'active') return p;
+        return {
+          ...p,
+          status: 'eliminated' as const,
+          placement: placementMap.get(p.id) ?? null,
+          eliminatedAt: Date.now(),
+          chips: p.chips !== undefined ? 0 : undefined,
+        };
+      });
+
+      return { ...prev, players: updatedPlayers };
+    });
+    }); // end startTransition
+    onAppendEvent(createEvent('deal_accepted', currentLevelIndex, { method }));
+  }, [setConfig, pushUndo, onAppendEvent, currentLevelIndex]);
+
   return {
     updatePlayerStack,
     initStacks,
@@ -382,5 +415,6 @@ export function useTournamentActions({
     handleReEntry,
     reinstatePlayer,
     eliminatePlayer,
+    acceptDeal,
   };
 }

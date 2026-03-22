@@ -33,6 +33,7 @@ const EVENT_ICONS: Record<TournamentEventType, string> = {
   call_the_clock_expired: '⚠️',
   break_extended: '☕',
   break_skipped: '⏭️',
+  deal_accepted: '🤝',
 };
 
 const EVENT_COLORS: Record<string, string> = {

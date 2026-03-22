@@ -27,3 +27,4 @@ export * from './icm';
 export * from './undoStack';
 export * from './cloudExport';
 export * from './license';
+export * from './dealMaking';

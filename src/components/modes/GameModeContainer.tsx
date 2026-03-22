@@ -101,6 +101,7 @@ export interface GameModeActions {
   onToggleFullscreen: () => void;
   onShowInstallGuide: () => void;
   onExitToSetup: () => void;
+  onAcceptDeal: (payouts: Map<string, number>, method: string) => void;
 }
 
 // ─── Component Props ────────────────────────────────────────────────────────
@@ -166,6 +167,7 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
               currency={config.currency}
               canUseSidePot={canUseSidePot}
               onOpenFeatureGate={onOpenFeatureGate}
+              onAcceptDeal={actions.onAcceptDeal}
             />
           </aside>
         )}

@@ -498,6 +498,7 @@ export function buildTournamentResult(
       ? computeRebuyPot(config.players, config.rebuy.enabled ? config.rebuy.rebuyCost : config.buyIn)
       : undefined,
     events: events ?? [],
+    dealApplied: events?.some((e) => e.type === 'deal_accepted') ?? false ? true : undefined,
     // Store config snapshot for tournament cloning (without players — those are in result.players)
     configSnapshot: {
       ...config,

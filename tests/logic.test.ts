@@ -167,6 +167,9 @@ import {
   defaultConfig,
   computeIcmEquity,
   computeIcmDeal,
+  computeEvenChop,
+  computeChipChop,
+  computeIcmChop,
   UndoStack,
   createUndoSnapshot,
   migrations,
@@ -7508,6 +7511,66 @@ describe('ICM Calculator', () => {
       const results = await computeIcmDeal([0, 0], [100, 50]);
       expect(results[0].equity).toBe(0);
       expect(results[1].equity).toBe(0);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Deal Making / Chop Calculator
+// ---------------------------------------------------------------------------
+describe('Deal Making', () => {
+  describe('computeEvenChop', () => {
+    it('splits evenly among players', () => {
+      const shares = computeEvenChop(3, 300);
+      expect(shares).toHaveLength(3);
+      expect(shares[0]!.amount).toBe(100);
+      expect(shares[1]!.amount).toBe(100);
+      expect(shares[2]!.amount).toBe(100);
+    });
+
+    it('handles rounding to 2 decimal places', () => {
+      const shares = computeEvenChop(3, 100);
+      expect(shares[0]!.amount).toBeCloseTo(33.33, 2);
+    });
+
+    it('returns empty for 0 players', () => {
+      expect(computeEvenChop(0, 100)).toEqual([]);
+    });
+  });
+
+  describe('computeChipChop', () => {
+    it('splits proportionally to stacks', () => {
+      const shares = computeChipChop([6000, 4000], 100);
+      expect(shares[0]!.amount).toBe(60);
+      expect(shares[1]!.amount).toBe(40);
+    });
+
+    it('handles equal stacks', () => {
+      const shares = computeChipChop([5000, 5000], 200);
+      expect(shares[0]!.amount).toBe(100);
+      expect(shares[1]!.amount).toBe(100);
+    });
+
+    it('handles all-zero stacks', () => {
+      const shares = computeChipChop([0, 0], 100);
+      expect(shares[0]!.amount).toBe(0);
+      expect(shares[1]!.amount).toBe(0);
+    });
+  });
+
+  describe('computeIcmChop', () => {
+    it('returns ICM-based amounts', async () => {
+      const shares = await computeIcmChop([6000, 4000], [100, 50]);
+      expect(shares).toHaveLength(2);
+      // ICM: chip leader gets less than chip-proportional share
+      expect(shares[0]!.amount).toBeGreaterThan(50);
+      expect(shares[0]!.amount).toBeLessThan(100);
+      expect(shares[0]!.amount + shares[1]!.amount).toBeCloseTo(150, 0);
+    });
+
+    it('handles equal stacks', async () => {
+      const shares = await computeIcmChop([5000, 5000], [100, 50]);
+      expect(shares[0]!.amount).toBeCloseTo(shares[1]!.amount, 0);
     });
   });
 });

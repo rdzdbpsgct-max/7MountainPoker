@@ -165,6 +165,8 @@ export function formatEventAsText(
         return `${time} ⏩ Level vorgesprungen`;
       case 'level_skip_backward':
         return `${time} ⏪ Level zurückgesprungen`;
+      case 'deal_accepted':
+        return `${time} 🤝 Deal vereinbart (${event.data.method ?? ''})`;
       default:
         return `${time} ${event.type}`;
     }
@@ -220,6 +222,8 @@ export function formatEventAsText(
       return `${time} ${t('event.levelSkipForward')}`;
     case 'level_skip_backward':
       return `${time} ${t('event.levelSkipBackward')}`;
+    case 'deal_accepted':
+      return `${time} ${t('event.dealAccepted', { method: event.data.method ?? '' })}`;
     default:
       return `${time} ${event.type}`;
   }
