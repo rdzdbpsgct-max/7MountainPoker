@@ -19,10 +19,13 @@ test.describe('League and Multi-Table happy paths', () => {
     await expect(createLeagueButton).toBeVisible({ timeout: 8000 });
     await createLeagueButton.click();
 
-    const leagueNameInput = page.locator('input[placeholder*="Liga"], input[placeholder*="League"]').first();
+    // LeagueCreationModal opens with autoFocus input (placeholder: "z.B. Freitagsrunde" / "e.g. Friday Night")
+    const leagueNameInput = page.locator('input[placeholder*="Freitagsrunde"], input[placeholder*="Friday Night"]').first();
     await expect(leagueNameInput).toBeVisible({ timeout: 5000 });
     await leagueNameInput.fill(`E2E League ${Date.now()}`);
-    await leagueNameInput.press('Enter');
+    // Click the create button in the modal
+    const createButton = page.locator('button:has-text("Erstellen"), button:has-text("Create")').first();
+    await createButton.click();
 
     // Wait for React state update after league creation — league must be selected
     await page.waitForTimeout(1500);
