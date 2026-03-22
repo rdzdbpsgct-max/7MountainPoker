@@ -5,7 +5,6 @@ import {
   loadLeagues,
   saveLeague,
   deleteLeague,
-  defaultPointSystem,
   loadGameDaysForLeague,
   loadGameDaysForSeason,
   computeExtendedStandings,
@@ -16,6 +15,7 @@ import {
 import { useTranslation } from '../i18n';
 import { LoadingFallback } from './LoadingFallback';
 import { SectionErrorBoundary } from './ErrorBoundary';
+import { LeagueCreationModal } from './LeagueCreationModal';
 
 const LeagueStandingsTable = lazy(() => import('./LeagueStandingsTable').then((m) => ({ default: m.LeagueStandingsTable })));
 const LeagueGameDays = lazy(() => import('./LeagueGameDays').then((m) => ({ default: m.LeagueGameDays })));
@@ -38,8 +38,7 @@ export function LeagueView({ onStartTournament }: Props) {
     return list.length > 0 ? list[0]!.id : null;
   });
   const [activeTab, setActiveTab] = useState<Tab>('standings');
-  const [isCreating, setIsCreating] = useState(false);
-  const [newLeagueName, setNewLeagueName] = useState('');
+  const [showCreationModal, setShowCreationModal] = useState(false);
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editNameValue, setEditNameValue] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -89,20 +88,12 @@ export function LeagueView({ onStartTournament }: Props) {
     setRefreshKey((k) => k + 1);
   }, []);
 
-  const handleCreateLeague = useCallback(() => {
-    if (!newLeagueName.trim()) return;
-    const league: League = {
-      id: `league_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      name: newLeagueName.trim(),
-      pointSystem: defaultPointSystem(),
-      createdAt: new Date().toISOString(),
-    };
+  const handleCreateLeague = useCallback((league: League) => {
     saveLeague(league);
     setLeagues(loadLeagues());
     setSelectedLeagueId(league.id);
-    setNewLeagueName('');
-    setIsCreating(false);
-  }, [newLeagueName]);
+    setShowCreationModal(false);
+  }, []);
 
   const handleDeleteLeague = useCallback((id: string) => {
     deleteLeague(id);
@@ -288,34 +279,12 @@ export function LeagueView({ onStartTournament }: Props) {
                   )}
                 </>
               )}
-              {isCreating ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={newLeagueName}
-                    onChange={(e) => setNewLeagueName(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleCreateLeague(); if (e.key === 'Escape') setIsCreating(false); }}
-                    placeholder={t('league.view.leagueName')}
-                    className="bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-3 py-1.5 text-sm w-40 focus:ring-2 focus:outline-none"
-                    autoFocus
-                  />
-                  <button
-                    onClick={handleCreateLeague}
-                    className="px-3 py-1.5 text-white rounded-lg text-sm font-medium"
-                    style={{ backgroundColor: 'var(--accent-600)' }}
-                  >
-                    {t('league.view.create')}
-                  </button>
-                  <button onClick={() => setIsCreating(false)} className="text-gray-400 text-sm px-2 py-1" aria-label={t('accessibility.cancel')}>✗</button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setIsCreating(true)}
-                  className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700/80 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-all duration-200 border border-gray-200 dark:border-gray-600/30"
-                >
-                  + {t('league.view.createLeague')}
-                </button>
-              )}
+              <button
+                onClick={() => setShowCreationModal(true)}
+                className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700/80 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-all duration-200 border border-gray-200 dark:border-gray-600/30"
+              >
+                + {t('league.view.createLeague')}
+              </button>
             </div>
           </div>
           {/* Active Season Badge */}
@@ -331,7 +300,7 @@ export function LeagueView({ onStartTournament }: Props) {
           <div className="bg-white/80 dark:bg-gray-800/40 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700/40 shadow-lg p-8 text-center">
             <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">{t('league.view.noLeagues')}</p>
             <button
-              onClick={() => setIsCreating(true)}
+              onClick={() => setShowCreationModal(true)}
               className="px-4 py-2 text-white rounded-lg font-medium shadow-md"
               style={{ background: 'linear-gradient(to bottom, var(--accent-600), var(--accent-700))' }}
             >
@@ -419,6 +388,14 @@ export function LeagueView({ onStartTournament }: Props) {
           </>
         )}
       </div>
+
+      {/* League Creation Modal */}
+      {showCreationModal && (
+        <LeagueCreationModal
+          onClose={() => setShowCreationModal(false)}
+          onCreate={handleCreateLeague}
+        />
+      )}
 
       {/* Game Day Editor Modal */}
       {showGameDayEditor && selectedLeague && (

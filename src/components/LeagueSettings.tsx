@@ -14,6 +14,12 @@ interface Props {
 const ALL_CRITERIA: TiebreakerCriterion[] = ['avgPlace', 'wins', 'cashes', 'headToHead', 'lastResult'];
 const RANKING_ALGORITHMS: RankingAlgorithm[] = ['points', 'elo', 'weightedPoints'];
 
+const POINT_PRESETS: { key: string; entries: number[] }[] = [
+  { key: 'standard', entries: [10, 7, 5, 4, 3, 2, 1] },
+  { key: 'simple', entries: [5, 3, 1] },
+  { key: 'top10', entries: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] },
+];
+
 export function LeagueSettings({ league, onClose, onSaved }: Props) {
   const { t } = useTranslation();
   const dialogRef = useDialogA11y(onClose);
@@ -106,6 +112,21 @@ export function LeagueSettings({ league, onClose, onSaved }: Props) {
     );
   }, []);
 
+  const handlePreset = useCallback((presetEntries: number[]) => {
+    setPointEntries(presetEntries.map((pts, i) => ({ place: i + 1, points: pts })));
+  }, []);
+
+  const handleAddPlace = useCallback(() => {
+    setPointEntries((prev) => {
+      const nextPlace = prev.length > 0 ? Math.max(...prev.map((e) => e.place)) + 1 : 1;
+      return [...prev, { place: nextPlace, points: 0 }];
+    });
+  }, []);
+
+  const handleRemovePlace = useCallback((place: number) => {
+    setPointEntries((prev) => prev.filter((e) => e.place !== place));
+  }, []);
+
   const handleSave = useCallback(() => {
     const updated: League = {
       ...league,
@@ -135,21 +156,51 @@ export function LeagueSettings({ league, onClose, onSaved }: Props) {
           {/* Point System */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{t('league.standings.pointSystem')}</h3>
-            <div className="flex flex-wrap gap-3">
+            {/* Presets */}
+            <div className="flex gap-1.5 mb-3 flex-wrap">
+              <span className="text-xs text-gray-400 dark:text-gray-500 self-center mr-0.5">{t('league.creation.presets')}:</span>
+              {POINT_PRESETS.map((p) => {
+                const label = p.key === 'simple' ? t('league.preset.simple') : p.key === 'top10' ? t('league.preset.top10') : t('league.preset.standard');
+                return (
+                  <button
+                    key={p.key}
+                    onClick={() => handlePreset(p.entries)}
+                    className="px-2.5 py-1 text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg border border-gray-200 dark:border-gray-700/40 transition-colors font-medium"
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="space-y-1.5">
               {pointEntries.map((e) => (
-                <div key={e.place} className="flex items-center gap-1 text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">{e.place}.</span>
-                  <input
-                    type="number"
+                <div key={e.place} className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 w-16 shrink-0">
+                    {t('league.place', { n: e.place })}
+                  </span>
+                  <NumberStepper
                     value={e.points}
-                    onChange={(ev) => handleUpdatePoints(e.place, parseInt(ev.target.value, 10) || 0)}
-                    className="w-12 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded px-1.5 py-0.5 text-center text-sm focus:ring-2 focus:outline-none"
+                    onChange={(v) => handleUpdatePoints(e.place, Math.max(0, v))}
                     min={0}
+                    step={1}
                   />
                   <span className="text-gray-400 dark:text-gray-500 text-xs">{t('league.settings.pointsAbbr')}</span>
+                  <button
+                    onClick={() => handleRemovePlace(e.place)}
+                    className="ml-1 text-red-400 hover:text-red-600 dark:hover:text-red-300 text-sm px-1.5 py-0.5 rounded transition-colors"
+                    aria-label={t('accessibility.remove')}
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
             </div>
+            <button
+              onClick={handleAddPlace}
+              className="mt-2 px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-gray-700/40 transition-colors"
+            >
+              + {t('league.creation.addPlace')}
+            </button>
           </div>
 
           {/* Ranking Algorithm */}

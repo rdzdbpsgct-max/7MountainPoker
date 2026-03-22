@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.10.0
+**Version**: 6.10.1
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -75,7 +75,8 @@ src/
 │   ├── LeagueGameDays.tsx        # League game day list with expandable details
 │   ├── LeagueFinances.tsx        # League financial overview — per game day and cumulative
 │   ├── GameDayEditor.tsx         # Manual game day entry modal with player management
-│   ├── LeagueSettings.tsx        # League settings — tiebreaker config, seasons, point system
+│   ├── LeagueCreationModal.tsx   # League creation modal — name, point system presets, ranking algorithm
+│   ├── LeagueSettings.tsx        # League settings — tiebreaker config, seasons, point system (with presets)
 │   ├── LeaguePlayerDetail.tsx    # League player detail stats modal
 │   ├── HeadToHeadMatrix.tsx      # NxN heatmap table for league player win-loss records
 │   ├── SeriesManager.tsx         # Tournament series CRUD modal with standings and export

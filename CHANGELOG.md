@@ -5,6 +5,19 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.10.1] – 2026-03-22
+
+### Liga-Erstellung: Punktesystem & Einstellungen
+
+- **Liga-Erstellungs-Modal**: Statt einfachem Namensfeld öffnet „+ Neue Liga" jetzt ein vollständiges Erstellungs-Modal mit Name, Punktesystem und Ranking-Algorithmus.
+- **Flexibles Punktesystem**: Plätze 1–N frei konfigurierbar — Punkte per NumberStepper editierbar, Plätze hinzufügen/entfernen, bis zu 10+ Plätze möglich.
+- **Punkt-Vorlagen**: 3 Schnell-Vorlagen direkt im Erstellungs-Dialog — Standard (10-7-5-4-3-2-1), Einfach (5-3-1), Top 10 (10-9-8-7-6-5-4-3-2-1).
+- **Ranking-Algorithmus**: Punkte / ELO / Gewichtete Punkte direkt bei der Erstellung wählbar.
+- **LeagueSettings verbessert**: Punktesystem-Editor in den Liga-Einstellungen (⚙️) ebenfalls mit Vorlagen und Add/Remove-Support.
+- **Neue Datei**: `src/components/LeagueCreationModal.tsx`
+- **10 neue Translation-Keys** (5 DE + 5 EN): `league.creation.*` (5) + `league.preset.*` (3)
+- **1305 Tests gesamt** (unverändert)
+
 ## [6.10.0] – 2026-03-21
 
 ### Audit-Pakete: UX, Stability & Architecture
