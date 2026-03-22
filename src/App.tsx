@@ -589,7 +589,8 @@ function App() {
       clearCheckpoint();
       if (!resultSavedRef.current) {
         resultSavedRef.current = true;
-        saveTournamentResult(finishedResult);
+        const trimmed = saveTournamentResult(finishedResult);
+        if (trimmed) showToast(t('history.trimmed'));
         // Auto-create GameDay when tournament is linked to a league
         if (config.leagueId) {
           const leagues = loadLeagues();

@@ -8,15 +8,17 @@ import { getCached, setCached, deleteCachedItem, MAX_HISTORY_ENTRIES } from './s
 
 export const MAX_HISTORY = MAX_HISTORY_ENTRIES;
 
-/** Save a tournament result to history (prepend, trim to MAX_HISTORY). */
-export function saveTournamentResult(result: TournamentResult): void {
+/** Save a tournament result to history (prepend, trim to MAX_HISTORY). Returns true if oldest entries were trimmed. */
+export function saveTournamentResult(result: TournamentResult): boolean {
   const history = [...getCached('history')];
   history.unshift(result);
-  if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+  const trimmed = history.length > MAX_HISTORY;
+  if (trimmed) history.length = MAX_HISTORY;
   setCached('history', history);
 
   // Auto-save player names to persistent database
   syncPlayersToDatabase(result.players.map((p) => p.name));
+  return trimmed;
 }
 
 /** Save multiple tournament results to history in a single batch (prepend, trim to MAX_HISTORY). */

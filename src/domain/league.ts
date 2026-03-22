@@ -97,7 +97,8 @@ export function createGameDayFromResult(
   registeredPlayers?: { id: string; name: string }[],
   gameDayLabel?: string,
 ): GameDay {
-  const pointMap = new Map(league.pointSystem.entries.map((e) => [e.place, e.points]));
+  const entries = league.pointSystem?.entries ?? [];
+  const pointMap = new Map(entries.map((e) => [e.place, e.points]));
 
   // Build a name→id lookup for registered players (case-insensitive)
   const playerIdMap = new Map<string, string>();
@@ -326,7 +327,8 @@ export function computeWeightedPoints(
   pointSystem: PointSystem,
   decayFactor: number = 0.9,
 ): Map<string, number> {
-  const pointMap = new Map(pointSystem.entries.map((e) => [e.place, e.points]));
+  const entries = pointSystem?.entries ?? [];
+  const pointMap = new Map(entries.map((e) => [e.place, e.points]));
   const sorted = [...gameDays].sort((a, b) => a.date.localeCompare(b.date));
   const total = sorted.length;
   const result = new Map<string, number>();

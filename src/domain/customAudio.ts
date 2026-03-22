@@ -86,6 +86,10 @@ export function loadCustomAudioFiles(): CustomAudioFile[] {
  * Can accept either a pre-built CustomAudioFile or a browser File object.
  */
 export function saveCustomAudioFile(file: CustomAudioFile): void {
+  const existing = getCached('customAudio');
+  if (existing.length >= MAX_CUSTOM_AUDIO_FILES) {
+    throw new Error(`Maximum of ${MAX_CUSTOM_AUDIO_FILES} custom audio files reached`);
+  }
   setCachedItem('customAudio', file);
 }
 
