@@ -593,6 +593,8 @@ const de = {
   'history.totalCost': 'Einsatz',
   'history.avgPlace': 'Ø Platz',
   'history.knockouts': 'Knockouts',
+  'history.nameCol': 'Name',
+  'history.bountyCol': 'Bounty',
 
   // --- Screenshot/Share ---
   'finished.shareResults': 'Ergebnis teilen / Screenshot',
@@ -623,6 +625,7 @@ const de = {
   'section.colorUpActive': 'Color-Up aktiv',
   'section.payoutSummary': '{places} Plätze, {mode}',
   'section.allDisabled': 'Alles deaktiviert',
+  'section.bountyLabel': 'Bounty: {amount} {symbol}',
   'setup.audioSummary.on': 'Sound, {volume}%',
   'setup.audioSummary.off': 'Sound aus',
 
@@ -966,6 +969,10 @@ const de = {
   'league.editor.notesPlaceholder': 'Optionale Notizen zum Spieltag…',
   'league.editor.save': 'Spieltag speichern',
   'league.editor.gameDayLabel': 'Spieltag {n}',
+  'league.editor.buyInCol': 'Buy-In',
+  'league.editor.rebuysCol': 'Rebuys',
+  'league.editor.addOnCol': 'Add-On',
+  'league.editor.pointsCol': 'Pkt',
   'league.correction.title': 'Korrektur',
   'league.correction.add': 'Korrektur hinzufügen',
   'league.correction.player': 'Spieler',
@@ -1133,6 +1140,7 @@ const de = {
   'sidePot.quickResultBetween': 'zwischen',
   'sidePot.quickResultMainPot': 'Main Pot',
   'sidePot.quickResultSidePot': 'Side Pot {n}',
+  'sidePot.total': 'Gesamt',
 
   'voice.tableMove': '{player} wechselt zu {table}, Platz {seat}',
   'voice.tableDissolution': '{table} wird aufgelöst.',
@@ -2018,6 +2026,8 @@ const en: Record<TranslationKey, string> = {
   'history.totalCost': 'Cost',
   'history.avgPlace': 'Avg Place',
   'history.knockouts': 'Knockouts',
+  'history.nameCol': 'Name',
+  'history.bountyCol': 'Bounty',
 
   // --- Screenshot/Share ---
   'finished.shareResults': 'Share Results / Screenshot',
@@ -2048,6 +2058,7 @@ const en: Record<TranslationKey, string> = {
   'section.colorUpActive': 'Color-Up active',
   'section.payoutSummary': '{places} places, {mode}',
   'section.allDisabled': 'All disabled',
+  'section.bountyLabel': 'Bounty: {amount} {symbol}',
   'setup.audioSummary.on': 'Sound, {volume}%',
   'setup.audioSummary.off': 'Sound off',
 
@@ -2388,6 +2399,10 @@ const en: Record<TranslationKey, string> = {
   'league.editor.notesPlaceholder': 'Optional game day notes…',
   'league.editor.save': 'Save Game Day',
   'league.editor.gameDayLabel': 'Game Day {n}',
+  'league.editor.buyInCol': 'Buy-In',
+  'league.editor.rebuysCol': 'Rebuys',
+  'league.editor.addOnCol': 'Add-On',
+  'league.editor.pointsCol': 'Pts',
   'league.correction.title': 'Correction',
   'league.correction.add': 'Add Correction',
   'league.correction.player': 'Player',
@@ -2555,6 +2570,7 @@ const en: Record<TranslationKey, string> = {
   'sidePot.quickResultBetween': 'between',
   'sidePot.quickResultMainPot': 'Main Pot',
   'sidePot.quickResultSidePot': 'Side Pot {n}',
+  'sidePot.total': 'Total',
 
   'voice.tableMove': '{player} moves to {table}, Seat {seat}',
   'voice.tableDissolution': '{table} is being dissolved.',

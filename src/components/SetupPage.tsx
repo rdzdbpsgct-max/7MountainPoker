@@ -102,13 +102,14 @@ export function SetupPage({
   }, [config.payout, t]);
 
   const formatSummary = useMemo(() => {
+    const sym = CURRENCY_SYMBOLS[config.currency ?? 'EUR'];
     const parts: string[] = [];
     if (config.rebuy.enabled) parts.push('Rebuy');
     if (config.addOn.enabled) parts.push('Add-On');
-    if (config.bounty.enabled) parts.push(`Bounty: ${config.bounty.amount} €`);
+    if (config.bounty.enabled) parts.push(t('section.bountyLabel', { amount: config.bounty.amount, symbol: sym }));
     if (config.lateRegistration?.enabled) parts.push(t('lateReg.short'));
     return parts.length > 0 ? parts.join(', ') : t('section.allDisabled');
-  }, [config.rebuy, config.addOn, config.bounty, config.lateRegistration, t]);
+  }, [config.rebuy, config.addOn, config.bounty, config.lateRegistration, config.currency, t]);
 
   const playersSummary = useMemo(() => {
     const base = t('section.playerCount', { n: config.players.length });

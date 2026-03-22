@@ -286,11 +286,11 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                   <tr className="border-b border-gray-200 dark:border-gray-700/40 text-left">
                     <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-10">#</th>
                     <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">{t('league.editor.playerName')}</th>
-                    <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-16">Buy-In</th>
-                    <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-16">Rebuys</th>
-                    <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-16">Add-On</th>
+                    <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-16">{t('league.editor.buyInCol')}</th>
+                    <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-16">{t('league.editor.rebuysCol')}</th>
+                    <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-16">{t('league.editor.addOnCol')}</th>
                     <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-20">{t('league.editor.payoutCol')}</th>
-                    <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-12">Pts</th>
+                    <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-12">{t('league.editor.pointsCol')}</th>
                     <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-16">{t('league.editor.guest')}</th>
                     <th className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-20"></th>
                   </tr>

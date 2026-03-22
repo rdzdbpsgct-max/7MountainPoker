@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import type { TournamentResult, PlayerStat } from '../domain/types';
+import type { TournamentResult, PlayerStat, Currency } from '../domain/types';
 import type { TournamentConfig } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import {
   loadTournamentHistory,
   deleteTournamentResult,
@@ -135,7 +136,7 @@ export function TournamentHistory({ onClose, onCloneConfig }: Props) {
               ))
             )
           ) : (
-            <StatsTable stats={stats} />
+            <StatsTable stats={stats} history={history} />
           )}
         </div>
 
@@ -193,6 +194,7 @@ function HistoryEntry({
   copied: boolean;
 }) {
   const { t, language } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[(result.currency ?? 'EUR') as Currency];
   const winner = result.players.find((p) => p.place === 1);
   const dateStr = new Date(result.date).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', {
     day: '2-digit',
@@ -221,7 +223,7 @@ function HistoryEntry({
               </span>
             )}
             <span>{result.playerCount} {t('history.players')}</span>
-            <span>{result.prizePool.toFixed(0)} €</span>
+            <span>{result.prizePool.toFixed(0)} {sym}</span>
           </div>
         </div>
         <ChevronIcon open={expanded} />
@@ -249,9 +251,9 @@ function HistoryEntry({
               <thead>
                 <tr className="text-gray-500 dark:text-gray-400 text-left text-xs uppercase tracking-wider">
                   <th className="py-1.5 pr-2">#</th>
-                  <th className="py-1.5 pr-2">Name</th>
+                  <th className="py-1.5 pr-2">{t('history.nameCol')}</th>
                   <th className="py-1.5 pr-2 text-right">{t('history.prizePool')}</th>
-                  {result.bountyEnabled && <th className="py-1.5 pr-2 text-right">Bounty</th>}
+                  {result.bountyEnabled && <th className="py-1.5 pr-2 text-right">{t('history.bountyCol')}</th>}
                   <th className="py-1.5 text-right">{t('history.balance')}</th>
                 </tr>
               </thead>
@@ -267,11 +269,11 @@ function HistoryEntry({
                     <td className="py-1.5 pr-2 tabular-nums">{p.place}</td>
                     <td className="py-1.5 pr-2">{p.name}</td>
                     <td className="py-1.5 pr-2 text-right tabular-nums">
-                      {p.payout > 0 ? `${p.payout.toFixed(2)} €` : '–'}
+                      {p.payout > 0 ? `${p.payout.toFixed(2)} ${sym}` : '–'}
                     </td>
                     {result.bountyEnabled && (
                       <td className="py-1.5 pr-2 text-right tabular-nums">
-                        {p.bountyEarned > 0 ? `${p.bountyEarned.toFixed(2)} €` : '–'}
+                        {p.bountyEarned > 0 ? `${p.bountyEarned.toFixed(2)} ${sym}` : '–'}
                       </td>
                     )}
                     <td className={`py-1.5 text-right tabular-nums font-medium ${
@@ -281,7 +283,7 @@ function HistoryEntry({
                         ? 'text-gray-500'
                         : ''
                     }`} style={p.netBalance > 0 ? { color: 'var(--accent-text)' } : undefined}>
-                      {p.netBalance > 0 ? '+' : ''}{p.netBalance.toFixed(2)} €
+                      {p.netBalance > 0 ? '+' : ''}{p.netBalance.toFixed(2)} {sym}
                     </td>
                   </tr>
                 ))}
@@ -328,8 +330,9 @@ function HistoryEntry({
 }
 
 // --- Player Stats Table ---
-function StatsTable({ stats }: { stats: PlayerStat[] }) {
+function StatsTable({ stats, history }: { stats: PlayerStat[]; history: TournamentResult[] }) {
   const { t } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[(history[0]?.currency ?? 'EUR') as Currency];
 
   if (stats.length === 0) {
     return <p className="text-gray-500 dark:text-gray-400 text-center py-8">{t('history.noEntries')}</p>;
@@ -340,7 +343,7 @@ function StatsTable({ stats }: { stats: PlayerStat[] }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="text-gray-500 dark:text-gray-400 text-left text-xs uppercase tracking-wider">
-            <th className="py-2 pr-2">Name</th>
+            <th className="py-2 pr-2">{t('history.nameCol')}</th>
             <th className="py-2 pr-2 text-center">{t('history.tournaments')}</th>
             <th className="py-2 pr-2 text-center">{t('history.wins')}</th>
             <th className="py-2 pr-2 text-center">{t('history.cashes')}</th>
@@ -361,8 +364,8 @@ function StatsTable({ stats }: { stats: PlayerStat[] }) {
               <td className="py-2 pr-2 text-center tabular-nums">{s.tournaments}</td>
               <td className="py-2 pr-2 text-center tabular-nums">{s.wins}</td>
               <td className="py-2 pr-2 text-center tabular-nums">{s.cashes}</td>
-              <td className="py-2 pr-2 text-right tabular-nums">{s.totalPayout.toFixed(2)} €</td>
-              <td className="py-2 pr-2 text-right tabular-nums">{s.totalCost.toFixed(2)} €</td>
+              <td className="py-2 pr-2 text-right tabular-nums">{s.totalPayout.toFixed(2)} {sym}</td>
+              <td className="py-2 pr-2 text-right tabular-nums">{s.totalCost.toFixed(2)} {sym}</td>
               <td className={`py-2 pr-2 text-right tabular-nums font-medium ${
                 s.netBalance < 0
                   ? 'text-red-500 dark:text-red-400'
@@ -370,7 +373,7 @@ function StatsTable({ stats }: { stats: PlayerStat[] }) {
                   ? 'text-gray-500'
                   : ''
               }`} style={s.netBalance > 0 ? { color: 'var(--accent-text)' } : undefined}>
-                {s.netBalance > 0 ? '+' : ''}{s.netBalance.toFixed(2)} €
+                {s.netBalance > 0 ? '+' : ''}{s.netBalance.toFixed(2)} {sym}
               </td>
               <td className="py-2 pr-2 text-center tabular-nums">{s.avgPlace}</td>
               <td className="py-2 text-center tabular-nums">{s.knockouts}</td>

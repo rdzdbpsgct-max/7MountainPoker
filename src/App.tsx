@@ -1103,6 +1103,7 @@ function App() {
             players={config.players}
             payout={config.payout}
             prizePool={computePrizePool(config.players, config.buyIn, config.rebuy.enabled ? config.rebuy.rebuyCost : undefined, config.addOn.enabled ? config.addOn.cost : 0, config.rebuy.separatePot)}
+            currency={config.currency}
             onClose={() => modals.setShowIcm(false)}
           />
         </Suspense></SectionErrorBoundary>

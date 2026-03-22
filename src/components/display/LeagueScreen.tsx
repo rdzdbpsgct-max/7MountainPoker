@@ -1,13 +1,16 @@
-import type { ExtendedLeagueStanding } from '../../domain/types';
+import type { ExtendedLeagueStanding, Currency } from '../../domain/types';
+import { CURRENCY_SYMBOLS } from '../../domain/types';
 import { useTranslation } from '../../i18n';
 
 interface Props {
   leagueName: string;
   standings: ExtendedLeagueStanding[];
+  currency?: Currency | undefined;
 }
 
-export function LeagueScreen({ leagueName, standings }: Props) {
+export function LeagueScreen({ leagueName, standings, currency }: Props) {
   const { t } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const top10 = standings.slice(0, 10);
 
   const medal = (rank: number) => {
@@ -55,7 +58,7 @@ export function LeagueScreen({ leagueName, standings }: Props) {
                 <td className="py-2 text-right text-gray-400">{s.wins}</td>
                 <td className="py-2 text-right text-gray-400">{s.tournaments}</td>
                 <td className={`py-2 text-right font-medium ${s.netBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {s.netBalance >= 0 ? '+' : ''}{s.netBalance.toFixed(0)} €
+                  {s.netBalance >= 0 ? '+' : ''}{s.netBalance.toFixed(0)} {sym}
                 </td>
               </tr>
             ))}

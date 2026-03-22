@@ -47,7 +47,7 @@ export function SidePotScreen({ data }: Props) {
 
       {/* Total */}
       <div className="text-center text-sm text-gray-400 mb-3">
-        Total: <span className="font-bold text-white">{data.total.toLocaleString()}</span>
+        {t('sidePot.total')}: <span className="font-bold text-white">{data.total.toLocaleString()}</span>
       </div>
 
       {/* Payout table (if winners resolved) */}

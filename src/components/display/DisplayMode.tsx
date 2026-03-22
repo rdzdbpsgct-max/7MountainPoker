@@ -490,7 +490,7 @@ export function DisplayMode({
               <SeatingScreen players={players} dealerIndex={dealerIndex} tables={tables} showDealerBadges={showDealerBadges} />
             )}
             {activeSecondary === 'league' && leagueName && leagueStandings && (
-              <LeagueScreen leagueName={leagueName} standings={leagueStandings} />
+              <LeagueScreen leagueName={leagueName} standings={leagueStandings} currency={currency} />
             )}
             {activeSecondary === 'sidepot' && sidePotData && (
               <SidePotScreen data={sidePotData} />

@@ -2,7 +2,8 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { computeIcmDeal } from '../domain/logic';
 import type { IcmResult } from '../domain/logic';
-import type { Player, PayoutConfig } from '../domain/types';
+import type { Player, PayoutConfig, Currency } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import { useTranslation } from '../i18n';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { NumberStepper } from './NumberStepper';
@@ -15,10 +16,13 @@ interface Props {
   payout: PayoutConfig;
   /** Total prizepool */
   prizePool: number;
+  /** Currency for display */
+  currency?: Currency | undefined;
 }
 
-export function IcmCalculator({ onClose, players, payout, prizePool }: Props) {
+export function IcmCalculator({ onClose, players, payout, prizePool, currency }: Props) {
   const { t } = useTranslation();
+  const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const dialogRef = useDialogA11y(onClose);
 
   // Initialize stacks from player data or allow manual entry
@@ -98,7 +102,7 @@ export function IcmCalculator({ onClose, players, payout, prizePool }: Props) {
           <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800/60 text-sm">
             <span className="text-gray-500 dark:text-gray-400">{t('icm.prizePool')}:</span>
             <span className="font-semibold text-gray-900 dark:text-gray-100">
-              {totalPayout > 0 ? `€${totalPayout.toLocaleString()}` : '—'}
+              {totalPayout > 0 ? `${sym}${totalPayout.toLocaleString()}` : '—'}
             </span>
             <span className="text-gray-400">|</span>
             <span className="text-gray-500 dark:text-gray-400">{t('icm.totalChips')}:</span>
@@ -189,7 +193,7 @@ export function IcmCalculator({ onClose, players, payout, prizePool }: Props) {
                             {r.stackPercent.toFixed(1)}%
                           </td>
                           <td className="px-3 py-2 text-right font-semibold text-gray-900 dark:text-gray-100">
-                            €{r.equity.toFixed(0)}
+                            {sym}{r.equity.toFixed(0)}
                           </td>
                           <td className="px-3 py-2 text-right text-gray-500 dark:text-gray-400">
                             {r.equityPercent.toFixed(1)}%
