@@ -23,8 +23,9 @@ const LeagueFinances = lazy(() => import('./LeagueFinances').then((m) => ({ defa
 const HeadToHeadMatrix = lazy(() => import('./HeadToHeadMatrix').then((m) => ({ default: m.HeadToHeadMatrix })));
 const GameDayEditor = lazy(() => import('./GameDayEditor').then((m) => ({ default: m.GameDayEditor })));
 const LeagueSettings = lazy(() => import('./LeagueSettings').then((m) => ({ default: m.LeagueSettings })));
+const LeagueCharts = lazy(() => import('./LeagueCharts').then((m) => ({ default: m.LeagueCharts })));
 
-type Tab = 'standings' | 'gameDays' | 'finances' | 'h2h';
+type Tab = 'standings' | 'gameDays' | 'finances' | 'h2h' | 'charts';
 
 interface Props {
   onStartTournament: (leagueId: string, options?: { quickStart?: boolean | undefined; playerNames?: string[] | undefined }) => void;
@@ -168,6 +169,7 @@ export function LeagueView({ onStartTournament }: Props) {
     { key: 'gameDays', label: t('league.tabs.gameDays') },
     { key: 'finances', label: t('league.tabs.finances') },
     { key: 'h2h', label: t('league.tabs.h2h') },
+    { key: 'charts', label: t('league.tabs.charts') },
   ];
 
   return (
@@ -383,6 +385,13 @@ export function LeagueView({ onStartTournament }: Props) {
               )}
               {activeTab === 'h2h' && (
                 <HeadToHeadMatrix matrix={h2hMatrix} />
+              )}
+              {activeTab === 'charts' && (
+                <LeagueCharts
+                  standings={standings}
+                  gameDays={gameDays}
+                  currencySymbol={currencySymbol}
+                />
               )}
             </Suspense>
           </>
