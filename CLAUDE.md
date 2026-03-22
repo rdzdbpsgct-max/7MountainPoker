@@ -341,7 +341,8 @@ public/
 - **Tournament history**: Persistent result storage in `poker-timer-history` (localStorage, max 50 entries). Auto-save on tournament finish. `TournamentHistory.tsx` modal with expandable standings, player statistics tab (`computePlayerStats` aggregation by normalized name), text export (WhatsApp-friendly), CSV download. Accessible from setup header "Historie" button.
 - **Player database**: Persistent player name storage in `poker-timer-players` (localStorage). Auto-save on tournament finish via `syncPlayersToDatabase()`. Autocomplete via native `<datalist>` in PlayerManager. `importPlayersFromHistory()` for one-time migration. Case-insensitive deduplication.
 - **Call the Clock**: Shot-clock countdown modal (`CallTheClock.tsx`, lazy-loaded ~2.3 KB). Configurable duration (10–300s, default 60s) via `callTheClockSeconds` in Settings. Wall-clock-based countdown, progress bar, tension beeps in last 10s, auto-close at 0. Keyboard shortcut `C` to toggle. `NumberStepper` config in SettingsPanel. Voice announcements: `announceCallTheClock()` on start, `announceCallTheClockExpired()` on timeout.
-- **League Management**: Multi-league support with point system. `League` type with customizable `PointSystem` (default: 1st→10, 2nd→7, 3rd→5, ..., 7th→1). CRUD in `poker-timer-leagues` (localStorage). `LeagueManager.tsx` modal with create/edit/delete, inline point editing, embedded sortable leaderboard. `computeLeagueStandings()` aggregates by normalized player name across league-tagged tournaments. Text export (WhatsApp-friendly) + CSV download. Tournament-to-league assignment via `leagueId` dropdown in Setup.
+- **League Creation Modal**: `LeagueCreationModal.tsx` — opened when clicking "+ New League" in LeagueView. Provides: league name field, flexible point system editor (places 1–N, each with NumberStepper, add/remove), 3 quick presets (Standard: 10-7-5-4-3-2-1, Simple: 5-3-1, Top 10: 10-9-8-7-6-5-4-3-2-1), ranking algorithm toggle (points/ELO/weighted). Full configuration in one place at creation time.
+- **League Management**: Multi-league support with point system. `League` type with customizable `PointSystem` (default: 1st→10, 2nd→7, 3rd→5, ..., 7th→1). CRUD in `poker-timer-leagues` (IndexedDB). `LeagueManager.tsx` modal with create/edit/delete, inline point editing, embedded sortable leaderboard. `computeLeagueStandings()` aggregates by normalized player name across league-tagged tournaments. Text export (WhatsApp-friendly) + CSV download. Tournament-to-league assignment via `leagueId` dropdown in Setup. `LeagueSettings.tsx` ⚙️ button also has full point system editor with presets.
 - **League Mode (Homegame Liga)**: Third app mode (`'league'`). `GameDay` entity links tournaments to leagues with per-player financials. `league.ts` domain module with pure functions: GameDay CRUD, `computeExtendedStandings()` (aggregates points, costs, payout, netBalance, participationRate, tiebreaker), `applyTiebreaker()` (configurable criteria chain), `computeLeagueFinances()`, `computeLeaguePlayerStats()`. Season support, guest players, point corrections. QR-sharing via `encodeLeagueStandingsForQR()`. LeagueExport v2 includes GameDays. TV display integration via `LeagueScreen` secondary screen.
 - **Player Detail Modal**: Click on player name in LeagueStandingsTable → lazy-loaded `LeaguePlayerDetail.tsx` modal showing per-player stats (points history, place distribution, streaks, form, head-to-head). Uses `computeLeaguePlayerStats()` from league.ts.
 - **QR Sharing for League Standings**: `encodeLeagueStandingsForQR()` creates compact `#ls=` hash URL. `decodeLeagueStandingsFromQR()` parses it back. App.tsx handles `#ls=` on startup and shows `SharedLeagueView.tsx` modal (similar to `#r=` for tournament results).
@@ -426,6 +427,17 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.10.1 — Liga-Erstellungs-Modal mit flexiblem Punktesystem
+
+- **Liga-Erstellungs-Modal**: `+ Neue Liga` öffnet jetzt vollständiges Modal (Name, Punktesystem, Ranking-Algorithmus) statt Inline-Namensfeld.
+- **Flexibles Punktesystem**: Plätze 1–N frei konfigurierbar — NumberStepper pro Platz, Add/Remove-Buttons.
+- **Punkt-Vorlagen**: Standard (10-7-5-4-3-2-1), Einfach (5-3-1), Top 10 (10-9-8-7-6-5-4-3-2-1).
+- **LeagueSettings verbessert**: Punktesystem-Editor auch in ⚙️-Einstellungen mit Vorlagen und Add/Remove.
+- **Neue Datei**: `src/components/LeagueCreationModal.tsx`
+- **Docs**: README, CLAUDE.md, CHANGELOG.md, helpContent.ts aktualisiert (League-Hilfetext + FAQ).
+- **10 neue Translation-Keys** (5 DE + 5 EN)
+- **1305 Tests gesamt**
 
 ### v6.10.0 — Audit-Pakete: UX, Stability & Architecture
 

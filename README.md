@@ -6,7 +6,7 @@
 
 **Der Poker-Turnier-Timer für deinen Spieleabend**
 
-[![Version](https://img.shields.io/badge/Version-6.10.0-blue?style=flat-square)](#)
+[![Version](https://img.shields.io/badge/Version-6.10.1-blue?style=flat-square)](#)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-34d399?style=flat-square&logo=github)](https://rdzdbpsgct-max.github.io/7MountainPoker/)
 [![Vercel](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=flat-square&logo=vercel)](https://7mountainpoker.vercel.app/)
 [![Tests](https://img.shields.io/badge/Tests-1305%20passed-brightgreen?style=flat-square)](#)
@@ -95,6 +95,7 @@ Eine vollständig clientseitige Web-App zur Verwaltung von Poker-Heimturnieren. 
 | Blinds nach Endzeit | Blindstruktur automatisch generieren basierend auf gewünschter Turnierdauer |
 | Re-Entry | Spieler können sich nach Elimination neu einkaufen (neuer Stack, separate Statistik) |
 | Seat-Locking | Bestimmte Sitzplätze an Tischen sperren (Multi-Table) |
+| Liga-Erstellung | Neues Liga-Erstellungs-Modal: Name, flexibles Punktesystem (Plätze 1–N, Punkte frei konfigurierbar), Vorlagen (Standard, Einfach, Top 10), Ranking-Algorithmus direkt bei Erstellung wählbar |
 | Liga-Modus | Homegame-Liga mit Spieltagen, Punktesystem, Tiebreaker, Saisons, Finanzen, Gastspieler, Spieler-Detailansicht, QR-Teilen, TV-Display, Druckansicht |
 | Hilfe-Center | Durchsuchbares bilinguales Hilfesystem mit Anleitung (10 Sektionen), FAQ (22 Einträge), Tastenkürzel (13 Einträge) — erreichbar über ?-Button im Header (Setup, Spielmodus & Liga) |
 | Fernsteuerung | Turnier vom Smartphone steuern via PeerJS (Play/Pause/Next/Dealer/Sound/Call the Clock + Spieler-Management: Elimination, Rebuy, Add-On + Turnier-Infos: Prizepool, Avg Stack, Spielzeit) — Ein-QR-Verbindung |
@@ -210,6 +211,7 @@ A fully client-side web app for managing home poker tournaments. No server, no a
 | Blinds by End Time | Auto-generate blind structure based on target tournament duration |
 | Re-Entry | Players can re-enter after elimination (fresh stack, separate stats) |
 | Seat Locking | Lock specific seats at tables (multi-table) |
+| League Creation | New league creation modal: name, flexible point system (places 1–N, fully configurable), presets (Standard, Simple, Top 10), ranking algorithm selectable at creation |
 | League Mode | Home game league with game days, point system, tiebreaker, seasons, finances, guest players, player detail modal, QR sharing, TV display, print view |
 | Help Center | Searchable bilingual help system with guide (10 sections), FAQ (22 entries), keyboard shortcuts (13 entries) — accessible via ? button in header (setup, game mode & league) |
 | Remote Control | Control tournament from smartphone via PeerJS (Play/Pause/Next/Dealer/Sound/Call the Clock + player management: elimination, rebuy, add-on + tournament info: prize pool, avg stack, elapsed time) — single QR scan |
@@ -364,11 +366,12 @@ src/
     CustomAudioEditor.tsx # Custom Audio Editor / Custom audio editor
     LevelPreview.tsx      # Level-Vorschau / Level preview
     RebuyStatus.tsx      # Rebuy-Anzeige / Rebuy indicator
+    LeagueCreationModal.tsx  # Liga-Erstellungs-Modal mit Punktesystem & Vorlagen / League creation modal with point system & presets
 public/
   audio/de/             # 295 ElevenLabs MP3 Audiodateien (Deutsch, Stimme: Ava)
   audio/en/             # 295 ElevenLabs MP3 Audiodateien (Englisch)
 tests/
-  logic.test.ts         # 1257 Tests (18 Testdateien / test files)
+  logic.test.ts         # 1305 Tests (18 Testdateien / test files)
 ```
 
 ## Architektur / Architecture

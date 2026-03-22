@@ -509,10 +509,17 @@ export const helpSections: HelpSection[] = [
     description: { de: 'Langfristige Ligen und Turnierserien verwalten', en: 'Manage long-term leagues and tournament series' },
     items: [
       {
+        title: { de: 'Liga erstellen & Punktesystem', en: 'Create League & Point System' },
+        body: {
+          de: 'Klicke auf "+ Neue Liga", um das Erstellungs-Modal zu öffnen. Dort legst du den Liga-Namen und das Punktesystem fest: Plätze 1–10 (oder mehr) mit individuell konfigurierbaren Punkten. Vorlagen erleichtern den Einstieg: Standard (10-7-5-4-3-2-1), Einfach (5-3-1) oder Top 10 (1–10 je 1 Punkt). Du kannst Plätze beliebig hinzufügen oder entfernen und direkt den Ranking-Algorithmus wählen. Alle Einstellungen lassen sich jederzeit über ⚙️ anpassen.',
+          en: 'Click "+ New League" to open the creation modal. There you set the league name and point system: places 1–10 (or more) with individually configurable points. Presets make it easy: Standard (10-7-5-4-3-2-1), Simple (5-3-1), or Top 10 (1–10 each 1 point). You can freely add or remove places and select the ranking algorithm right away. All settings can be adjusted at any time via ⚙️.',
+        },
+      },
+      {
         title: { de: 'Liga-Modus', en: 'League Mode' },
         body: {
-          de: 'Erstelle eine Liga im Liga-Modus, konfiguriere das Punktesystem, und verknüpfe Turniere mit der Liga. Spieltage werden automatisch bei Turnierende erstellt oder manuell angelegt. Die Tabelle zeigt Punkte, Finanzen und Statistiken.',
-          en: 'Create a league in league mode, configure the point system, and link tournaments to the league. Game days are created automatically on tournament end or manually. Standings show points, finances, and statistics.',
+          de: 'Verknüpfe Turniere mit deiner Liga — Spieltage werden automatisch bei Turnierende erstellt oder manuell über den 📝-Button angelegt. Die Tabelle zeigt Punkte, Finanzen und Statistiken. Die Sortierung (nach Punkten, Bilanz etc.) wird gespeichert.',
+          en: 'Link tournaments to your league — game days are created automatically on tournament end or manually via the 📝 button. Standings show points, finances, and statistics. The sort order (by points, balance, etc.) is saved.',
         },
       },
       {
@@ -685,8 +692,8 @@ export const faqEntries: FaqEntry[] = [
   {
     question: { de: 'Wie funktioniert die Liga?', en: 'How does the league work?' },
     answer: {
-      de: 'Erstelle eine Liga im Liga-Modus, konfiguriere das Punktesystem (Standard, ELO oder gewichtete Punkte), und verknüpfe Turniere mit der Liga. Spieltage werden automatisch oder manuell angelegt. Die Tabelle zeigt Punkte, Finanzen, Statistiken und Head-to-Head-Vergleiche.',
-      en: 'Create a league in league mode, configure the point system (standard, ELO, or weighted points), and link tournaments to the league. Game days are created automatically or manually. Standings show points, finances, statistics, and head-to-head comparisons.',
+      de: 'Klicke im Liga-Modus auf "+ Neue Liga". Im Erstellungs-Modal konfigurierst du Name, Punktesystem (Plätze 1–N frei einstellbar, Vorlagen: Standard/Einfach/Top 10) und Ranking-Algorithmus. Verknüpfe dann Turniere mit der Liga — Spieltage werden automatisch oder manuell angelegt. Die Tabelle zeigt Punkte, Finanzen, Statistiken und Head-to-Head-Vergleiche. Einstellungen (Tiebreaker, Saisons, ELO-Konfiguration) sind jederzeit über ⚙️ erreichbar.',
+      en: 'Click "+ New League" in league mode. In the creation modal you configure name, point system (places 1–N fully configurable, presets: Standard/Simple/Top 10) and ranking algorithm. Then link tournaments to the league — game days are created automatically or manually. Standings show points, finances, statistics, and head-to-head comparisons. Settings (tiebreaker, seasons, ELO config) are accessible anytime via ⚙️.',
     },
   },
   {
