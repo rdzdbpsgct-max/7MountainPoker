@@ -401,8 +401,10 @@ export class RemoteHost {
   private controllerConns: Map<string, DataConnection> = new Map();
   /** Timestamp of last received pong per peer (for stale connection detection) */
   private lastPongTime: Map<string, number> = new Map();
-  /** Maximum time without a pong before closing a connection (60s = 6 missed pings) */
-  private static readonly STALE_CONNECTION_MS = 60_000;
+  /** Maximum time without a pong before closing a connection (10 min = 60 missed pings).
+   *  Long timeout because the admin is actively playing poker and doesn't interact
+   *  with the remote every few seconds. */
+  private static readonly STALE_CONNECTION_MS = 600_000;
   private callbacks: RemoteHostCallbacks;
   private keepaliveInterval: ReturnType<typeof setInterval> | null = null;
   private _status: HostStatus = 'initializing';
