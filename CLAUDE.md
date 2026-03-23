@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.11.0
+**Version**: 6.11.1
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1328 tests, single run)
+npm run test         # Vitest run (1360 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -197,21 +197,24 @@ src/
     └── useTranslation.ts        # Hook: t(key, params) + language state
 
 tests/
-├── logic.test.ts                # 681 unit tests for domain logic + PeerJS remote control + undo/redo + ICM + cloud export + series + prizepool + side-pots + license
+├── logic.test.ts                # 711 unit tests for domain logic + PeerJS remote control + undo/redo + ICM + cloud export + series + prizepool + side-pots + license + payout rounding
 ├── components.test.tsx          # 117 UI component tests (NumberStepper, CollapsibleSection, PrintView, CallTheClock, BubbleIndicator, RebuyStatus, ChevronIcon, CollapsibleSubSection, LanguageSwitcher, ThemeSwitcher, ErrorBoundary, useTimer, useConfirmDialog, LoadingFallback, ConfigEditor, SettingsPanel, PlayerPanel, TournamentLog)
 ├── edge-cases.test.ts           # 101 edge case tests (timer, blinds, players, multi-table, format, tournament, validation, helpers)
-├── sound-speech.test.ts         # 59 sound effects + speech announcement + AudioBuffer cache tests
 ├── events.test.ts               # 52 tournament event creation, filtering, i18n formatting tests
-├── integration.test.ts          # 47 cross-module integration tests (checkpoint, timer, config compat, tournament flow, league, audio)
+├── integration.test.ts          # 51 cross-module integration tests (checkpoint, timer, config compat, tournament flow, league, audio)
 ├── tournamentActions.test.tsx   # 41 useTournamentActions hook tests
+├── sound-speech.test.ts         # 41 sound effects + speech announcement + AudioBuffer cache tests
+├── league-advanced.test.ts      # 31 league advanced tests (tiebreaker, ELO, weighted points, H2H, extended standings)
 ├── controls.test.tsx            # 26 Controls component tests (buttons, callbacks, ARIA, break controls)
 ├── hooks.test.tsx               # 25 useKeyboardShortcuts + useGameEvents tests
 ├── persistence.test.ts          # 25 config/settings/checkpoint save/load round-trips
 ├── i18n.test.ts                 # 24 i18n key parity, parameters, placeholder consistency, quality
-├── league-advanced.test.ts      # 22 league advanced tests (tiebreaker, ELO, weighted points, H2H, extended standings)
 ├── display-channel.test.ts      # 19 BroadcastChannel serialization + communication tests
 ├── hooks-phase1.test.tsx        # 19 useVoiceAnnouncements + phase transition hook tests
+├── alertEngine.test.ts          # 18 alert engine tests (createDefaultAlert, interpolateAlertText, shouldFireAlert)
 ├── entitlements.test.ts         # 12 feature gate / entitlement tests
+├── startValidation.test.ts      # 11 pre-tournament start validation tests (collectStartErrors)
+├── a11y.test.tsx                # 6 automated WCAG accessibility tests (axe-core)
 ├── toast.test.ts                # 6 toast notification system tests
 ├── monetizationTelemetry.test.ts # 3 monetization telemetry tests
 ├── recovery.test.ts             # 3 error recovery tests
@@ -394,8 +397,8 @@ public/
 
 ## Testing
 
-- **1328 tests** across 19 test files + 1 setup file
-- Core files: `logic.test.ts` (703), `components.test.tsx` (117), `edge-cases.test.ts` (101), `sound-speech.test.ts` (59), `events.test.ts` (52), `integration.test.ts` (47), `tournamentActions.test.tsx` (41), `league-advanced.test.ts` (30), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `entitlements.test.ts` (12), `a11y.test.tsx` (6), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
+- **1360 tests** across 21 test files + 1 setup file
+- Core files: `logic.test.ts` (711), `components.test.tsx` (117), `edge-cases.test.ts` (101), `events.test.ts` (52), `integration.test.ts` (51), `tournamentActions.test.tsx` (41), `sound-speech.test.ts` (41), `league-advanced.test.ts` (31), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `alertEngine.test.ts` (18), `entitlements.test.ts` (12), `startValidation.test.ts` (11), `a11y.test.tsx` (6), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -433,6 +436,18 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 
 ## Changelog
 
+### v6.11.1 — Abschluss-Audit: i18n, Toast-Feedback, Security & Test-Coverage
+
+- **i18n-Bereinigung** (Paket A): Hardkodierte `€`-Symbole und Spaltenheader durch `t()`/`CURRENCY_SYMBOLS`-Lookup ersetzt. 14 neue Translation-Keys (7 DE + 7 EN).
+- **Toast-Feedback** (Paket B): `showToast()` bei Template speichern/löschen, Liga löschen, Serie löschen, Backup wiederherstellen. 16 neue Toast-Translation-Keys (8 DE + 8 EN).
+- **Aria-Labels** (Paket B): Move-Buttons in PlayerManager mit `aria-label` ergänzt.
+- **startValidation-Tests** (Paket C): 11 neue Tests für `collectStartErrors()` — alle Preflight-Checks abgedeckt (Spieleranzahl, Levels, Chips, Bounty, Blind-Monotonie, Payout-Lücken, Liga-Referenz).
+- **PeerJS Stale-Connection-Eviction**: `lastPongTime`-Map pro Peer, 60s Max-Age, automatisches Eviction in Keepalive-Intervall. Beide Verbindungstypen (Controller + Display) abgedeckt. Cleanup in `destroy()`.
+- **alertEngine-Tests**: 18 neue Tests für alle 3 exportierten Funktionen (`createDefaultAlert`, `interpolateAlertText`, `shouldFireAlert`).
+- **Payout-Rundungs-Tests**: 4 Präzisionstests für `computePayouts` — Summen-Toleranz ≤$0.01, Normalisierung auf 100%, Overpayout-Clamp.
+- **Neue Testdateien**: `tests/startValidation.test.ts`, `tests/alertEngine.test.ts`
+- **1360 Tests gesamt** (21 Testdateien)
+
 ### v6.11.0 — Audit-Pakete C/D/E: Deal-Making, Liga-Charts, QA-Härtung
 
 - **Deal-Making / Chop Calculator** (Paket C): `dealMaking.ts` Domain-Modul mit 3 Chop-Methoden (ICM, Chip-Proportional, Even Split). `DealMaker.tsx` lazy-loaded Modal im PlayerPanel (2–6 Spieler). NumberStepper für manuelle Anpassung, Summen-Validierung. `deal_accepted` Event + `dealApplied` in TournamentResult. Integration über useTournamentActions → App.tsx → GameModeContainer → PlayerPanel. 15 neue i18n-Keys pro Sprache.
@@ -442,7 +457,7 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - **Test-Count-Validierung in CI** (Paket E): GitHub Actions prüft Minimum 1300 Tests — Pipeline bricht ab wenn Schwelle unterschritten.
 - **Neue Dateien**: `dealMaking.ts`, `DealMaker.tsx`, `LeagueCharts.tsx`, `a11y.test.tsx`
 - **Neue DevDependencies**: `vitest-axe`, `axe-core`
-- **1328 Tests gesamt** (19 Testdateien)
+- **1328 Tests gesamt** (19 Testdateien) → aktualisiert in v6.11.1 auf 1360 Tests (21 Testdateien)
 
 ### v6.10.1 — Liga-Erstellungs-Modal mit flexiblem Punktesystem
 
