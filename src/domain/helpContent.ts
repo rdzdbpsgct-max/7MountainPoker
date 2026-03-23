@@ -258,6 +258,20 @@ export const helpSections: HelpSection[] = [
         },
       },
       {
+        title: { de: 'Pausen-Steuerung', en: 'Break Controls' },
+        body: {
+          de: 'Während einer Pause stehen drei Buttons bereit: Pause überspringen (springt sofort zum nächsten Level), +2 Min und +5 Min (verlängert die aktuelle Pause). Jede Aktion wird im Turnier-Protokoll erfasst und per Sprachansage bestätigt.',
+          en: 'During a break, three buttons are available: skip break (jumps immediately to the next level), +2 min and +5 min (extends the current break). Each action is recorded in the event log and confirmed by voice announcement.',
+        },
+      },
+      {
+        title: { de: 'Turnier-Protokoll', en: 'Tournament Event Log' },
+        body: {
+          de: 'Das 📋-Symbol im Spielmodus öffnet das Turnier-Protokoll — eine chronologische Liste aller Events (Eliminierungen, Rebuys, Level-Wechsel, Deals etc.). Mit Filterfunktion (Alle/Eliminierungen/Rebuys/Levels) und Text-Export. Auf dem Ergebnis-Screen als "Verlauf"-Tab verfügbar.',
+          en: 'The 📋 icon in game mode opens the event log — a chronological list of all events (eliminations, rebuys, level changes, deals, etc.). With filter function (All/Eliminations/Rebuys/Levels) and text export. Available as "History" tab on the results screen.',
+        },
+      },
+      {
         title: { de: 'Undo / Redo', en: 'Undo / Redo' },
         body: {
           de: 'Jede Turnieraktion (Elimination, Rebuy, Add-On, Dealer-Rotation, Stack-Änderung etc.) kann rückgängig gemacht werden. Cmd+Z für Undo, Cmd+Shift+Z für Redo. Die Buttons zeigen die letzte Aktion an. Bis zu 30 Schritte werden gespeichert.',

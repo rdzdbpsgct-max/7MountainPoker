@@ -116,6 +116,8 @@ Eine vollständig clientseitige Web-App zur Verwaltung von Poker-Heimturnieren. 
 | Offline-Banner | Amber-Warnhinweis im Header bei fehlender Internetverbindung |
 | Turnier-Klon | Turnier-Konfiguration aus der Historie wiederholen — gleiche Blinds, Buy-In, Spieler |
 | Liga-Spielerübernahme | Beim Start aus dem Liga-Modus werden Spieler der letzten 5 Spieltage automatisch übernommen |
+| Setup-Wizard | Geführte 6-Schritte-Ersteinrichtung (Spieler, Buy-In, Blind-Geschwindigkeit, Tipps, Überblick) — erscheint nur beim ersten Besuch |
+| Call the Clock | Shot-Clock-Countdown (Standard 60s, konfigurierbar 10–300s) — Spannungs-Beeps in den letzten 10 Sekunden (Taste: C) |
 
 ### Mitwirken
 
@@ -232,6 +234,12 @@ A fully client-side web app for managing home poker tournaments. No server, no a
 | Design system | Unified rounding, border opacities, focus glow, custom number stepper, SVG chevrons |
 | Validation | Input validation before tournament start with clear error messages |
 | Offline Banner | Amber warning in header when internet connection is lost |
+| Tournament Log | 📋 Chronological event log with filter (All/Eliminations/Rebuys/Levels), text export, "History" tab on results screen |
+| Break Controls | Skip break, +2 min / +5 min extension — with voice announcements and event logging |
+| Setup Wizard | Guided 6-step first-time setup (players, buy-in, blind speed, tips, review) — only shown on first visit |
+| Call the Clock | Shot clock countdown (default 60s, configurable 10–300s) — tension beeps in last 10 sec (key: C) |
+| Tournament Clone | Repeat a past tournament from history — same blind structure, buy-in, and players |
+| League Player Import | When starting a tournament from league mode, players from the last 5 game days are pre-filled |
 | Tournament Cloning | Repeat a tournament configuration from history — same blinds, buy-in, players |
 | League Player Pre-fill | When starting from league mode, players from the last 5 game days are auto-suggested |
 
