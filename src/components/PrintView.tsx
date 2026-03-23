@@ -1,4 +1,5 @@
 import type { TournamentConfig, TournamentResult, ExtendedLeagueStanding } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import { getLevelLabel, formatTime } from '../domain/logic';
 import { useTranslation } from '../i18n';
 
@@ -11,6 +12,7 @@ interface Props {
 
 export function PrintView({ config, result, leagueStandings, leagueName }: Props) {
   const { t } = useTranslation();
+  const currencySymbol = CURRENCY_SYMBOLS[config.currency ?? 'EUR'];
 
   const tournamentName = config.name || t('app.title');
 
@@ -93,7 +95,7 @@ export function PrintView({ config, result, leagueStandings, leagueName }: Props
                 <tr key={entry.place} className="border-b border-gray-200">
                   <td className="py-1 px-2">{t('payoutEditor.placeN', { n: entry.place })}</td>
                   <td className="py-1 px-2 text-right font-mono">
-                    {config.payout.mode === 'percent' ? `${entry.value}%` : `${entry.value} EUR`}
+                    {config.payout.mode === 'percent' ? `${entry.value}%` : `${entry.value} ${currencySymbol}`}
                   </td>
                 </tr>
               ))}
@@ -121,19 +123,19 @@ export function PrintView({ config, result, leagueStandings, leagueName }: Props
                   <td className="py-1 px-2">{p.place}.</td>
                   <td className="py-1 px-2">{p.name}</td>
                   <td className="text-right py-1 px-2 font-mono">
-                    {p.payout > 0 ? `${p.payout.toFixed(2)} EUR` : '—'}
+                    {p.payout > 0 ? `${p.payout.toFixed(2)} ${currencySymbol}` : '—'}
                   </td>
                   <td className={`text-right py-1 px-2 font-mono ${p.netBalance > 0 ? 'text-green-700' : p.netBalance < 0 ? 'text-red-700' : ''}`}>
-                    {p.netBalance >= 0 ? '+' : ''}{p.netBalance.toFixed(2)} EUR
+                    {p.netBalance >= 0 ? '+' : ''}{p.netBalance.toFixed(2)} {currencySymbol}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
           <div className="mt-2 text-xs text-gray-500">
-            Prizepool: {result.prizePool.toFixed(2)} EUR &middot; {result.playerCount} {t('finished.players')}
-            {result.totalRebuys > 0 && ` \u00b7 ${result.totalRebuys} Rebuys`}
-            {result.totalAddOns > 0 && ` \u00b7 ${result.totalAddOns} Add-Ons`}
+            {t('print.prizepool')}: {result.prizePool.toFixed(2)} {currencySymbol} &middot; {result.playerCount} {t('finished.players')}
+            {result.totalRebuys > 0 && ` \u00b7 ${result.totalRebuys} ${t('app.rebuy')}`}
+            {result.totalAddOns > 0 && ` \u00b7 ${result.totalAddOns} ${t('app.addOn')}`}
           </div>
         </div>
       )}
@@ -172,7 +174,7 @@ export function PrintView({ config, result, leagueStandings, leagueName }: Props
                   <td className="text-right py-1 px-2 font-mono">{s.totalCost.toFixed(2)}</td>
                   <td className="text-right py-1 px-2 font-mono">{s.totalPayout.toFixed(2)}</td>
                   <td className={`text-right py-1 px-2 font-mono ${s.netBalance > 0 ? 'text-green-700' : s.netBalance < 0 ? 'text-red-700' : ''}`}>
-                    {s.netBalance >= 0 ? '+' : ''}{s.netBalance.toFixed(2)} EUR
+                    {s.netBalance >= 0 ? '+' : ''}{s.netBalance.toFixed(2)} {currencySymbol}
                   </td>
                 </tr>
               ))}
@@ -183,10 +185,10 @@ export function PrintView({ config, result, leagueStandings, leagueName }: Props
 
       {/* Footer info */}
       <div className="text-xs text-gray-400 text-center mt-8">
-        Buy-In: {config.buyIn} EUR &middot; {t('app.startingChips')}: {config.startingChips.toLocaleString()}
-        {config.rebuy.enabled && ' \u00b7 Rebuy'}
-        {config.addOn.enabled && ' \u00b7 Add-On'}
-        {config.bounty.enabled && ` \u00b7 Bounty: ${config.bounty.amount} EUR`}
+        {t('app.buyIn')}: {config.buyIn} {currencySymbol} &middot; {t('app.startingChips')}: {config.startingChips.toLocaleString()}
+        {config.rebuy.enabled && ` \u00b7 ${t('app.rebuy')}`}
+        {config.addOn.enabled && ` \u00b7 ${t('app.addOn')}`}
+        {config.bounty.enabled && ` \u00b7 ${t('app.bounty')}: ${config.bounty.amount} ${currencySymbol}`}
       </div>
     </div>
   );

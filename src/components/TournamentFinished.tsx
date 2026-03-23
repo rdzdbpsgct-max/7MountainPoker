@@ -498,7 +498,7 @@ export function TournamentFinished({
             {maxPaidPlace > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{t('finished.paidPlaces')}</span>
-                <span className="text-gray-900 dark:text-white">Top {maxPaidPlace}</span>
+                <span className="text-gray-900 dark:text-white">{t('finished.topN' as Parameters<typeof t>[0], { n: maxPaidPlace })}</span>
               </div>
             )}
           </div>

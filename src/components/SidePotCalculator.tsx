@@ -251,7 +251,7 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
       lines.push(`${label}: ${pot.amount.toLocaleString()} (${names})${winnerNames ? ` → ${winnerNames}` : ''}`);
     }
     lines.push('─'.repeat(30));
-    lines.push(`Total: ${result.total.toLocaleString()}`);
+    lines.push(`${t('sidePot.total')}: ${result.total.toLocaleString()}`);
     if (payoutResult) {
       lines.push('');
       lines.push(t('sidePot.payoutTitle'));
@@ -393,7 +393,7 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
                   );
                 })}
                 <div className="pt-1.5 border-t border-gray-200 dark:border-gray-700/40 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Total</span>
+                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">{t('sidePot.total')}</span>
                   <span className="text-sm font-bold font-mono tabular-nums text-gray-800 dark:text-gray-100">
                     {quickResult.total.toLocaleString()}
                   </span>
@@ -550,7 +550,7 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                       {pot.type === 'main' ? t('sidePot.mainPot') : t('sidePot.sidePot', { n: pot.index })}
-                      {isSplit && <span className="ml-1.5 text-[10px] font-normal px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded">Split</span>}
+                      {isSplit && <span className="ml-1.5 text-[10px] font-normal px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded">{t('sidePot.split')}</span>}
                     </span>
                     <span className="text-sm font-bold font-mono tabular-nums" style={{ color: 'var(--accent-text)' }}>
                       {pot.amount.toLocaleString()}
@@ -603,7 +603,7 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
 
             {/* Total */}
             <div className="flex items-center justify-between px-3 pt-2 border-t border-gray-200 dark:border-gray-700/40">
-              <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Total</span>
+              <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">{t('sidePot.total')}</span>
               <span className="text-sm font-bold font-mono tabular-nums text-gray-800 dark:text-gray-100">
                 {result.total.toLocaleString()}
               </span>

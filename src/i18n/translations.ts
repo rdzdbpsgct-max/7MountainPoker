@@ -430,6 +430,7 @@ const de = {
   'finished.buyIn': 'Buy-In',
   'finished.bountyLabel': 'Bounty',
   'finished.paidPlaces': 'Bezahlte Plätze',
+  'finished.topN': 'Top {n}',
   'finished.addOn': 'Add-On',
   'finished.addOns': 'Add-Ons',
   'finished.bountyPaid': 'Bounty gezahlt',
@@ -806,6 +807,7 @@ const de = {
   'print.name': 'Name',
   'print.payout': 'Auszahlung',
   'print.balance': 'Bilanz',
+  'print.prizepool': 'Prizepool',
 
   // --- Wizard ---
   'wizard.welcome': 'Willkommen!',
@@ -1144,6 +1146,7 @@ const de = {
   'sidePot.quickResultMainPot': 'Main Pot',
   'sidePot.quickResultSidePot': 'Side Pot {n}',
   'sidePot.total': 'Gesamt',
+  'sidePot.split': 'Split',
 
   'voice.tableMove': '{player} wechselt zu {table}, Platz {seat}',
   'voice.tableDissolution': '{table} wird aufgelöst.',
@@ -1876,6 +1879,7 @@ const en: Record<TranslationKey, string> = {
   'finished.buyIn': 'Buy-In',
   'finished.bountyLabel': 'Bounty',
   'finished.paidPlaces': 'Paid Places',
+  'finished.topN': 'Top {n}',
   'finished.addOn': 'Add-On',
   'finished.addOns': 'Add-Ons',
   'finished.bountyPaid': 'Bounty paid',
@@ -2249,6 +2253,7 @@ const en: Record<TranslationKey, string> = {
   'print.name': 'Name',
   'print.payout': 'Payout',
   'print.balance': 'Balance',
+  'print.prizepool': 'Prizepool',
 
   // --- Wizard ---
   'wizard.welcome': 'Welcome!',
@@ -2587,6 +2592,7 @@ const en: Record<TranslationKey, string> = {
   'sidePot.quickResultMainPot': 'Main Pot',
   'sidePot.quickResultSidePot': 'Side Pot {n}',
   'sidePot.total': 'Total',
+  'sidePot.split': 'Split',
 
   'voice.tableMove': '{player} moves to {table}, Seat {seat}',
   'voice.tableDissolution': '{table} is being dissolved.',

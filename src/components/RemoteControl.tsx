@@ -370,7 +370,7 @@ export function RemoteControllerView({ hostPeerId, secret, onClose }: Controller
                     </span>
                   )}
                   {state.isBubble && (
-                    <span className="text-xs font-bold text-red-400 animate-pulse">BUBBLE!</span>
+                    <span className="text-xs font-bold text-red-400 animate-pulse">{t('bubble.bubble')}</span>
                   )}
                   <span
                     className="text-xs font-medium px-2 py-0.5 rounded-full"

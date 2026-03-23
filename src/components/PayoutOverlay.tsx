@@ -101,7 +101,7 @@ export function PayoutOverlay({ config, players, onClose }: Props) {
       {/* Bubble indicator */}
       {isBubble && (
         <div className="mb-3 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs text-center font-medium animate-bubble-pulse">
-          BUBBLE!
+          {t('bubble.bubble')}
         </div>
       )}
 

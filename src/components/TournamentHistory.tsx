@@ -236,8 +236,8 @@ function HistoryEntry({
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
             <span>{t('history.duration')}: {formatElapsedTime(result.elapsedSeconds)}</span>
             <span>{t('history.levels')}: {result.levelsPlayed}</span>
-            {result.totalRebuys > 0 && <span>Rebuys: {result.totalRebuys}</span>}
-            {result.totalAddOns > 0 && <span>Add-Ons: {result.totalAddOns}</span>}
+            {result.totalRebuys > 0 && <span>{t('finished.rebuys')}: {result.totalRebuys}</span>}
+            {result.totalAddOns > 0 && <span>{t('finished.addOns')}: {result.totalAddOns}</span>}
             {result.events && result.events.length > 0 && (
               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400">
                 {t('log.eventCount' as Parameters<typeof t>[0], { n: result.events.length })}
