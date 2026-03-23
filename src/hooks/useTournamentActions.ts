@@ -384,8 +384,17 @@ export function useTournamentActions({
         const pb = payoutMap.get(b.id) ?? 0;
         return pb - pa || a.name.localeCompare(b.name);
       });
+      // Shared placement for equal payouts (e.g. even chop → all place 1)
       const placementMap = new Map<string, number>();
-      sorted.forEach((p, i) => placementMap.set(p.id, i + 1));
+      let currentPlace = 1;
+      for (let i = 0; i < sorted.length; i++) {
+        const payout = payoutMap.get(sorted[i]!.id) ?? 0;
+        const prevPayout = i > 0 ? (payoutMap.get(sorted[i - 1]!.id) ?? 0) : null;
+        if (prevPayout !== null && payout < prevPayout) {
+          currentPlace = i + 1;
+        }
+        placementMap.set(sorted[i]!.id, currentPlace);
+      }
 
       const updatedPlayers = prev.players.map((p) => {
         if (p.status !== 'active') return p;
