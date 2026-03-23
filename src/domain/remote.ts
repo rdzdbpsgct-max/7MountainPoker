@@ -399,6 +399,10 @@ export class RemoteHost {
   private peer: Peer | null = null;
   /** Connected controller peers (smartphones) */
   private controllerConns: Map<string, DataConnection> = new Map();
+  /** Timestamp of last received pong per peer (for stale connection detection) */
+  private lastPongTime: Map<string, number> = new Map();
+  /** Maximum time without a pong before closing a connection (60s = 6 missed pings) */
+  private static readonly STALE_CONNECTION_MS = 60_000;
   private callbacks: RemoteHostCallbacks;
   private keepaliveInterval: ReturnType<typeof setInterval> | null = null;
   private _status: HostStatus = 'initializing';
@@ -510,13 +514,14 @@ export class RemoteHost {
               identified = true;
               conn.off('data', onFirstData);
               this.displayConnections.set(conn.peer, conn);
+              this.lastPongTime.set(conn.peer, Date.now());
               this.callbacks.onDisplayCountChange?.(this.displayConnections.size);
 
               conn.on('data', (d) => {
                 // Display peers only send pongs
                 try {
                   const m = typeof d === 'string' ? JSON.parse(d) : d;
-                  if (m.type === 'pong') { /* keepalive */ }
+                  if (m.type === 'pong') { this.lastPongTime.set(conn.peer, Date.now()); }
                 } catch { /* ignore */ }
               });
 
@@ -549,6 +554,7 @@ export class RemoteHost {
               identified = true;
               conn.off('data', onFirstData);
               this.controllerConns.set(conn.peer, conn);
+              this.lastPongTime.set(conn.peer, Date.now());
               this.setupControllerConnection(conn);
               // Connection is already open at hello time — PeerJS won't re-fire 'open'.
               // Manually trigger what on('open') would have done:
@@ -576,6 +582,7 @@ export class RemoteHost {
           identified = true;
           conn.off('data', onFirstData);
           this.controllerConns.set(conn.peer, conn);
+          this.lastPongTime.set(conn.peer, Date.now());
           this.setupControllerConnection(conn);
           // Connection is already open (data was received) — manually activate
           if (conn.open) {
@@ -602,6 +609,7 @@ export class RemoteHost {
             identified = true;
             conn.off('data', onFirstData);
             this.controllerConns.set(conn.peer, conn);
+            this.lastPongTime.set(conn.peer, Date.now());
             this.setupControllerConnection(conn);
             // Connection may already be open — manually activate
             if (conn.open) {
@@ -648,6 +656,7 @@ export class RemoteHost {
   private setupControllerConnection(conn: DataConnection): void {
     conn.on('open', () => {
       this.controllerConns.set(conn.peer, conn);
+      this.lastPongTime.set(conn.peer, Date.now());
       this.setStatus('connected');
       this.startKeepalive();
       this.rateLimiter.reset();
@@ -668,6 +677,7 @@ export class RemoteHost {
 
     conn.on('close', () => {
       this.controllerConns.delete(conn.peer);
+      this.lastPongTime.delete(conn.peer);
       this.callbacks.onControllerCountChange?.(this.controllerConns.size);
       // If no controllers left, go back to 'ready'
       if (this.controllerConns.size === 0) {
@@ -680,6 +690,7 @@ export class RemoteHost {
 
     conn.on('error', () => {
       this.controllerConns.delete(conn.peer);
+      this.lastPongTime.delete(conn.peer);
       this.callbacks.onControllerCountChange?.(this.controllerConns.size);
       if (this.controllerConns.size === 0) {
         this.stopKeepalive();
@@ -703,7 +714,8 @@ export class RemoteHost {
       const msg = (typeof raw === 'string' ? JSON.parse(raw) : raw) as RemoteMessage;
 
       if (msg.type === 'pong') {
-        // Keepalive response — no auth needed
+        // Keepalive response — track last pong time for stale detection
+        this.lastPongTime.set(conn.peer, Date.now());
         return;
       }
 
@@ -768,13 +780,45 @@ export class RemoteHost {
   private startKeepalive(): void {
     this.stopKeepalive();
     this.keepaliveInterval = setInterval(() => {
+      const now = Date.now();
       const pingMsg = JSON.stringify({ type: 'ping' });
-      // Ping all connected controllers
+
+      // Ping all connected controllers + evict stale connections
       for (const [peerId, conn] of this.controllerConns) {
+        const lastPong = this.lastPongTime.get(peerId) ?? now;
+        if (now - lastPong > RemoteHost.STALE_CONNECTION_MS) {
+          console.warn(`[RemoteHost] Evicting stale controller: ${peerId}`);
+          this.controllerConns.delete(peerId);
+          this.lastPongTime.delete(peerId);
+          this.callbacks.onControllerCountChange?.(this.controllerConns.size);
+          try { conn.close(); } catch { /* ignore */ }
+          continue;
+        }
         if (conn.open) {
           try { void conn.send(pingMsg); } catch {
             this.controllerConns.delete(peerId);
+            this.lastPongTime.delete(peerId);
             this.callbacks.onControllerCountChange?.(this.controllerConns.size);
+          }
+        }
+      }
+
+      // Ping all connected displays + evict stale
+      for (const [peerId, conn] of this.displayConnections) {
+        const lastPong = this.lastPongTime.get(peerId) ?? now;
+        if (now - lastPong > RemoteHost.STALE_CONNECTION_MS) {
+          console.warn(`[RemoteHost] Evicting stale display: ${peerId}`);
+          this.displayConnections.delete(peerId);
+          this.lastPongTime.delete(peerId);
+          this.callbacks.onDisplayCountChange?.(this.displayConnections.size);
+          try { conn.close(); } catch { /* ignore */ }
+          continue;
+        }
+        if (conn.open) {
+          try { void conn.send(pingMsg); } catch {
+            this.displayConnections.delete(peerId);
+            this.lastPongTime.delete(peerId);
+            this.callbacks.onDisplayCountChange?.(this.displayConnections.size);
           }
         }
       }
@@ -841,6 +885,7 @@ export class RemoteHost {
       try { conn.close(); } catch { /* ignore */ }
     }
     this.controllerConns.clear();
+    this.lastPongTime.clear();
     if (this.peer) {
       try { this.peer.destroy(); } catch { /* ignore */ }
       this.peer = null;

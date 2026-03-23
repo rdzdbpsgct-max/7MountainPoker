@@ -1074,6 +1074,50 @@ describe('computePayouts', () => {
     const result = computePayouts(payout, -50);
     expect(result[0].amount).toBe(0);
   });
+
+  it('payout sum matches prizePool within $0.01 for 3-way percent split', () => {
+    const payout: PayoutConfig = {
+      mode: 'percent',
+      entries: [
+        { place: 1, value: 50 },
+        { place: 2, value: 30 },
+        { place: 3, value: 20 },
+      ],
+    };
+    // Test with various prize pool values including difficult ones
+    for (const pool of [100, 333, 777, 1000, 37, 99.99]) {
+      const result = computePayouts(payout, pool);
+      const sum = result.reduce((s, r) => s + r.amount, 0);
+      expect(Math.abs(sum - pool)).toBeLessThanOrEqual(0.01);
+    }
+  });
+
+  it('normalizes 33/33/34 percent split to match prizePool exactly', () => {
+    const payout: PayoutConfig = {
+      mode: 'percent',
+      entries: [
+        { place: 1, value: 34 },
+        { place: 2, value: 33 },
+        { place: 3, value: 33 },
+      ],
+    };
+    const result = computePayouts(payout, 100);
+    const sum = result.reduce((s, r) => s + r.amount, 0);
+    expect(sum).toBe(100); // remainder goes to 1st place
+  });
+
+  it('euro mode clamps overpayout to prizePool', () => {
+    const payout: PayoutConfig = {
+      mode: 'euro',
+      entries: [
+        { place: 1, value: 80 },
+        { place: 2, value: 40 },
+      ],
+    };
+    const result = computePayouts(payout, 100);
+    const sum = result.reduce((s, r) => s + r.amount, 0);
+    expect(sum).toBeLessThanOrEqual(100);
+  });
 });
 
 // ---------------------------------------------------------------------------
