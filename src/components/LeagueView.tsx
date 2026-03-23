@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, lazy, Suspense } from 'react';
 import type { League, ExtendedLeagueStanding, LeagueCorrection, GameDay, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
+import { showToast } from '../domain/toast';
 import {
   loadLeagues,
   saveLeague,
@@ -104,7 +105,8 @@ export function LeagueView({ onStartTournament }: Props) {
       setSelectedLeagueId(updated.length > 0 ? updated[0]!.id : null);
     }
     setConfirmDeleteId(null);
-  }, [selectedLeagueId]);
+    showToast(t('toast.leagueDeleted'));
+  }, [selectedLeagueId, t]);
 
   const handleRenameLeague = useCallback((id: string) => {
     if (!editNameValue.trim()) return;

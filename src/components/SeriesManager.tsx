@@ -14,6 +14,7 @@ import {
   saveTournamentResults,
 } from '../domain/logic';
 import { useTranslation } from '../i18n';
+import { showToast } from '../domain/toast';
 import { ChevronIcon } from './ChevronIcon';
 import { BottomSheet } from './BottomSheet';
 import { NumberStepper } from './NumberStepper';
@@ -66,7 +67,8 @@ export function SeriesManager({ onClose, currentConfig, onLinkSeries }: Props) {
     if (currentConfig.seriesId === id) {
       onLinkSeries(undefined);
     }
-  }, [expandedId, currentConfig.seriesId, onLinkSeries]);
+    showToast(t('toast.seriesDeleted'));
+  }, [expandedId, currentConfig.seriesId, onLinkSeries, t]);
 
   const handleCopyText = useCallback(async (series: TournamentSeries) => {
     const history = loadTournamentHistory();

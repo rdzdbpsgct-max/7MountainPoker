@@ -204,6 +204,7 @@ function PlayerManagerInner({ players, dealerIndex, onChange, multiTableEnabled,
                 disabled={i === 0}
                 className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 transition-colors"
                 title={t('playerManager.moveUp')}
+                aria-label={t('playerManager.moveUp')}
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
@@ -214,6 +215,7 @@ function PlayerManagerInner({ players, dealerIndex, onChange, multiTableEnabled,
                 disabled={i === players.length - 1}
                 className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 transition-colors"
                 title={t('playerManager.moveDown')}
+                aria-label={t('playerManager.moveDown')}
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />

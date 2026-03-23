@@ -1429,6 +1429,16 @@ const de = {
   // --- Footer ---
   'footer.impressum': 'Impressum',
   'footer.privacy': 'Datenschutz',
+
+  // --- Toast ---
+  'toast.saved': 'Gespeichert',
+  'toast.deleted': 'Gelöscht',
+  'toast.exported': 'Exportiert',
+  'toast.imported': 'Importiert',
+  'toast.templateSaved': 'Vorlage gespeichert',
+  'toast.leagueDeleted': 'Liga gelöscht',
+  'toast.seriesDeleted': 'Serie gelöscht',
+  'toast.backupRestored': 'Backup wiederhergestellt',
 } as const;
 
 export type TranslationKey = keyof typeof de;
@@ -2859,6 +2869,16 @@ const en: Record<TranslationKey, string> = {
   // --- Footer ---
   'footer.impressum': 'Legal Notice',
   'footer.privacy': 'Privacy Policy',
+
+  // --- Toast ---
+  'toast.saved': 'Saved',
+  'toast.deleted': 'Deleted',
+  'toast.exported': 'Exported',
+  'toast.imported': 'Imported',
+  'toast.templateSaved': 'Template saved',
+  'toast.leagueDeleted': 'League deleted',
+  'toast.seriesDeleted': 'Series deleted',
+  'toast.backupRestored': 'Backup restored',
 };
 
 export const translations: Record<Language, Record<TranslationKey, string>> = { de, en };

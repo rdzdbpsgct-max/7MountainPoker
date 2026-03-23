@@ -3,6 +3,7 @@ import type { TournamentConfig } from '../domain/types';
 import type { TournamentTemplate } from '../domain/logic';
 import { loadTemplates, saveTemplate, deleteTemplate, exportTemplateToJSON, parseTemplateFile, exportConfigJSON, importConfigJSON, exportFullBackup, parseFullBackup, restoreFullBackup, downloadExport } from '../domain/logic';
 import { useTranslation } from '../i18n';
+import { showToast } from '../domain/toast';
 import { ChevronIcon } from './ChevronIcon';
 import { BottomSheet } from './BottomSheet';
 
@@ -47,12 +48,14 @@ export function TemplateManager({ config, onLoad, onClose }: Props) {
     saveTemplate(newName.trim(), config);
     setTemplates(loadTemplates());
     setNewName('');
+    showToast(t('toast.templateSaved'));
   };
 
   const handleDelete = (id: string) => {
     deleteTemplate(id);
     setTemplates(loadTemplates());
     setConfirmDeleteId(null);
+    showToast(t('toast.deleted'));
   };
 
   const handleLoad = (template: TournamentTemplate) => {
@@ -164,6 +167,7 @@ export function TemplateManager({ config, onLoad, onClose }: Props) {
       }
       restoreFullBackup(backup);
       setBackupError('');
+      showToast(t('toast.backupRestored'));
       window.location.reload();
     };
     reader.readAsText(file);
