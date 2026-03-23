@@ -377,15 +377,15 @@ export function useTournamentActions({
     startTransition(() => {
     setConfig((prev) => {
       const activePlayers = prev.players.filter((p) => p.status === 'active');
-      // Assign placements: sorted by payout descending, then by name for tie
+      // Assign placements: deal players share top places (1, 2, 3, ...),
+      // sorted by payout descending, then by name for tie-breaking.
       const sorted = [...activePlayers].sort((a, b) => {
         const pa = payoutMap.get(a.id) ?? 0;
         const pb = payoutMap.get(b.id) ?? 0;
         return pb - pa || a.name.localeCompare(b.name);
       });
-      const placementBase = prev.players.filter((p) => p.status === 'eliminated').length + 1;
       const placementMap = new Map<string, number>();
-      sorted.forEach((p, i) => placementMap.set(p.id, placementBase + i));
+      sorted.forEach((p, i) => placementMap.set(p.id, i + 1));
 
       const updatedPlayers = prev.players.map((p) => {
         if (p.status !== 'active') return p;
