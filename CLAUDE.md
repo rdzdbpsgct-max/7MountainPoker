@@ -384,7 +384,7 @@ public/
 - **Share Hub**: Central `ShareHub.tsx` modal (📡 button in game mode header) for all sharing/display options. Sections: Display on another device (QR + link), Remote control (QR + link), This device (second window + fullscreen), Cable & Wireless guides (AirPlay, Chromecast, HDMI). Live connection status indicators. Auto-starts PeerJS host session when opened.
 - **Undo/Redo System**: Full snapshot-based undo/redo for all tournament actions (eliminate, rebuy, add-on, reinstate, dealer, late reg, re-entry, stacks). `UndoStack` class in `undoStack.ts` (immutable, max 30 depth). `createUndoSnapshot()` captures players + tables + config state. Keyboard: Cmd+Z (undo) / Cmd+Shift+Z (redo). Buttons in Controls component with action labels. 20 translation keys.
 - **ICM Calculator**: Independent Chip Model equity calculation. `icm.ts` implements Malmuth-Harville algorithm — exact recursive permutation for ≤10 players, Monte Carlo simulation (10K iterations) for >10. `IcmCalculator.tsx` modal accessible from game mode sidebar. Lazy-loaded.
-- **Deal-Making / Chop Calculator**: 3 methods in `dealMaking.ts`: `computeEvenChop()` (equal split), `computeChipChop()` (stack-proportional), `computeIcmChop()` (ICM equity via Malmuth-Harville). `DealMaker.tsx` lazy-loaded modal in PlayerPanel (2–6 active players). NumberStepper for manual payout adjustment with sum validation. `acceptDeal` action eliminates all players with agreed payouts, creates `deal_accepted` tournament event. `dealApplied` flag in TournamentResult auto-detected from events.
+- **Deal-Making / Chop Calculator**: 3 methods in `dealMaking.ts`: `computeEvenChop()` (equal split), `computeChipChop()` (stack-proportional), `computeIcmChop()` (ICM equity via Malmuth-Harville). `DealMaker.tsx` lazy-loaded modal in PlayerPanel (2–6 active players). NumberStepper for manual payout adjustment with sum validation. `acceptDeal` action stores agreed payouts as `Player.dealPayout`, eliminates all deal players with shared placements (equal payouts → same place, e.g. all place 1), creates `deal_accepted` tournament event. `dealApplied` flag in TournamentResult auto-detected from events. `buildTournamentResult` uses `dealPayout` instead of computed payouts when present. TournamentFinished shows deal banner (🤝) with method subtitle instead of winner celebration, deal participants with amounts in badges, and full standings with deal players at top followed by previously eliminated players.
 - **Liga Trend-Charts**: `LeagueCharts.tsx` — lightweight SVG line charts (no external charting library). 3 chart types: cumulative points, placement progression (inverted Y), cumulative financial balance. Per-player data via `computeLeaguePlayerStats()`. 10-color palette, player toggle buttons (default: top 5), responsive `viewBox`. Lazy-loaded as 5th tab in LeagueView. Requires ≥2 game days.
 - **Point-System-Validierung**: `validatePointSystem()` in `league.ts` — sanitizes PointSystem input: filters invalid entries (negative places, NaN/Infinity points, negative points), deduplicates by place, sorts ascending, falls back to default 7-place system if empty/null/undefined.
 - **Cloud Export**: Unified export module `cloudExport.ts` — JSON/CSV/text formats, Web Share API for mobile, File System Access API for desktop save dialogs, Blob download fallback.
@@ -436,16 +436,18 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 
 ## Changelog
 
-### v6.11.1 — Abschluss-Audit: i18n, Toast-Feedback, Security & Test-Coverage
+### v6.11.1 — Abschluss-Audit, Deal-Finished & Stale-Connection-Eviction
 
-- **i18n-Bereinigung** (Paket A): Hardkodierte `€`-Symbole und Spaltenheader durch `t()`/`CURRENCY_SYMBOLS`-Lookup ersetzt. 14 neue Translation-Keys (7 DE + 7 EN).
-- **Toast-Feedback** (Paket B): `showToast()` bei Template speichern/löschen, Liga löschen, Serie löschen, Backup wiederherstellen. 16 neue Toast-Translation-Keys (8 DE + 8 EN).
-- **Aria-Labels** (Paket B): Move-Buttons in PlayerManager mit `aria-label` ergänzt.
-- **startValidation-Tests** (Paket C): 11 neue Tests für `collectStartErrors()` — alle Preflight-Checks abgedeckt (Spieleranzahl, Levels, Chips, Bounty, Blind-Monotonie, Payout-Lücken, Liga-Referenz).
-- **PeerJS Stale-Connection-Eviction**: `lastPongTime`-Map pro Peer, 60s Max-Age, automatisches Eviction in Keepalive-Intervall. Beide Verbindungstypen (Controller + Display) abgedeckt. Cleanup in `destroy()`.
-- **alertEngine-Tests**: 18 neue Tests für alle 3 exportierten Funktionen (`createDefaultAlert`, `interpolateAlertText`, `shouldFireAlert`).
-- **Payout-Rundungs-Tests**: 4 Präzisionstests für `computePayouts` — Summen-Toleranz ≤$0.01, Normalisierung auf 100%, Overpayout-Clamp.
+- **Deal-Finished Screen**: Turnier endet jetzt korrekt nach Deal-Abschluss. Neues `Player.dealPayout` Feld speichert vereinbarte Beträge. `tournamentFinished` erkennt Deal-Fall (active===0 + dealPayout). TournamentFinished zeigt Deal-Banner (🤝) mit Methode statt Sieger-Feier, Deal-Teilnehmer mit Beträgen in Badges. `buildTournamentResult` nutzt `dealPayout` statt berechneter Payouts. Geteilte Platzierung bei gleichem Payout (Even Chop → alle Platz 1).
+- **i18n-Bereinigung**: Hardkodierte `€`-Symbole und Spaltenheader durch `t()`/`CURRENCY_SYMBOLS`-Lookup ersetzt. 14 neue Translation-Keys (7 DE + 7 EN).
+- **Toast-Feedback**: `showToast()` bei Template speichern/löschen, Liga löschen, Serie löschen, Backup wiederherstellen. 16 neue Toast-Translation-Keys (8 DE + 8 EN).
+- **Aria-Labels**: Move-Buttons in PlayerManager mit `aria-label` ergänzt.
+- **startValidation-Tests**: 11 neue Tests für `collectStartErrors()` — alle Preflight-Checks abgedeckt.
+- **PeerJS Stale-Connection-Eviction**: `lastPongTime`-Map pro Peer, 10 Min Max-Age, automatisches Eviction in Keepalive-Intervall.
+- **alertEngine-Tests**: 18 neue Tests für alle 3 exportierten Funktionen.
+- **Payout-Rundungs-Tests**: 4 Präzisionstests für `computePayouts`.
 - **Neue Testdateien**: `tests/startValidation.test.ts`, `tests/alertEngine.test.ts`
+- **6 neue Deal-Translation-Keys** (3 DE + 3 EN): `finished.dealMade`, `finished.dealMethod`, `finished.dealParticipants`
 - **1360 Tests gesamt** (21 Testdateien)
 
 ### v6.11.0 — Audit-Pakete C/D/E: Deal-Making, Liga-Charts, QA-Härtung

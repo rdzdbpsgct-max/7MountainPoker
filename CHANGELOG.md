@@ -7,18 +7,20 @@ All notable changes to the 7Mountain Poker app.
 
 ## [6.11.1] – 2026-03-23
 
-### Abschluss-Audit: i18n, Toast-Feedback, Security & Test-Coverage
+### Abschluss-Audit, Deal-Finished & Stale-Connection-Eviction
 
 Finales Audit gegen alle bisherigen Audit-Ergebnisse. Bewertung: **A (95/100) — Produktionsreif**.
 
+- **Deal-Finished Screen**: Turnier endet jetzt korrekt nach Deal-Abschluss. Neues `Player.dealPayout` Feld speichert vereinbarte Beträge (backward-kompatibel). `tournamentFinished` erkennt Deal-Fall (active===0 + dealPayout vorhanden). TournamentFinished zeigt Deal-Banner (🤝 „Deal vereinbart") mit Methode (ICM/Chip/Even) statt Sieger-Feier, alle Deal-Teilnehmer mit vereinbarten Beträgen in Badges. `buildTournamentResult` nutzt `dealPayout` statt berechneter Payouts aus Payout-Schedule. Geteilte Platzierung bei gleichem Payout (z.B. Even Chop → alle Platz 1, nächster eliminierter Spieler Platz 4). Standings zeigen Deal-Spieler oben, danach regulär eliminierte Spieler.
 - **i18n-Bereinigung**: Hardkodierte `€`-Symbole und Spaltenheader in LeagueFinances, LeagueGameDays, LeagueStandingsTable, GameDayEditor, TournamentFinished durch `t()`-Aufrufe und `CURRENCY_SYMBOLS`-Lookup ersetzt. 14 neue Translation-Keys.
 - **Toast-Feedback**: Bestätigungs-Toasts bei Template speichern/löschen (TemplateManager), Liga löschen (LeagueView), Serie löschen (SeriesManager), Backup wiederherstellen. 16 neue Toast-Translation-Keys.
 - **Aria-Labels**: Move-Buttons in PlayerManager mit `aria-label` ergänzt.
-- **PeerJS Stale-Connection-Eviction**: `lastPongTime`-Map pro Peer mit 60s Max-Age. Automatisches Eviction verwaister WebRTC-Verbindungen in Keepalive-Intervall. Beide Verbindungstypen (Controller + Display) abgedeckt.
-- **startValidation-Tests**: 11 neue Tests für `collectStartErrors()` — alle 8 Preflight-Checks abgedeckt (Spieleranzahl, Levels, Chips, Bounty, Blind-Monotonie, Payout-Lücken, Liga-Referenz, Mystery-Bounty-Ausnahme).
+- **PeerJS Stale-Connection-Eviction**: `lastPongTime`-Map pro Peer mit 10 Min Max-Age. Automatisches Eviction verwaister WebRTC-Verbindungen in Keepalive-Intervall. Beide Verbindungstypen (Controller + Display) abgedeckt.
+- **startValidation-Tests**: 11 neue Tests für `collectStartErrors()` — alle 8 Preflight-Checks abgedeckt.
 - **alertEngine-Tests**: 18 neue Tests für `createDefaultAlert`, `interpolateAlertText`, `shouldFireAlert` — alle Trigger-Typen und Edge-Cases.
 - **Payout-Rundungs-Tests**: 4 Präzisionstests für `computePayouts` — Summen-Toleranz ≤$0.01, 33/33/34-Normalisierung, Euro-Clamp.
 - **Neue Testdateien**: `tests/startValidation.test.ts`, `tests/alertEngine.test.ts`
+- **6 neue Deal-Translation-Keys** (3 DE + 3 EN): `finished.dealMade`, `finished.dealMethod`, `finished.dealParticipants`
 - **32 neue Tests** — **1360 Tests gesamt** (21 Testdateien)
 
 ---
