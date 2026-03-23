@@ -395,6 +395,7 @@ export function useTournamentActions({
           placement: placementMap.get(p.id) ?? null,
           eliminatedAt: Date.now(),
           chips: p.chips !== undefined ? 0 : undefined,
+          dealPayout: payoutMap.get(p.id),
         };
       });
 

@@ -194,7 +194,7 @@ function App() {
     mode,
     currentLevelIndex: timer.timerState.currentLevelIndex,
     timerStatus: timer.timerState.status,
-    tournamentFinished: config.players.length >= 2 && config.players.filter(p => p.status === 'active').length === 1,
+    tournamentFinished: config.players.length >= 2 && (config.players.filter(p => p.status === 'active').length === 1 || (config.players.filter(p => p.status === 'active').length === 0 && config.players.some(p => p.dealPayout !== undefined))),
     pendingCheckpoint: pendingCheckpoint !== null,
   });
 
@@ -915,7 +915,7 @@ function App() {
             canUseMultiTable={canUseMultiTable}
             onOpenFeatureGate={openFeatureGate}
           />
-        ) : tournamentFinished && winner ? (
+        ) : tournamentFinished ? (
           /* Tournament Finished */
           <Suspense fallback={<LoadingFallback />}><TournamentFinishedContainer
             players={config.players}

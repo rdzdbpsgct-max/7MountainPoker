@@ -10,7 +10,7 @@ import { showToast } from '../domain/toast';
 
 interface Props {
   players: Player[];
-  winner: Player;
+  winner: Player | null;
   buyIn: number;
   payout: PayoutConfig;
   bounty: BountyConfig;
@@ -43,6 +43,10 @@ export function TournamentFinished({
   const [capturing, setCapturing] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Deal detection
+  const isDeal = tournamentResult?.dealApplied === true;
+  const dealMethod = isDeal ? events?.find((e) => e.type === 'deal_accepted')?.data?.method as string | undefined : undefined;
 
   const handleCopyText = useCallback(async () => {
     if (!tournamentResult) return;
@@ -126,14 +130,19 @@ export function TournamentFinished({
     return map;
   }, [players]);
 
-  // Build standings: winner = 1st, then eliminated sorted by placement
-  const standings: (Player & { finalPlace: number })[] = [
-    { ...winner, finalPlace: 1 },
-    ...players
-      .filter((p) => p.status === 'eliminated')
-      .sort((a, b) => (a.placement ?? 0) - (b.placement ?? 0))
-      .map((p) => ({ ...p, finalPlace: p.placement ?? 0 })),
-  ];
+  // Build standings: deal = all eliminated sorted by placement, normal = winner 1st + eliminated
+  const standings: (Player & { finalPlace: number })[] = isDeal
+    ? players
+        .filter((p) => p.placement != null)
+        .sort((a, b) => (a.placement ?? 0) - (b.placement ?? 0))
+        .map((p) => ({ ...p, finalPlace: p.placement ?? 0 }))
+    : [
+        ...(winner ? [{ ...winner, finalPlace: 1 }] : []),
+        ...players
+          .filter((p) => p.status === 'eliminated')
+          .sort((a, b) => (a.placement ?? 0) - (b.placement ?? 0))
+          .map((p) => ({ ...p, finalPlace: p.placement ?? 0 })),
+      ];
 
   // Bounty results (only players with knockouts, sorted desc)
   const bountyResults = bounty.enabled
@@ -158,21 +167,48 @@ export function TournamentFinished({
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="finished-title" className="flex-1 flex items-start justify-center p-6 overflow-y-auto">
       <div ref={resultsRef} className="w-full max-w-lg space-y-6 py-8">
-        {/* Winner celebration */}
-        <div className="text-center space-y-3 py-6 px-4 rounded-2xl border-2 border-amber-500/30 bg-gradient-to-b from-amber-900/20 to-transparent shadow-xl shadow-amber-900/10">
-          <div className="text-7xl animate-bounce">
-            &#127942;
+        {/* Header: Deal banner or Winner celebration */}
+        {isDeal ? (
+          <div className="text-center space-y-3 py-6 px-4 rounded-2xl border-2 border-blue-500/30 bg-gradient-to-b from-blue-900/20 to-transparent shadow-xl shadow-blue-900/10">
+            <div className="text-7xl">
+              🤝
+            </div>
+            <p id="finished-title" className="text-4xl font-bold text-gray-900 dark:text-white">
+              {t('finished.dealMade')}
+            </p>
+            {dealMethod && (
+              <p className="text-blue-400/70 text-sm uppercase tracking-widest">
+                {t('finished.dealMethod', { method: dealMethod === 'icm' ? 'ICM Chop' : dealMethod === 'chip' ? 'Chip Chop' : dealMethod === 'even' ? 'Even Chop' : dealMethod })}
+              </p>
+            )}
+            {/* Deal participants summary */}
+            <div className="flex flex-wrap justify-center gap-2 pt-2">
+              {players
+                .filter((p) => p.dealPayout !== undefined)
+                .sort((a, b) => (b.dealPayout ?? 0) - (a.dealPayout ?? 0))
+                .map((p) => (
+                  <span key={p.id} className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-sm text-gray-900 dark:text-white">
+                    {p.name}: {p.dealPayout?.toFixed(2)} {sym}
+                  </span>
+                ))}
+            </div>
           </div>
-          <p className="text-lg font-medium tracking-wide" style={{ color: 'var(--accent-400)' }}>
-            {t('finished.congratulations')}
-          </p>
-          <p id="finished-title" className="text-4xl font-bold text-gray-900 dark:text-white">
-            {winner.name}
-          </p>
-          <p className="text-amber-400/70 text-sm uppercase tracking-widest">
-            {t('finished.tournamentWinner')}
-          </p>
-        </div>
+        ) : winner ? (
+          <div className="text-center space-y-3 py-6 px-4 rounded-2xl border-2 border-amber-500/30 bg-gradient-to-b from-amber-900/20 to-transparent shadow-xl shadow-amber-900/10">
+            <div className="text-7xl animate-bounce">
+              &#127942;
+            </div>
+            <p className="text-lg font-medium tracking-wide" style={{ color: 'var(--accent-400)' }}>
+              {t('finished.congratulations')}
+            </p>
+            <p id="finished-title" className="text-4xl font-bold text-gray-900 dark:text-white">
+              {winner.name}
+            </p>
+            <p className="text-amber-400/70 text-sm uppercase tracking-widest">
+              {t('finished.tournamentWinner')}
+            </p>
+          </div>
+        ) : null}
 
         {/* Tab switcher (only when events available) */}
         {events && events.length > 0 && (
@@ -266,8 +302,9 @@ export function TournamentFinished({
           </div>
           <div className="bg-gray-50/90 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700/40 rounded-xl overflow-hidden shadow-lg shadow-gray-300/30 dark:shadow-black/20">
             {standings.map((player, idx) => {
-              const isPaid = payoutMap.has(player.finalPlace);
-              const amount = payoutMap.get(player.finalPlace);
+              const dealAmount = isDeal ? player.dealPayout : undefined;
+              const isPaid = dealAmount !== undefined || payoutMap.has(player.finalPlace);
+              const amount = dealAmount !== undefined ? dealAmount : payoutMap.get(player.finalPlace);
               const showDivider = idx > 0 && !isPaid && payoutMap.has(standings[idx - 1]!.finalPlace);
               const rebuyCost = rebuy.enabled ? rebuy.rebuyCost : 0;
               const addOnCost = addOn.enabled && player.addOn ? addOn.cost : 0;

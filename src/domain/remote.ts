@@ -716,8 +716,7 @@ export class RemoteHost {
       const msg = (typeof raw === 'string' ? JSON.parse(raw) : raw) as RemoteMessage;
 
       if (msg.type === 'pong') {
-        // Keepalive response — track last pong time for stale detection
-        this.lastPongTime.set(conn.peer, Date.now());
+        // Pong tracking handled in connection-level data handler (where conn is available)
         return;
       }
 

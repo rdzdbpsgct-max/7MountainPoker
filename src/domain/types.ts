@@ -28,6 +28,8 @@ export interface Player {
   rebuyTimestamps?: number[] | undefined;
   /** Cumulative bounty earned (mystery bounties may vary per knockout) */
   bountyEarned?: number | undefined;
+  /** Agreed payout from a deal/chop (overrides computed payout) */
+  dealPayout?: number | undefined;
 }
 
 export type PayoutMode = 'percent' | 'euro';

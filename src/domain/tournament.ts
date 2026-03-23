@@ -415,7 +415,7 @@ export function buildTournamentResult(
   }
 
   // Aggregate re-entry groups into single player results
-  const aggregated: { name: string; bestPlace: number; bestChips: number | undefined; isActive: boolean; totalRebuys: number; hasAddOn: boolean; totalKnockouts: number; totalBuyIns: number; totalBountyEarned: number }[] = [];
+  const aggregated: { name: string; bestPlace: number; bestChips: number | undefined; isActive: boolean; totalRebuys: number; hasAddOn: boolean; totalKnockouts: number; totalBuyIns: number; totalBountyEarned: number; dealPayout: number | undefined }[] = [];
   for (const group of reEntryGroups.values()) {
     const bestInstance = group.reduce((best, p) => {
       if (p.status === 'active') return p;
@@ -436,6 +436,7 @@ export function buildTournamentResult(
       totalKnockouts: group.reduce((sum, p) => sum + p.knockouts, 0),
       totalBuyIns: group.length, // Each entry costs one buy-in
       totalBountyEarned: group.reduce((sum, p) => sum + (p.bountyEarned ?? 0), 0),
+      dealPayout: group.find((p) => p.dealPayout !== undefined)?.dealPayout,
     });
   }
 
@@ -453,7 +454,8 @@ export function buildTournamentResult(
   const players: PlayerResult[] = sorted.map((p, i) => {
     // Active players get sequential places (1, 2, 3...) based on sorted position
     const place = p.isActive ? (i + 1) : (p.bestPlace !== 999 ? p.bestPlace : i + 1);
-    const payout = payoutMap.get(place) ?? 0;
+    // Deal payouts override computed payouts from payout schedule
+    const payout = p.dealPayout !== undefined ? p.dealPayout : (payoutMap.get(place) ?? 0);
     const totalCost = p.totalBuyIns * config.buyIn
       + p.totalRebuys * (config.rebuy.enabled ? config.rebuy.rebuyCost : config.buyIn)
       + (p.hasAddOn ? (config.addOn.enabled ? config.addOn.cost : config.buyIn) : 0);

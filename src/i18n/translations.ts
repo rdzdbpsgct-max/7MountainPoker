@@ -759,6 +759,9 @@ const de = {
   'deal.description': 'Prizepool unter verbleibenden Spielern aufteilen',
   'deal.accepted': 'Deal wurde angenommen — Turnier beendet',
   'deal.adjustHint': 'Beträge können manuell angepasst werden',
+  'finished.dealMade': 'Deal vereinbart',
+  'finished.dealMethod': '{method}',
+  'finished.dealParticipants': 'Deal-Teilnehmer',
 
   // --- Leagues ---
   'app.leagues': 'Ligen',
@@ -2199,6 +2202,9 @@ const en: Record<TranslationKey, string> = {
   'deal.description': 'Split the prize pool among remaining players',
   'deal.accepted': 'Deal accepted — tournament finished',
   'deal.adjustHint': 'Amounts can be adjusted manually',
+  'finished.dealMade': 'Deal Made',
+  'finished.dealMethod': '{method}',
+  'finished.dealParticipants': 'Deal Participants',
 
   // --- Leagues ---
   'app.leagues': 'Leagues',

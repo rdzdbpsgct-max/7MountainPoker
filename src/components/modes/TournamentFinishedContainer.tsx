@@ -18,7 +18,7 @@ const TournamentFinished = lazy(
 
 interface Props {
   players: Player[];
-  winner: Player;
+  winner: Player | null;
   buyIn: number;
   payout: PayoutConfig;
   bounty: BountyConfig;

@@ -162,12 +162,19 @@ export function useGameComputedState({
 
   const tournamentFinished = useMemo(() => {
     if (config.players.length < 2) return false;
-    return config.players.filter((p) => p.status === 'active').length === 1;
+    const active = config.players.filter((p) => p.status === 'active').length;
+    if (active === 1) return true; // Normal win
+    if (active === 0 && config.players.some((p) => p.dealPayout !== undefined)) return true; // Deal
+    return false;
   }, [config.players]);
 
   const winner = useMemo(() => {
     if (!tournamentFinished) return null;
-    return config.players.find((p) => p.status === 'active') ?? null;
+    // Normal win: single active player
+    const active = config.players.find((p) => p.status === 'active');
+    if (active) return active;
+    // Deal case: player with best placement (1)
+    return config.players.find((p) => p.placement === 1) ?? null;
   }, [tournamentFinished, config.players]);
 
   // Capture snapshot values at the moment the tournament finishes so that the
