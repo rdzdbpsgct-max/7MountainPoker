@@ -8,8 +8,59 @@
     <!-- CSP: inline scripts use SHA-256 hashes; 'unsafe-inline' kept in style-src for Tailwind 4 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-FgeQNv9b74bs2261ug8+pPFc90dpyOWuYLyulDKcOG8=' 'sha256-WVVjBY1d5CtFutW2XJuH6wG84pu0bmRzYQC0zrDh5mk=' 'sha256-bVLCbseEyYSfAPHMFrVTn2mGcRoSvczQWJEVlUKhtLg='; style-src 'self' 'unsafe-inline'; connect-src 'self' wss://*.peerjs.com https://*.peerjs.com https://stun.l.google.com:19302 https://va.vercel-scripts.com https://*.ingest.sentry.io; media-src 'self'; img-src 'self' data: blob:; font-src 'self'; worker-src 'self'; frame-ancestors 'none';" />
     <meta name="theme-color" content="#111827" />
-    <meta name="description" content="Poker tournament timer for home games" />
+    <meta name="description" content="Kostenloser Poker-Turnier-Timer für Home Games. Blindstruktur, Spielerverwaltung, Rebuys, Liga-Modus, TV-Anzeige, Fernsteuerung — alles offline im Browser. Free poker tournament timer for home games." />
     <title>7Mountain Poker - Tournament Timer</title>
+
+    <!-- Canonical URL — prefer Vercel deployment -->
+    <link rel="canonical" href="https://7mountainpoker.vercel.app/" />
+
+    <!-- Open Graph (Facebook, LinkedIn, WhatsApp) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://7mountainpoker.vercel.app/" />
+    <meta property="og:title" content="7Mountain Poker — Tournament Timer" />
+    <meta property="og:description" content="Free poker tournament timer for home games. Manage blinds, players, rebuys, leagues, and payouts — fully offline, installable as PWA." />
+    <meta property="og:image" content="https://7mountainpoker.vercel.app/pwa-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:site_name" content="7Mountain Poker" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="7Mountain Poker — Tournament Timer" />
+    <meta name="twitter:description" content="Free poker tournament timer for home games. Blinds, players, rebuys, leagues — fully offline." />
+    <meta name="twitter:image" content="https://7mountainpoker.vercel.app/pwa-512x512.png" />
+
+    <!-- Additional SEO -->
+    <meta name="keywords" content="poker timer, tournament timer, home game, blinds, poker tournament, turnier timer, poker uhr, blind structure, PWA, offline" />
+    <meta name="author" content="7Mountain Poker" />
+    <meta name="robots" content="index, follow" />
+    <link rel="alternate" hreflang="de" href="https://7mountainpoker.vercel.app/" />
+    <link rel="alternate" hreflang="en" href="https://7mountainpoker.vercel.app/" />
+    <link rel="alternate" hreflang="x-default" href="https://7mountainpoker.vercel.app/" />
+
+    <!-- Structured Data — SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "7Mountain Poker",
+      "alternateName": "7Mountain Poker Tournament Timer",
+      "description": "Free poker tournament timer for home games. Manage blind structures, players, rebuys, add-ons, bounties, leagues, and payouts — fully offline in the browser.",
+      "url": "https://7mountainpoker.vercel.app",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web, Android, iOS",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "featureList": "Blind timer, Player management, Rebuys, Add-ons, Bounties, League mode, TV display, Remote control, Voice announcements, PWA offline support",
+      "inLanguage": ["de", "en"],
+      "isAccessibleForFree": true
+    }
+    </script>
     <script>
       // Apply theme before first paint to prevent flash of wrong theme
       (function() {

@@ -59,6 +59,15 @@ export default defineConfig({
         orientation: 'any',
         start_url: basePath,
         scope: basePath,
+        categories: ['games', 'utilities'],
+        shortcuts: [
+          {
+            name: 'Neues Turnier / New Tournament',
+            short_name: 'Start',
+            url: basePath,
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
+          },
+        ],
         icons: [
           {
             src: 'pwa-192x192.png',
