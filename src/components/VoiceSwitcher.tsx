@@ -14,6 +14,7 @@ export function VoiceSwitcher({ settings, onChange }: Props) {
       <button
         onClick={() => onChange({ ...settings, voiceEnabled: false })}
         title={t('settings.sound')}
+        aria-label={t('settings.sound')}
         className={`px-2 py-1.5 text-xs font-medium transition-colors ${
           !active
             ? 'text-white'
@@ -28,6 +29,7 @@ export function VoiceSwitcher({ settings, onChange }: Props) {
       <button
         onClick={() => onChange({ ...settings, voiceEnabled: true })}
         title={t('settings.voice')}
+        aria-label={t('settings.voice')}
         className={`px-2 py-1.5 text-xs font-medium transition-colors ${
           active
             ? 'text-white'

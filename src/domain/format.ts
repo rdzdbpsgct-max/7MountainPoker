@@ -44,3 +44,29 @@ export function getBlindsText(level: Level, t = moduleT): string {
   }
   return parts.join(' - ');
 }
+
+// ---------------------------------------------------------------------------
+// General-purpose format helpers (moved from pdfExport.ts for tree-shaking)
+// ---------------------------------------------------------------------------
+
+/**
+ * Sanitize a string for use as a filename (remove special characters, collapse spaces).
+ */
+export function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[^a-zA-Z0-9äöüÄÖÜß _-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .toLowerCase()
+    .slice(0, 80) || 'tournament';
+}
+
+/**
+ * Format seconds into a human-readable duration string (e.g. "2h 15m").
+ */
+export function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}

@@ -1,30 +1,8 @@
 import type { TournamentResult, ExtendedLeagueStanding, League } from './types';
 import type { TranslationKey } from '../i18n/translations';
+import { sanitizeFilename, formatDuration } from './format';
 
 type TranslateFn = (key: TranslationKey, params?: Record<string, string | number>) => string;
-
-
-/**
- * Sanitize a string for use as a filename (remove special characters, collapse spaces).
- */
-export function sanitizeFilename(name: string): string {
-  return name
-    .replace(/[^a-zA-Z0-9äöüÄÖÜß _-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .toLowerCase()
-    .slice(0, 80) || 'tournament';
-}
-
-/**
- * Format seconds into a human-readable duration string (e.g. "2h 15m").
- */
-export function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
-}
 
 /**
  * Generate and download a PDF with tournament results.

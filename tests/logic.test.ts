@@ -177,7 +177,7 @@ import {
   cloneConfigFromResult,
   getLeaguePlayerNames,
 } from '../src/domain/logic';
-import { sanitizeFilename, formatDuration } from '../src/domain/pdfExport';
+import { sanitizeFilename, formatDuration } from '../src/domain/format';
 import { exportTournamentResult, exportConfigBackup, createFullBackup, exportFullBackup, parseFullBackup, restoreFullBackup } from '../src/domain/cloudExport';
 import { setAudioMasterVolume, setAudioLanguage } from '../src/domain/audioService';
 import { isValidAudioFile } from '../src/domain/customAudio';
@@ -7360,7 +7360,10 @@ describe('Custom Audio', () => {
     expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('final-table');
     expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('break-skipped');
     expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('break-extended');
-    expect(CUSTOMIZABLE_ANNOUNCEMENTS.length).toBe(28);
+    expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('bounty');
+    expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('mystery-bounty');
+    expect(CUSTOMIZABLE_ANNOUNCEMENTS).toContain('players-remaining');
+    expect(CUSTOMIZABLE_ANNOUNCEMENTS.length).toBe(31);
   });
 });
 

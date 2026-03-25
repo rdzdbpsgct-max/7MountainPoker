@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, TournamentResult, TournamentEvent, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
-import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, exportTournamentResultAsPdf, formatEventAsText, formatTime } from '../domain/logic';
+import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, formatEventAsText, formatTime } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
 import { ChevronIcon } from './ChevronIcon';
@@ -72,6 +72,7 @@ export function TournamentFinished({
     if (!tournamentResult || generatingPdf) return;
     setGeneratingPdf(true);
     try {
+      const { exportTournamentResultAsPdf } = await import('../domain/pdfExport');
       await exportTournamentResultAsPdf(tournamentResult, t);
     } catch (err) {
       console.warn('PDF export failed:', err);

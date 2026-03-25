@@ -106,6 +106,7 @@ const de = {
   'timer.stopped': 'Gestoppt',
   'timer.ante': 'Ante',
   'timer.bba': 'BBA',
+  'timer.progress': 'Level-Fortschritt',
 
   // --- Controls ---
   'controls.previous': '⏮ Zurück',
@@ -1555,6 +1556,7 @@ const en: Record<TranslationKey, string> = {
   'timer.stopped': 'Stopped',
   'timer.ante': 'Ante',
   'timer.bba': 'BBA',
+  'timer.progress': 'Level progress',
 
   // --- Controls ---
   'controls.previous': '⏮ Back',

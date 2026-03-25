@@ -93,3 +93,168 @@ describe('a11y: LoadingFallback', () => {
     expect(results).toHaveNoViolations();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Complex component a11y checks
+// ---------------------------------------------------------------------------
+
+describe('a11y: Controls', () => {
+  it('has no a11y violations', async () => {
+    const { Controls } = await import('../src/components/Controls');
+    const timerState = {
+      currentLevelIndex: 0,
+      remainingSeconds: 600,
+      status: 'stopped' as const,
+      startedAt: null,
+      remainingAtStart: null,
+    };
+    const noop = () => {};
+    const { container } = renderWithProviders(
+      <Controls
+        timerState={timerState}
+        onToggleStartPause={noop}
+        onNext={noop}
+        onPrevious={noop}
+        onReset={noop}
+        onRestart={noop}
+        onLastHand={noop}
+        onToggleCleanView={noop}
+        onCallTheClock={noop}
+        callTheClockSeconds={60}
+      />,
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});
+
+describe('a11y: TimerDisplay', () => {
+  it('has no a11y violations', async () => {
+    const { TimerDisplay } = await import('../src/components/TimerDisplay');
+    const timerState = {
+      currentLevelIndex: 0,
+      remainingSeconds: 600,
+      status: 'stopped' as const,
+      startedAt: null,
+      remainingAtStart: null,
+    };
+    const levels = [
+      { id: '1', type: 'level' as const, durationSeconds: 900, smallBlind: 25, bigBlind: 50 },
+      { id: '2', type: 'level' as const, durationSeconds: 900, smallBlind: 50, bigBlind: 100 },
+    ];
+    const { container } = renderWithProviders(
+      <TimerDisplay
+        timerState={timerState}
+        levels={levels}
+        largeDisplay={false}
+        countdownEnabled={false}
+      />,
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});
+
+describe('a11y: TournamentStats', () => {
+  it('has no a11y violations', async () => {
+    const { TournamentStats } = await import('../src/components/TournamentStats');
+    const players = [
+      { id: '1', name: 'Alice', rebuys: 0, addOn: false, status: 'active' as const, placement: null, eliminatedBy: null, knockouts: 0 },
+      { id: '2', name: 'Bob', rebuys: 0, addOn: false, status: 'active' as const, placement: null, eliminatedBy: null, knockouts: 0 },
+    ];
+    const levels = [
+      { id: '1', type: 'level' as const, durationSeconds: 900, smallBlind: 25, bigBlind: 50 },
+    ];
+    const { container } = renderWithProviders(
+      <TournamentStats
+        players={players}
+        levels={levels}
+        currentLevelIndex={0}
+        remainingSeconds={600}
+        averageStack={5000}
+        elapsedSeconds={300}
+        estimatedRemainingSeconds={3600}
+        prizePool={100}
+      />,
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});
+
+describe('a11y: SettingsPanel', () => {
+  it('has no a11y violations', async () => {
+    const { ThemeProvider } = await import('../src/theme');
+    const { SettingsPanel } = await import('../src/components/SettingsPanel');
+    const settings = {
+      soundEnabled: true,
+      countdownEnabled: true,
+      autoAdvance: true,
+      largeDisplay: false,
+      voiceEnabled: false,
+      volume: 80,
+      callTheClockSeconds: 60,
+    };
+    const { container } = render(
+      <ThemeProvider>
+        <LanguageProvider>
+          <SettingsPanel
+            settings={settings}
+            onChange={() => {}}
+            onToggleFullscreen={() => {}}
+          />
+        </LanguageProvider>
+      </ThemeProvider>,
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});
+
+describe('a11y: AppHeader', () => {
+  it('has no a11y violations in setup mode', async () => {
+    const { ThemeProvider } = await import('../src/theme');
+    const { AppHeader } = await import('../src/components/AppHeader');
+    const settings = {
+      soundEnabled: true,
+      countdownEnabled: true,
+      autoAdvance: true,
+      largeDisplay: false,
+      voiceEnabled: false,
+      volume: 80,
+      callTheClockSeconds: 60,
+    };
+    const noop = () => {};
+    const { container } = render(
+      <ThemeProvider>
+        <LanguageProvider>
+          <AppHeader
+            mode="setup"
+            tournamentName=""
+            clockTime="12:00"
+            settings={settings}
+            onSettingsChange={noop}
+            tournamentFinished={false}
+            canUseRemoteControl={true}
+            canUseTVDisplay={true}
+            canUseLeagueMode={true}
+            remoteHostConnected={false}
+            tvWindowActive={false}
+            onStartRemoteHost={noop}
+            onToggleTVWindow={noop}
+            onToggleSetupGame={noop}
+            onExitToSetup={noop}
+            onShowTemplates={noop}
+            onToggleLeagueMode={noop}
+            onShowHistory={noop}
+            onShowInstallGuide={noop}
+            onShowHelp={noop}
+            onOpenFeatureGate={noop}
+          />
+        </LanguageProvider>
+      </ThemeProvider>,
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});

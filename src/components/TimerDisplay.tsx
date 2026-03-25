@@ -179,6 +179,7 @@ export const TimerDisplay = memo(function TimerDisplay({ timerState, levels, lar
         aria-valuenow={Math.round(Math.min(100, progress * 100))}
         aria-valuemin={0}
         aria-valuemax={100}
+        aria-label={t('timer.progress')}
       >
         <div
           className={`h-full rounded-full transition-all duration-500 ${

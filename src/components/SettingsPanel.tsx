@@ -93,6 +93,7 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
                 onChange={(e) => onChange({ ...settings, volume: Number(e.target.value) })}
                 className="flex-1 h-1.5 cursor-pointer"
                 style={{ accentColor: 'var(--accent-500)' }}
+                aria-label={t('settings.volume')}
               />
               <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums w-8 text-right">{settings.volume}%</span>
             </div>
@@ -122,6 +123,7 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
                 max={300}
                 step={5}
                 inputClassName="w-16"
+                label={t('settings.callTheClock')}
               />
               <span className="text-xs text-gray-400 dark:text-gray-500">s</span>
             </div>
@@ -254,6 +256,7 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
                     max={60}
                     step={5}
                     inputClassName="w-16"
+                    label={t('display.rotationInterval' as Parameters<typeof t>[0])}
                   />
                   <span className="text-xs text-gray-400 dark:text-gray-500">s</span>
                 </div>

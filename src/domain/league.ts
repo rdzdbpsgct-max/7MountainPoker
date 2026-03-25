@@ -812,6 +812,7 @@ export function encodeLeagueStandingsForQR(
 export function decodeLeagueStandingsFromQR(hash: string): { leagueName: string; standings: { rank: number; name: string; points: number; tournaments: number; wins: number; netBalance: number }[] } | null {
   try {
     if (!hash.startsWith('#ls=')) return null;
+    if (hash.length > 8192) return null;
     const decoded = decodeURIComponent(hash.slice(4));
     // Split on first | only — league name may be URL-encoded
     const pipeIdx = decoded.indexOf('|');
@@ -819,7 +820,7 @@ export function decodeLeagueStandingsFromQR(hash: string): { leagueName: string;
     const leagueName = decodeURIComponent(decoded.slice(0, pipeIdx));
     const playersStr = decoded.slice(pipeIdx + 1);
     if (!leagueName || !playersStr) return null;
-    const standings = playersStr.split(';').filter(Boolean).map((entry) => {
+    const standings = playersStr.split(';').filter(Boolean).slice(0, 200).map((entry) => {
       const [rank, name, points, tournaments, wins, netBalance] = entry.split(':');
       const rankNum = parseInt(rank ?? '', 10);
       // Player names may be URL-encoded

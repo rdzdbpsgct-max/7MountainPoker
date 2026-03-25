@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { League, ExtendedLeagueStanding, GameDay, RankingAlgorithm } from '../domain/types';
-import { formatLeagueStandingsAsText, formatLeagueStandingsAsCSV, encodeLeagueStandingsForQR, normalizePlayerName, exportLeagueStandingsAsPdf } from '../domain/logic';
+import { formatLeagueStandingsAsText, formatLeagueStandingsAsCSV, encodeLeagueStandingsForQR, normalizePlayerName } from '../domain/logic';
 import { Sparkline } from './Sparkline';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
@@ -215,7 +215,7 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
             </button>
             {standings.length > 0 && (
               <button
-                onClick={() => exportLeagueStandingsAsPdf(league, standings, currencySymbol, t)}
+                onClick={() => { void import('../domain/pdfExport').then(({ exportLeagueStandingsAsPdf }) => exportLeagueStandingsAsPdf(league, standings, currencySymbol, t)); }}
                 className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded transition-colors"
                 title="PDF"
                 aria-label={t('league.standings.downloadPdf')}

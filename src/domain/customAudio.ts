@@ -35,6 +35,9 @@ export const CUSTOMIZABLE_ANNOUNCEMENTS = [
   'last-hand',
   'break-skipped',
   'break-extended',
+  'bounty',
+  'mystery-bounty',
+  'players-remaining',
 ] as const;
 
 export type AnnouncementKey = typeof CUSTOMIZABLE_ANNOUNCEMENTS[number];

@@ -36,9 +36,11 @@ export default defineConfig({
           if (id.includes('/node_modules/qrcode.react/')) return 'vendor-qrcode';
           if (id.includes('/node_modules/idb/')) return 'vendor-idb';
           if (id.includes('/node_modules/html-to-image/')) return 'vendor-screenshot';
-          if (id.includes('/node_modules/jspdf/') || id.includes('/node_modules/jspdf-autotable/')) {
-            return 'vendor-pdf';
-          }
+          // NOTE: jspdf/jspdf-autotable are NOT listed here intentionally.
+          // They are only dynamically imported in pdfExport.ts, so Rollup naturally
+          // places them in an async chunk loaded only when the user clicks "Export PDF".
+          // Forcing them into a manualChunk caused Rollup to place the __vitePreload
+          // helper in the same chunk, making all 47 components eagerly load 419 KB.
         },
       },
     },
@@ -110,6 +112,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     // Keep Playwright specs and worktrees out of Vitest to avoid cross-runner collisions.
-    exclude: ['tests/e2e/**', 'node_modules/**', 'dist/**', '.worktrees/**'],
+    exclude: ['tests/e2e/**', 'e2e/**', 'node_modules/**', 'dist/**', '.worktrees/**'],
   },
 })

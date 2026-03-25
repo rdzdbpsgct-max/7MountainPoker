@@ -389,6 +389,7 @@ export function announceWinner(t: TranslateFn): void {
 
 /** Bounty collected — "Bounty collected! What a knockout!" */
 export function announceBounty(t: TranslateFn): void {
+  if (enqueueCustomAudioIfAvailable('bounty')) return;
   enqueue(audioOrSpeech(['fixed/bounty-collected.mp3'], t('voice.bountyCollected')));
 }
 
@@ -453,6 +454,7 @@ export function announceThreeRemaining(t: TranslateFn): void {
 
 /** N players remaining (dynamic count for paidPlaces milestones) */
 export function announcePlayersRemaining(count: number, t: TranslateFn): void {
+  if (enqueueCustomAudioIfAvailable('players-remaining')) return;
   if (count >= 4 && count <= 10) {
     enqueue(audioOrSpeech(
       [`fixed/${count}-remaining.mp3`],
@@ -533,6 +535,7 @@ export function announceFinalTable(t: TranslateFn): void {
 
 /** Mystery Bounty revealed — MP3 intro + speech with dynamic amount */
 export function announceMysteryBounty(amount: number, t: TranslateFn): void {
+  if (enqueueCustomAudioIfAvailable('mystery-bounty')) return;
   enqueue(audioOrSpeech(['fixed/mystery-bounty.mp3'], t('voice.mysteryBounty', { amount })));
   enqueue({ mode: 'speech', text: `${amount}` });
 }
