@@ -529,6 +529,8 @@ const de = {
   // --- Clean View ---
   'game.cleanViewOn': 'Details einblenden',
   'game.cleanViewOff': 'Details ausblenden',
+  'controls.detailsShow': 'Details einblenden',
+  'controls.detailsHide': 'Details ausblenden',
   'game.lastHand': 'LETZTE HAND!',
   'game.lastHandHint': 'Diese Hand ist die letzte des aktuellen Levels',
   'game.handForHand': 'HAND FOR HAND',
@@ -2011,6 +2013,8 @@ const en: Record<TranslationKey, string> = {
   // --- Clean View ---
   'game.cleanViewOn': 'Show details',
   'game.cleanViewOff': 'Hide details',
+  'controls.detailsShow': 'Show details',
+  'controls.detailsHide': 'Hide details',
   'game.lastHand': 'LAST HAND!',
   'game.lastHandHint': 'This is the last hand of the current level',
   'game.handForHand': 'HAND FOR HAND',
