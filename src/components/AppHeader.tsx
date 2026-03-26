@@ -38,6 +38,7 @@ interface Props {
   onShowShareHub?: () => void;
   onShowTour?: () => void;
   onShowWizard?: () => void;
+  onShowSettings?: (() => void) | undefined;
   displayCount?: number;
 }
 
@@ -74,6 +75,7 @@ export const AppHeader = memo(function AppHeader({
   onShowShareHub,
   onShowTour,
   onShowWizard,
+  onShowSettings,
   displayCount,
 }: Props) {
   const { t } = useTranslation();
@@ -177,13 +179,25 @@ export const AppHeader = memo(function AppHeader({
         )}
 
         {mode === 'game' && (
-          <button
-            onClick={onExitToSetup}
-            className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700/80 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600/30 rounded-lg text-sm font-medium transition-all duration-200"
-            title={t('app.setup')}
-          >
-            {t('app.setup')}
-          </button>
+          <>
+            {onShowSettings && (
+              <button
+                onClick={onShowSettings}
+                className="px-2.5 py-1.5 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-700/30 rounded-lg text-sm transition-all duration-200"
+                title={t('settings.modalTitle')}
+                aria-label={t('settings.modalTitle')}
+              >
+                {String.fromCodePoint(0x2699, 0xFE0F)}
+              </button>
+            )}
+            <button
+              onClick={onExitToSetup}
+              className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700/80 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600/30 rounded-lg text-sm font-medium transition-all duration-200"
+              title={t('app.setup')}
+            >
+              {t('app.setup')}
+            </button>
+          </>
         )}
 
         {(mode === 'setup' || mode === 'league') && (

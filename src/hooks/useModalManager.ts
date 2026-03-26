@@ -21,6 +21,7 @@ export function useModalManager() {
   const [showPayoutOverlay, setShowPayoutOverlay] = useState(false);
   const [showIcm, setShowIcm] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const [showGameSettings, setShowGameSettings] = useState(false);
 
   // Modals with initialization logic
   const [showWizard, setShowWizard] = useState(() => !isWizardCompleted());
@@ -88,6 +89,8 @@ export function useModalManager() {
     setShowIcm,
     showTour,
     setShowTour,
+    showGameSettings,
+    setShowGameSettings,
     showWizard,
     setShowWizard,
     showInstallGuide,

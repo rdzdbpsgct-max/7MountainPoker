@@ -23,7 +23,6 @@ const PlayerPanel = lazy(() => import('../PlayerPanel').then((m) => ({ default: 
 const ChipSidebar = lazy(() => import('../ChipSidebar').then((m) => ({ default: m.ChipSidebar })));
 const RebuyStatus = lazy(() => import('../RebuyStatus').then((m) => ({ default: m.RebuyStatus })));
 const BubbleIndicator = lazy(() => import('../BubbleIndicator').then((m) => ({ default: m.BubbleIndicator })));
-const SettingsPanel = lazy(() => import('../SettingsPanel').then((m) => ({ default: m.SettingsPanel })));
 const MultiTablePanel = lazy(() => import('../MultiTablePanel').then((m) => ({ default: m.MultiTablePanel })));
 const GameInfoBar = lazy(() => import('../GameInfoBar').then((m) => ({ default: m.GameInfoBar })));
 
@@ -322,30 +321,6 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
                 onAdvanceTableDealer={handleAdvanceTableDealer}
               />
             )}
-            <SettingsPanel
-              settings={settings}
-              onChange={actions.onSettingsChange}
-              onToggleFullscreen={actions.onToggleFullscreen}
-              onShowInstallGuide={actions.onShowInstallGuide}
-              canUseCustomAccent={ui.canUseCustomAccent}
-              canUseCustomBackground={ui.canUseCustomBackground}
-              canUseCustomLayout={ui.canUseCustomLayout}
-              onOpenFeatureGate={onOpenFeatureGate ? (f) => onOpenFeatureGate(f as AppFeature) : undefined}
-            />
-            <div className="pt-2 border-t border-gray-200/60 dark:border-gray-700/30 space-y-2">
-              <button
-                onClick={actions.onShowIcm}
-                className="w-full px-3 py-2 bg-gray-100/80 dark:bg-gray-800/50 hover:bg-gray-200/80 dark:hover:bg-gray-700/60 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200/60 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600/40"
-              >
-                {t('icm.title')}
-              </button>
-              <button
-                onClick={actions.onExitToSetup}
-                className="w-full px-3 py-2 bg-gray-100/80 dark:bg-gray-800/50 hover:bg-gray-200/80 dark:hover:bg-gray-700/60 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200/60 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600/40"
-              >
-                {t('app.backToSetup')}
-              </button>
-            </div>
           </aside>
         )}
       </div>
