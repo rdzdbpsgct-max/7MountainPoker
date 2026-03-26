@@ -13,7 +13,14 @@ interface Props {
 
 export const ChipSidebar = memo(function ChipSidebar({ chipConfig, colorUpMap, currentLevelIndex, levels }: Props) {
   const { t } = useTranslation();
-  const [collapsed, setCollapsed] = useState(false);
+  const hasUpcomingColorUp = (() => {
+    for (let i = currentLevelIndex; i <= currentLevelIndex + 3; i++) {
+      if (colorUpMap.has(i)) return true;
+    }
+    return false;
+  })();
+
+  const [collapsed, setCollapsed] = useState(!hasUpcomingColorUp);
 
   const removedIds = getRemovedDenomIds(colorUpMap, currentLevelIndex);
   const nextColorUpLevel = getNextColorUpLevel(colorUpMap, currentLevelIndex);

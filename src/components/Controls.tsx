@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import type { TimerState } from '../domain/types';
 import { useTranslation } from '../i18n';
 
@@ -62,9 +62,25 @@ export const Controls = memo(function Controls({
   const { t } = useTranslation();
   const isRunning = timerState.status === 'running';
   const isStopped = timerState.status === 'stopped';
+  const [showMore, setShowMore] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const hasActiveIndicator = !!lastHandActive || !!cleanView;
+
+  const closeMore = useCallback(() => setShowMore(false), []);
+
+  // Close popover on click outside
+  useEffect(() => {
+    if (!showMore) return;
+    const handleClick = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) closeMore();
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showMore, closeMore]);
 
   return (
     <div className="flex flex-col items-center gap-4">
+      {/* Row 1: Main transport controls */}
       <div className="flex items-center gap-3">
         <button
           onClick={onPrevious}
@@ -99,7 +115,7 @@ export const Controls = memo(function Controls({
         </button>
       </div>
 
-      {/* Break controls: skip / extend */}
+      {/* Row 2: Contextual — break controls, H4H next hand, or H4H toggle */}
       {isBreak && (onSkipBreak || onExtendBreak) && (
         <div className="flex items-center gap-2">
           {onSkipBreak && (
@@ -131,8 +147,6 @@ export const Controls = memo(function Controls({
           )}
         </div>
       )}
-
-      {/* Hand-for-Hand: Next Hand button */}
       {handForHandActive && onNextHand && timerState.status !== 'running' && (
         <button
           onClick={onNextHand}
@@ -143,108 +157,117 @@ export const Controls = memo(function Controls({
           {t('controls.nextHand')}
         </button>
       )}
+      {!isBreak && !handForHandActive && showHandForHand && onHandForHand && (
+        <button
+          onClick={onHandForHand}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-red-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15"
+          title={t('controls.handForHandTooltip')}
+        >
+          {t('controls.handForHand')}
+        </button>
+      )}
 
-      {/* Last Hand + Hand-for-Hand + Clean view + Call Clock */}
-      <div className="flex items-center gap-1.5 flex-wrap justify-center">
-        {showHandForHand && onHandForHand && (
-          <button
-            onClick={onHandForHand}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
-              handForHandActive
-                ? 'bg-red-600 dark:bg-red-700 hover:bg-red-500 dark:hover:bg-red-600 text-white border-red-500 dark:border-red-600 shadow-red-300/30 dark:shadow-red-900/30'
-                : 'bg-white dark:bg-gray-800/80 hover:bg-red-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15'
-            }`}
-            title={t('controls.handForHandTooltip')}
-          >
-            {t('controls.handForHand')}
-          </button>
-        )}
-        {onLastHand && (
-          <button
-            onClick={onLastHand}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
-              lastHandActive
-                ? 'bg-amber-600 dark:bg-amber-700 hover:bg-amber-500 dark:hover:bg-amber-600 text-white border-amber-500 dark:border-amber-600 shadow-amber-300/30 dark:shadow-amber-900/30'
-                : 'bg-white dark:bg-gray-800/80 hover:bg-amber-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15'
-            }`}
-            title={t('controls.lastHandTooltip')}
-          >
-            {t('controls.lastHand')}
-          </button>
-        )}
-        {onToggleCleanView && (
-          <button
-            onClick={onToggleCleanView}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
-              cleanView
-                ? 'text-white border-transparent'
-                : 'bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15'
-            }`}
-            style={cleanView ? { backgroundColor: 'var(--accent-600)', borderColor: 'var(--accent-500)' } : undefined}
-            title={cleanView ? t('game.cleanViewOff') : t('game.cleanViewOn')}
-          >
-            {cleanView ? t('game.cleanViewOn') : t('game.cleanViewOff')}
-          </button>
-        )}
-        {onCallTheClock && callTheClockSeconds != null && (
-          <button
-            onClick={onCallTheClock}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15"
-            title={t('controls.callTheClock')}
-          >
-            {String.fromCodePoint(0x23F1)} {callTheClockSeconds}s
-          </button>
-        )}
-      </div>
-
+      {/* More menu (···) */}
       {!hideSecondaryControls && (
-        <div className="flex items-center gap-2 flex-wrap justify-center">
-          {onUndo && (
-            <button
-              onClick={onUndo}
-              disabled={!canUndo}
-              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 border shadow-md active:scale-[0.97] active:shadow-sm ${
-                canUndo
-                  ? 'bg-white dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700/30 shadow-gray-200/30 dark:shadow-black/15'
-                  : 'bg-gray-100 dark:bg-gray-800/40 text-gray-400 dark:text-gray-600 border-gray-100 dark:border-gray-800/40 shadow-none cursor-not-allowed'
-              }`}
-              title={undoLabel ? t('undo.undoAction', { action: undoLabel }) : t('undo.noUndo')}
-              aria-label={t('undo.undo')}
-            >
-              {'\u21A9'} {t('undo.undo')}
-            </button>
-          )}
-          {onRedo && (
-            <button
-              onClick={onRedo}
-              disabled={!canRedo}
-              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 border shadow-md active:scale-[0.97] active:shadow-sm ${
-                canRedo
-                  ? 'bg-white dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700/30 shadow-gray-200/30 dark:shadow-black/15'
-                  : 'bg-gray-100 dark:bg-gray-800/40 text-gray-400 dark:text-gray-600 border-gray-100 dark:border-gray-800/40 shadow-none cursor-not-allowed'
-              }`}
-              title={redoLabel ? t('undo.redoAction', { action: redoLabel }) : t('undo.noRedo')}
-              aria-label={t('undo.redo')}
-            >
-              {'\u21AA'} {t('undo.redo')}
-            </button>
-          )}
+        <div className="relative" ref={moreRef}>
           <button
-            onClick={onReset}
-            className="px-4 py-2 bg-white dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium transition-all duration-200 border border-gray-200 dark:border-gray-700/30 shadow-md shadow-gray-200/30 dark:shadow-black/15 active:scale-[0.97] active:shadow-sm"
-            title={t('controls.levelResetTooltip')}
-            aria-label={t('controls.levelResetTooltip')}
+            onClick={() => setShowMore(prev => !prev)}
+            className="relative px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15"
+            title={t('controls.moreActions')}
+            aria-label={t('controls.moreActions')}
           >
-            {t('controls.levelReset')}
+            {String.fromCodePoint(0x22EF)}
+            {hasActiveIndicator && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--accent-500)' }} />
+            )}
           </button>
-          <button
-            onClick={onRestart}
-            className="px-4 py-2 bg-white dark:bg-gray-800/80 hover:bg-red-50 dark:hover:bg-red-900/80 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-300 rounded-lg text-xs font-medium transition-all duration-200 border border-gray-200 dark:border-gray-700/30 hover:border-red-300 dark:hover:border-red-800/50 shadow-md shadow-gray-200/30 dark:shadow-black/15 active:scale-[0.97] active:shadow-sm"
-            title={t('controls.tournamentRestartTooltip')}
-            aria-label={t('controls.tournamentRestartTooltip')}
-          >
-            {t('controls.tournamentRestart')}
-          </button>
+          {showMore && (
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-40 min-w-[180px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/40 rounded-xl shadow-xl shadow-gray-300/30 dark:shadow-black/30 py-1.5 animate-fade-in">
+              {onLastHand && (
+                <button
+                  onClick={() => { onLastHand(); closeMore(); }}
+                  className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors ${
+                    lastHandActive
+                      ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                  }`}
+                >
+                  {t('controls.lastHand')} {lastHandActive ? String.fromCodePoint(0x2713) : ''}
+                </button>
+              )}
+              {onToggleCleanView && (
+                <button
+                  onClick={() => { onToggleCleanView(); closeMore(); }}
+                  className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors ${
+                    cleanView
+                      ? 'bg-gray-100 dark:bg-gray-700/50'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                  }`}
+                  style={cleanView ? { color: 'var(--accent-500)' } : undefined}
+                >
+                  {cleanView ? t('game.cleanViewOn') : t('game.cleanViewOff')} {cleanView ? String.fromCodePoint(0x2713) : ''}
+                </button>
+              )}
+              {showHandForHand && onHandForHand && handForHandActive && (
+                <button
+                  onClick={() => { onHandForHand(); closeMore(); }}
+                  className="w-full text-left px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 transition-colors"
+                >
+                  {t('controls.handForHand')} {String.fromCodePoint(0x2713)}
+                </button>
+              )}
+              {onCallTheClock && callTheClockSeconds != null && (
+                <button
+                  onClick={() => { onCallTheClock(); closeMore(); }}
+                  className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  {String.fromCodePoint(0x23F1)} {t('controls.callTheClock')} ({callTheClockSeconds}s)
+                </button>
+              )}
+              {(onUndo || onRedo) && (
+                <div className="border-t border-gray-200 dark:border-gray-700/30 my-1" />
+              )}
+              {onUndo && (
+                <button
+                  onClick={() => { onUndo(); closeMore(); }}
+                  disabled={!canUndo}
+                  className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors ${
+                    canUndo
+                      ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                      : 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  {'\u21A9'} {t('undo.undo')}{undoLabel ? ` (${undoLabel})` : ''}
+                </button>
+              )}
+              {onRedo && (
+                <button
+                  onClick={() => { onRedo(); closeMore(); }}
+                  disabled={!canRedo}
+                  className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors ${
+                    canRedo
+                      ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                      : 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  {'\u21AA'} {t('undo.redo')}{redoLabel ? ` (${redoLabel})` : ''}
+                </button>
+              )}
+              <div className="border-t border-gray-200 dark:border-gray-700/30 my-1" />
+              <button
+                onClick={() => { onReset(); closeMore(); }}
+                className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+              >
+                {t('controls.levelReset')}
+              </button>
+              <button
+                onClick={() => { onRestart(); closeMore(); }}
+                className="w-full text-left px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              >
+                {t('controls.tournamentRestart')}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

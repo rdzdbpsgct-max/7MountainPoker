@@ -3,7 +3,7 @@ import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, Tabl
 import { CURRENCY_SYMBOLS } from '../domain/types';
 import type { AppFeature } from '../domain/entitlements';
 import { markFeatureDiscovered } from '../domain/entitlements';
-import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, findChipLeader, canPlayerRebuy, canReEntry, findPlayerSeat } from '../domain/logic';
+import { computeTotalAddOns, computePrizePool, findChipLeader, canPlayerRebuy, canReEntry, findPlayerSeat } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { LoadingFallback } from './LoadingFallback';
 import { NumberStepper } from './NumberStepper';
@@ -22,7 +22,7 @@ interface Props {
   addOnConfig: AddOnConfig;
   addOnWindowOpen: boolean;
   bountyConfig: BountyConfig;
-  averageStack: number;
+  averageStack?: number | undefined;
   onUpdateRebuys: (playerId: string, newCount: number) => void;
   onUpdateAddOn: (playerId: string, hasAddOn: boolean) => void;
   onEliminatePlayer: (playerId: string, eliminatedBy: string | null) => void;
@@ -55,7 +55,6 @@ export const PlayerPanel = memo(function PlayerPanel({
   addOnConfig,
   addOnWindowOpen,
   bountyConfig,
-  averageStack,
   onUpdateRebuys,
   onUpdateAddOn,
   onEliminatePlayer,
@@ -83,11 +82,10 @@ export const PlayerPanel = memo(function PlayerPanel({
   const [selectedKiller, setSelectedKiller] = useState<string>('');
   const [showSidePot, setShowSidePot] = useState(false);
   const [showDealMaker, setShowDealMaker] = useState(false);
+  const [showMoreActions, setShowMoreActions] = useState(false);
 
-  const totalRebuys = useMemo(() => computeTotalRebuys(players), [players]);
   const totalAddOns = useMemo(() => computeTotalAddOns(players), [players]);
   const prizePool = useMemo(() => computePrizePool(players, buyIn, rebuyConfig.rebuyCost, addOnConfig.enabled ? addOnConfig.cost : 0, rebuyConfig.separatePot), [players, buyIn, rebuyConfig.rebuyCost, addOnConfig.enabled, addOnConfig.cost, rebuyConfig.separatePot]);
-  const payoutAmounts = useMemo(() => computePayouts(payout, prizePool), [payout, prizePool]);
 
   const nameSizeClass = useMemo(() => {
     const maxLen = players.reduce((max, p) => Math.max(max, p.name.length), 0);
@@ -143,69 +141,6 @@ export const PlayerPanel = memo(function PlayerPanel({
   return (
     <>
     <div className="space-y-4">
-      {/* Prize Pool */}
-      <div>
-        <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{t('playerPanel.prizePool')}</h3>
-        <div className="mt-1.5 px-3 py-2.5 rounded-xl shadow-sm" style={{ backgroundColor: 'color-mix(in srgb, var(--accent-500) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent-500) 20%, transparent)' }}>
-          <p className="text-xl font-bold tabular-nums" style={{ color: 'var(--accent-text)' }}>
-            {prizePool.toFixed(2)} {sym}
-          </p>
-          <p className="text-xs opacity-70 mt-0.5" style={{ color: 'var(--accent-text)' }}>
-            {players.length} &times; {buyIn} {sym}
-            {totalRebuys > 0 && !rebuyConfig.separatePot && (
-              <> + {totalRebuys} RB &times; {rebuyConfig.rebuyCost} {sym}</>
-            )}
-            {totalAddOns > 0 && (
-              <> + {totalAddOns} AO &times; {addOnConfig.cost} {sym}</>
-            )}
-          </p>
-          {bountyConfig.enabled && (
-            <p className="text-amber-600 dark:text-amber-500/70 text-xs mt-1">
-              + Bounty: {(players.length * bountyConfig.amount).toFixed(2)} {sym}
-            </p>
-          )}
-        </div>
-        {rebuyConfig.separatePot && totalRebuys > 0 && (
-          <div className="mt-2 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/50 rounded-xl shadow-md shadow-amber-200/30 dark:shadow-amber-900/10">
-            <p className="text-amber-700 dark:text-amber-300 text-lg font-bold">
-              {computeRebuyPot(players, rebuyConfig.rebuyCost).toFixed(2)} {sym}
-            </p>
-            <p className="text-amber-600 dark:text-amber-500/70 text-xs">
-              {t('rebuy.separatePotLabel')} — {totalRebuys} &times; {rebuyConfig.rebuyCost} {sym}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Payout breakdown */}
-      <div>
-        <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{t('playerPanel.payout')}</h3>
-        <div className="mt-1.5 space-y-0.5">
-          {payoutAmounts.map((p) => (
-            <div
-              key={p.place}
-              className="flex justify-between items-center px-2.5 py-1.5 rounded-lg text-sm hover:bg-gray-100/60 dark:hover:bg-gray-800/30 transition-colors"
-            >
-              <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
-                <span className={`text-xs font-bold ${p.place <= 3 ? 'text-amber-500' : ''}`}>{p.place}.</span>
-                {t('playerPanel.place')}
-              </span>
-              <span className="text-gray-900 dark:text-white font-medium tabular-nums">{p.amount.toFixed(2)} {sym}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Average Stack */}
-      <div className="px-2.5 py-2 bg-gray-100/60 dark:bg-gray-800/30 rounded-xl border border-gray-200/40 dark:border-gray-700/20">
-        <div className="flex justify-between items-center">
-          <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{t('playerPanel.avgStack')}</span>
-          <span className="text-gray-900 dark:text-white text-sm font-mono font-bold tabular-nums">
-            {averageStack.toLocaleString()}
-          </span>
-        </div>
-      </div>
-
       {/* Add-On info banner (shown after rebuy phase ends) */}
       {addOnWindowOpen && totalAddOns < activePlayers.length && (
         <div className="px-3 py-2 bg-amber-50 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700/40 rounded-lg">
@@ -291,41 +226,53 @@ export const PlayerPanel = memo(function PlayerPanel({
                 className="px-2 py-1 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
                 title={t('playerPanel.advanceDealer')}
               >
-                D →
+                D {String.fromCodePoint(0x2192)}
               </button>
             )}
-            <button
-              onClick={() => {
-                markFeatureDiscovered('sidePot');
-                if (canUseSidePot === false && onOpenFeatureGate) {
-                  onOpenFeatureGate('sidePot');
-                  return;
-                }
-                setShowSidePot(true);
-              }}
-              className="px-2 py-1 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
-              title={t('sidePot.title')}
-            >
-              {t('sidePot.titleShort')}
-            </button>
-            {onAcceptDeal && activePlayers.length >= 2 && activePlayers.length <= 6 && (
+            {/* More actions popover */}
+            <div className="relative">
               <button
-                onClick={() => setShowDealMaker(true)}
+                onClick={() => setShowMoreActions(prev => !prev)}
                 className="px-2 py-1 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
-                title={t('deal.description')}
+                title={t('controls.moreActions')}
               >
-                {t('deal.button')}
+                {String.fromCodePoint(0x22EF)}
               </button>
-            )}
-            {onShowPayoutOverlay && (
-              <button
-                onClick={onShowPayoutOverlay}
-                className="px-2 py-1 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
-                title={t('payout.overlay.title')}
-              >
-                {t('payout.overlay.titleShort')}
-              </button>
-            )}
+              {showMoreActions && (
+                <div className="absolute left-0 top-full mt-1 z-30 min-w-[140px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/40 rounded-lg shadow-lg shadow-gray-300/30 dark:shadow-black/30 py-1 animate-fade-in">
+                  <button
+                    onClick={() => {
+                      markFeatureDiscovered('sidePot');
+                      if (canUseSidePot === false && onOpenFeatureGate) {
+                        onOpenFeatureGate('sidePot');
+                      } else {
+                        setShowSidePot(true);
+                      }
+                      setShowMoreActions(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    {t('sidePot.title')}
+                  </button>
+                  {onAcceptDeal && activePlayers.length >= 2 && activePlayers.length <= 6 && (
+                    <button
+                      onClick={() => { setShowDealMaker(true); setShowMoreActions(false); }}
+                      className="w-full text-left px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                    >
+                      {t('deal.button')}
+                    </button>
+                  )}
+                  {onShowPayoutOverlay && (
+                    <button
+                      onClick={() => { onShowPayoutOverlay(); setShowMoreActions(false); }}
+                      className="w-full text-left px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                    >
+                      {t('payout.overlay.title')}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="mt-1 space-y-1">

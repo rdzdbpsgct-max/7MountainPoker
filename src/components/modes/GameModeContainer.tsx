@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useCallback } from 'react';
+import { lazy, memo, Suspense, useCallback, useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   ChipDenomination,
@@ -10,7 +10,7 @@ import type {
   TournamentConfig,
 } from '../../domain/types';
 import type { useTimer } from '../../hooks/useTimer';
-import { advanceTableDealer } from '../../domain/logic';
+import { advanceTableDealer, computeEstimatedRemainingSeconds } from '../../domain/logic';
 import type { AppFeature } from '../../domain/entitlements';
 import { useTranslation } from '../../i18n';
 import { SectionErrorBoundary } from '../ErrorBoundary';
@@ -23,8 +23,8 @@ const PlayerPanel = lazy(() => import('../PlayerPanel').then((m) => ({ default: 
 const ChipSidebar = lazy(() => import('../ChipSidebar').then((m) => ({ default: m.ChipSidebar })));
 const RebuyStatus = lazy(() => import('../RebuyStatus').then((m) => ({ default: m.RebuyStatus })));
 const BubbleIndicator = lazy(() => import('../BubbleIndicator').then((m) => ({ default: m.BubbleIndicator })));
-const SettingsPanel = lazy(() => import('../SettingsPanel').then((m) => ({ default: m.SettingsPanel })));
 const MultiTablePanel = lazy(() => import('../MultiTablePanel').then((m) => ({ default: m.MultiTablePanel })));
+const GameInfoBar = lazy(() => import('../GameInfoBar').then((m) => ({ default: m.GameInfoBar })));
 
 type TimerController = ReturnType<typeof useTimer>;
 
@@ -123,6 +123,11 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
   const { t } = useTranslation();
   const { onUpdateTables } = actions;
 
+  const estimatedRemaining = useMemo(
+    () => computeEstimatedRemainingSeconds(config.levels, timer.timerState.currentLevelIndex, timer.timerState.remainingSeconds),
+    [config.levels, timer.timerState.currentLevelIndex, timer.timerState.remainingSeconds],
+  );
+
   const handleAdvanceTableDealer = useCallback((tableId: string) => {
     const tables = config.tables ?? [];
     const table = tables.find(tbl => tbl.id === tableId);
@@ -194,6 +199,19 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
 
           {/* Timer + Controls */}
           <div className="flex-1 flex flex-col items-center justify-center p-3 sm:p-6 gap-3 sm:gap-6 relative">
+            {!ui.cleanView && (
+              <GameInfoBar
+                players={config.players}
+                buyIn={config.buyIn}
+                rebuyConfig={config.rebuy}
+                addOnConfig={config.addOn}
+                averageStack={state.averageStack}
+                tournamentElapsed={state.tournamentElapsed}
+                estimatedRemaining={estimatedRemaining}
+                currency={config.currency}
+                onShowPayoutOverlay={actions.onShowPayoutOverlay}
+              />
+            )}
             <TimerDisplay
               timerState={timer.timerState}
               levels={config.levels}
@@ -303,30 +321,6 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
                 onAdvanceTableDealer={handleAdvanceTableDealer}
               />
             )}
-            <SettingsPanel
-              settings={settings}
-              onChange={actions.onSettingsChange}
-              onToggleFullscreen={actions.onToggleFullscreen}
-              onShowInstallGuide={actions.onShowInstallGuide}
-              canUseCustomAccent={ui.canUseCustomAccent}
-              canUseCustomBackground={ui.canUseCustomBackground}
-              canUseCustomLayout={ui.canUseCustomLayout}
-              onOpenFeatureGate={onOpenFeatureGate ? (f) => onOpenFeatureGate(f as AppFeature) : undefined}
-            />
-            <div className="pt-2 border-t border-gray-200/60 dark:border-gray-700/30 space-y-2">
-              <button
-                onClick={actions.onShowIcm}
-                className="w-full px-3 py-2 bg-gray-100/80 dark:bg-gray-800/50 hover:bg-gray-200/80 dark:hover:bg-gray-700/60 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200/60 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600/40"
-              >
-                {t('icm.title')}
-              </button>
-              <button
-                onClick={actions.onExitToSetup}
-                className="w-full px-3 py-2 bg-gray-100/80 dark:bg-gray-800/50 hover:bg-gray-200/80 dark:hover:bg-gray-700/60 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200/60 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600/40"
-              >
-                {t('app.backToSetup')}
-              </button>
-            </div>
           </aside>
         )}
       </div>

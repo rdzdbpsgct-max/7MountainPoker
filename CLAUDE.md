@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.11.2
+**Version**: 6.12.0
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -76,6 +76,8 @@ src/
 │   ├── LeagueFinances.tsx        # League financial overview — per game day and cumulative
 │   ├── DealMaker.tsx             # Deal-Making / Chop Calculator modal (ICM, Chip, Even)
 │   ├── GameDayEditor.tsx         # Manual game day entry modal with player management
+│   ├── GameInfoBar.tsx           # Compact info bar above timer (players, prizepool, avg BB, time)
+│   ├── GameSettingsModal.tsx     # Modal wrapper for SettingsPanel in game mode
 │   ├── LeagueCharts.tsx           # SVG line charts for league trends (points, placement, balance)
 │   ├── LeagueCreationModal.tsx   # League creation modal — name, point system presets, ranking algorithm
 │   ├── LeagueSettings.tsx        # League settings — tiebreaker config, seasons, point system (with presets)
@@ -172,6 +174,7 @@ src/
 │   ├── useDisplaySession.ts      # Host-side PeerJS display broadcast to connected peers
 │   ├── useTournamentModeTransitions.ts # Tournament mode transition logic
 │   ├── useGameComputedState.ts  # Extracted computed game state from App.tsx
+│   ├── useModalManager.ts       # Centralized modal state management for game mode
 │   ├── useTournamentEventLog.ts # Tournament event log state + effects
 │   ├── useCheckpointManager.ts  # Checkpoint auto-save management
 │   ├── useDisplayBridge.ts      # Display bridge (BroadcastChannel + PeerJS)
@@ -397,8 +400,8 @@ public/
 
 ## Testing
 
-- **1360 tests** across 21 test files + 1 setup file
-- Core files: `logic.test.ts` (711), `components.test.tsx` (117), `edge-cases.test.ts` (101), `events.test.ts` (52), `integration.test.ts` (51), `tournamentActions.test.tsx` (41), `sound-speech.test.ts` (41), `league-advanced.test.ts` (31), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `alertEngine.test.ts` (18), `entitlements.test.ts` (12), `startValidation.test.ts` (11), `a11y.test.tsx` (6), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
+- **1370 tests** across 21 test files + 1 setup file
+- Core files: `logic.test.ts` (711), `components.test.tsx` (129), `edge-cases.test.ts` (101), `events.test.ts` (52), `integration.test.ts` (51), `tournamentActions.test.tsx` (41), `sound-speech.test.ts` (41), `league-advanced.test.ts` (31), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `alertEngine.test.ts` (18), `entitlements.test.ts` (12), `startValidation.test.ts` (11), `a11y.test.tsx` (6), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -435,6 +438,20 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.12.0 — Game Mode UX Redesign
+
+- **GameInfoBar**: Neue kompakte Info-Leiste über dem Timer zeigt Spieler, Prizepool, Avg BB, Spielzeit und nächsten Level — ersetzt redundante TournamentStats-Anzeige im Spielmodus.
+- **GameSettingsModal**: SettingsPanel aus Sidebar in eigenständiges Modal extrahiert, zugänglich über ⚙️-Button im Header. Cleaner Game-Mode ohne permanentes Settings-Panel.
+- **PlayerPanel verschlankt**: Stats-Sektion entfernt (→ GameInfoBar), Aktions-Buttons auf eine Zeile reduziert, kompaktere Spieler-Rows.
+- **Controls Restructure**: 2-Zeilen-Layout (Timer-Controls oben, Undo/Redo unten) + ··· Popover für Clean View, Call the Clock, Hand-for-Hand, Last Hand.
+- **BubbleIndicator Priority**: Fragment mit 5 gleichzeitigen Bannern → Priority-Chain (ITM > Bubble > H4H > LastHand > AddOn), nur ein Banner sichtbar.
+- **LevelPreview gefiltert**: Zeigt nur aktuelles + nächste 3 Levels statt gesamter Struktur mit Scroll.
+- **AppHeader Game-Mode**: Theme/Language-Switcher im Spielmodus ausgeblendet — reduziert visuelles Rauschen.
+- **ChipSidebar Smart-Collapse**: Auto-Collapse wenn kein Color-Up in den nächsten 3 Levels ansteht, auto-expand bei nahendem Color-Up.
+- **Neue Dateien**: `GameInfoBar.tsx`, `GameSettingsModal.tsx`
+- **11 neue Translation-Keys** (DE + EN): `game.info.*`, `game.settings.*`
+- **1370 Tests gesamt** (21 Testdateien)
 
 ### v6.11.1 — Abschluss-Audit, Deal-Finished & Stale-Connection-Eviction
 

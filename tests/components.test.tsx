@@ -24,6 +24,7 @@ import { SettingsPanel } from '../src/components/SettingsPanel';
 import { LoadingFallback } from '../src/components/LoadingFallback';
 import { PlayerPanel } from '../src/components/PlayerPanel';
 import { SetupTabs } from '../src/components/SetupTabs';
+import { GameInfoBar } from '../src/components/GameInfoBar';
 
 // Mock the speech module for useVoiceAnnouncements tests
 vi.mock('../src/domain/speech', () => ({
@@ -483,15 +484,21 @@ describe('BubbleIndicator', () => {
 
   it('renders add-on window banner', () => {
     renderWithProviders(<BubbleIndicator {...defaultProps} addOnWindowOpen addOnCost={15} addOnChips={10000} />);
-    const statuses = screen.getAllByRole('status');
-    expect(statuses.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  it('renders multiple banners simultaneously', () => {
+  it('shows only highest-priority banner (bubble > lastHand)', () => {
     renderWithProviders(<BubbleIndicator {...defaultProps} isBubble lastHandActive handForHandActive />);
-    // bubble (role="alert") + lastHand + handForHand (role="status")
+    // Only bubble banner shown (highest priority among these three)
     expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(screen.getAllByRole('status').length).toBe(2);
+    expect(screen.queryAllByRole('status').length).toBe(0);
+  });
+
+  it('shows ITM over bubble when both active', () => {
+    renderWithProviders(<BubbleIndicator {...defaultProps} isBubble showItmFlash />);
+    // ITM has role="status", bubble has role="alert" — only ITM shown
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
 
@@ -1685,5 +1692,62 @@ describe('SetupTabs', () => {
     );
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
+  });
+});
+
+// ─── GameInfoBar ──────────────────────────────────────────────────────────────
+
+describe('GameInfoBar', () => {
+  const defaultRebuy: RebuyConfig = { enabled: false, rebuyCost: 0, rebuyChips: 0, maxRebuys: 0, maxRebuysPerPlayer: 0, rebuyLevels: 0, rebuyMinutes: 0, separatePot: false, reEntryEnabled: false, maxReEntries: 0 };
+  const defaultAddOn: AddOnConfig = { enabled: false, cost: 0, chips: 0 };
+  const players: Player[] = [
+    { id: '1', name: 'Alice', status: 'active', rebuys: 0, hasAddOn: false, seatNumber: 1, knockouts: 0, bountyEarned: 0 },
+    { id: '2', name: 'Bob', status: 'active', rebuys: 0, hasAddOn: false, seatNumber: 2, knockouts: 0, bountyEarned: 0 },
+    { id: '3', name: 'Charlie', status: 'eliminated', rebuys: 0, hasAddOn: false, seatNumber: 3, knockouts: 0, bountyEarned: 0, placement: 3 },
+  ];
+
+  it('renders player count active/total', () => {
+    renderWithProviders(
+      <GameInfoBar players={players} buyIn={10} rebuyConfig={defaultRebuy} addOnConfig={defaultAddOn} averageStack={5000} tournamentElapsed={600} estimatedRemaining={1800} />
+    );
+    expect(screen.getByText('2/3')).toBeInTheDocument();
+  });
+
+  it('renders prizepool with currency symbol', () => {
+    renderWithProviders(
+      <GameInfoBar players={players} buyIn={10} rebuyConfig={defaultRebuy} addOnConfig={defaultAddOn} averageStack={5000} tournamentElapsed={600} estimatedRemaining={1800} currency="USD" />
+    );
+    expect(screen.getByText(/30.*\$/)).toBeInTheDocument();
+  });
+
+  it('renders elapsed time', () => {
+    renderWithProviders(
+      <GameInfoBar players={players} buyIn={10} rebuyConfig={defaultRebuy} addOnConfig={defaultAddOn} averageStack={5000} tournamentElapsed={3661} estimatedRemaining={null} />
+    );
+    expect(screen.getByText('1:01:01')).toBeInTheDocument();
+  });
+
+  it('renders estimated remaining when provided', () => {
+    renderWithProviders(
+      <GameInfoBar players={players} buyIn={10} rebuyConfig={defaultRebuy} addOnConfig={defaultAddOn} averageStack={5000} tournamentElapsed={600} estimatedRemaining={1800} />
+    );
+    expect(screen.getByText('30 min')).toBeInTheDocument();
+  });
+
+  it('hides estimated remaining when null', () => {
+    renderWithProviders(
+      <GameInfoBar players={players} buyIn={10} rebuyConfig={defaultRebuy} addOnConfig={defaultAddOn} averageStack={5000} tournamentElapsed={600} estimatedRemaining={null} />
+    );
+    expect(screen.queryByText(/min$/)).not.toBeInTheDocument();
+  });
+
+  it('renders payout button when callback provided', () => {
+    const onShowPayout = vi.fn();
+    renderWithProviders(
+      <GameInfoBar players={players} buyIn={10} rebuyConfig={defaultRebuy} addOnConfig={defaultAddOn} averageStack={5000} tournamentElapsed={600} estimatedRemaining={null} onShowPayoutOverlay={onShowPayout} />
+    );
+    const btn = screen.getByTitle(/auszahlungsdetails/i);
+    fireEvent.click(btn);
+    expect(onShowPayout).toHaveBeenCalledOnce();
   });
 });

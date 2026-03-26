@@ -12,13 +12,17 @@ export const LevelPreview = memo(function LevelPreview({ timerState, levels }: P
   const { t } = useTranslation();
   const nextIndex = timerState.currentLevelIndex + 1;
 
+  // Show current level + next 3
+  const visibleLevels = levels
+    .map((level, i) => ({ level, i }))
+    .filter(({ i }) => i >= timerState.currentLevelIndex && i <= timerState.currentLevelIndex + 3);
+
   return (
     <div className="w-full max-w-xl">
       <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">{t('levelPreview.title')}</h3>
-      <div className="space-y-0.5 max-h-48 overflow-y-auto pr-1">
-        {levels.map((level, i) => {
+      <div className="space-y-0.5">
+        {visibleLevels.map(({ level, i }) => {
           const isCurrent = i === timerState.currentLevelIndex;
-          const isPast = i < timerState.currentLevelIndex;
           const isNext = i === nextIndex;
 
           return (
@@ -29,8 +33,6 @@ export const LevelPreview = memo(function LevelPreview({ timerState, levels }: P
                   ? 'dark:text-white shadow-sm font-medium'
                   : isNext
                   ? 'bg-gray-100/80 dark:bg-gray-800/40 text-gray-800 dark:text-gray-200'
-                  : isPast
-                  ? 'text-gray-300 dark:text-gray-600 line-through'
                   : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/20'
               }`}
               style={isCurrent ? { backgroundColor: 'color-mix(in srgb, var(--accent-500) 12%, transparent)', borderLeft: '2px solid var(--accent-500)' } : isNext ? { borderLeft: '2px solid color-mix(in srgb, var(--accent-500) 30%, transparent)' } : { borderLeft: '2px solid transparent' }}

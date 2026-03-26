@@ -38,6 +38,9 @@ vi.mock('../src/i18n', () => ({
         'controls.skipBreak': 'Skip Break',
         'controls.extendBreak2': '+2 min',
         'controls.extendBreak5': '+5 min',
+        'controls.moreActions': 'More actions',
+        'undo.undo': 'Undo',
+        'undo.redo': 'Redo',
       };
       return map[key] ?? key;
     },
@@ -120,48 +123,58 @@ describe('Controls', () => {
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
-  // --- Secondary controls ---
-  it('renders reset and restart buttons by default', () => {
+  // --- Helper: open ··· more menu ---
+  function openMoreMenu() {
+    fireEvent.click(screen.getByTitle('More actions'));
+  }
+
+  // --- Secondary controls (now inside ··· popover) ---
+  it('renders reset and restart in more menu', () => {
     renderControls();
+    openMoreMenu();
     expect(screen.getByText('Reset Level')).toBeDefined();
     expect(screen.getByText('Restart')).toBeDefined();
   });
 
-  it('hides secondary controls when hideSecondaryControls is true', () => {
+  it('hides more menu when hideSecondaryControls is true', () => {
     renderControls({ hideSecondaryControls: true });
-    expect(screen.queryByText('Reset Level')).toBeNull();
-    expect(screen.queryByText('Restart')).toBeNull();
+    expect(screen.queryByTitle('More actions')).toBeNull();
   });
 
-  it('calls onReset when reset button is clicked', () => {
+  it('calls onReset from more menu', () => {
     const handler = vi.fn();
     renderControls({ onReset: handler });
+    openMoreMenu();
     fireEvent.click(screen.getByText('Reset Level'));
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onRestart when restart button is clicked', () => {
+  it('calls onRestart from more menu', () => {
     const handler = vi.fn();
     renderControls({ onRestart: handler });
+    openMoreMenu();
     fireEvent.click(screen.getByText('Restart'));
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
-  // --- Last Hand ---
-  it('renders last hand button when onLastHand is provided', () => {
+  // --- Last Hand (inside ··· popover) ---
+  it('renders last hand in more menu when onLastHand is provided', () => {
     renderControls({ onLastHand: noop });
-    expect(screen.getByText('Last Hand')).toBeDefined();
+    openMoreMenu();
+    expect(screen.getByText(/Last Hand/)).toBeDefined();
   });
 
   it('does not render last hand button when onLastHand is undefined', () => {
     renderControls();
-    expect(screen.queryByText('Last Hand')).toBeNull();
+    openMoreMenu();
+    expect(screen.queryByText(/Last Hand/)).toBeNull();
   });
 
-  it('calls onLastHand when last hand button is clicked', () => {
+  it('calls onLastHand from more menu', () => {
     const handler = vi.fn();
     renderControls({ onLastHand: handler });
-    fireEvent.click(screen.getByText('Last Hand'));
+    openMoreMenu();
+    fireEvent.click(screen.getByText(/Last Hand/));
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
@@ -193,29 +206,32 @@ describe('Controls', () => {
     expect(screen.queryByText('Next Hand')).toBeNull();
   });
 
-  // --- Clean View ---
-  it('renders clean view toggle when onToggleCleanView is provided', () => {
+  // --- Clean View (inside ··· popover) ---
+  it('renders clean view toggle in more menu when onToggleCleanView is provided', () => {
     renderControls({ onToggleCleanView: noop, cleanView: false });
-    expect(screen.getByText('Normal View')).toBeDefined();
+    openMoreMenu();
+    expect(screen.getByText(/Normal View/)).toBeDefined();
   });
 
-  it('shows Clean View label when cleanView is true', () => {
+  it('shows Clean View label in more menu when cleanView is true', () => {
     renderControls({ onToggleCleanView: noop, cleanView: true });
-    expect(screen.getByText('Clean View')).toBeDefined();
+    openMoreMenu();
+    expect(screen.getByText(/Clean View/)).toBeDefined();
   });
 
-  // --- Call the Clock ---
-  it('renders call the clock button with seconds', () => {
+  // --- Call the Clock (inside ··· popover) ---
+  it('renders call the clock button with seconds in more menu', () => {
     renderControls({ onCallTheClock: noop, callTheClockSeconds: 60 });
-    // Button text contains the seconds value
-    const btn = screen.getByTitle('Call the Clock');
+    openMoreMenu();
+    const btn = screen.getByText(/Call the Clock/);
     expect(btn.textContent).toContain('60');
   });
 
-  it('calls onCallTheClock when clicked', () => {
+  it('calls onCallTheClock from more menu', () => {
     const handler = vi.fn();
     renderControls({ onCallTheClock: handler, callTheClockSeconds: 30 });
-    fireEvent.click(screen.getByTitle('Call the Clock'));
+    openMoreMenu();
+    fireEvent.click(screen.getByText(/Call the Clock/));
     expect(handler).toHaveBeenCalledTimes(1);
   });
 

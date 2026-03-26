@@ -96,6 +96,7 @@ const CustomAudioEditor = lazy(() => import('./components/CustomAudioEditor').th
 const ShareHub = lazy(() => import('./components/ShareHub').then(m => ({ default: m.ShareHub })));
 const IcmCalculator = lazy(() => import('./components/IcmCalculator').then(m => ({ default: m.IcmCalculator })));
 const LicenseActivation = lazy(() => import('./components/LicenseActivation').then(m => ({ default: m.LicenseActivation })));
+const GameSettingsModal = lazy(() => import('./components/GameSettingsModal').then(m => ({ default: m.GameSettingsModal })));
 
 type Mode = 'setup' | 'game' | 'league';
 
@@ -858,6 +859,7 @@ function App() {
           resetWizardCompleted();
           modals.setShowWizard(true);
         }}
+        onShowSettings={mode === 'game' && !tournamentFinished ? () => modals.setShowGameSettings(true) : undefined}
         displayCount={displayCount}
       />
 
@@ -1092,6 +1094,26 @@ function App() {
             config={config}
             players={config.players}
             onClose={() => modals.setShowPayoutOverlay(false)}
+          />
+        </Suspense></SectionErrorBoundary>
+      )}
+
+      {/* Game Settings Modal */}
+      {modals.showGameSettings && mode === 'game' && (
+        <SectionErrorBoundary><Suspense fallback={null}>
+          <GameSettingsModal
+            open={modals.showGameSettings}
+            onClose={() => modals.setShowGameSettings(false)}
+            settings={settings}
+            onSettingsChange={setSettings}
+            onToggleFullscreen={toggleFullscreen}
+            onShowInstallGuide={() => modals.setShowInstallGuide(true)}
+            onShowIcm={() => modals.setShowIcm(true)}
+            onExitToSetup={handleExitToSetup}
+            canUseCustomAccent={canUseCustomAccent}
+            canUseCustomBackground={canUseCustomBackground}
+            canUseCustomLayout={canUseCustomLayout}
+            onOpenFeatureGate={openFeatureGate}
           />
         </Suspense></SectionErrorBoundary>
       )}
