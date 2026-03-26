@@ -1274,6 +1274,21 @@ const de = {
   'payout.overlay.place': 'Platz',
   'payout.overlay.close': 'Schließen',
   'payout.overlay.hint': 'Passe die Spielerzahl an, um die Auszahlung zu simulieren',
+  // --- Game Info Bar ---
+  'info.players': 'Spieler',
+  'info.prizepool': 'Prizepool',
+  'info.avgStack': 'Ø Stack',
+  'info.elapsed': 'Spielzeit',
+  'info.remaining': 'Rest',
+  'info.payoutDetails': 'Auszahlungsdetails',
+  // --- Settings Modal ---
+  'settings.modalTitle': 'Einstellungen',
+  'settings.backToSetup': 'Zurück zum Setup',
+  // --- Controls More Menu ---
+  'controls.more': 'Mehr',
+  'controls.moreActions': 'Weitere Aktionen',
+  // --- Player Panel Actions ---
+  'playerPanel.actions': 'Aktionen',
   // --- Custom Alerts ---
   'alerts.title': 'Benutzerdefinierte Ansagen',
   'alerts.add': 'Ansage hinzufügen',
@@ -2738,6 +2753,21 @@ const en: Record<TranslationKey, string> = {
   'payout.overlay.place': 'Place',
   'payout.overlay.close': 'Close',
   'payout.overlay.hint': 'Adjust player count to simulate payouts',
+  // --- Game Info Bar ---
+  'info.players': 'Players',
+  'info.prizepool': 'Prize Pool',
+  'info.avgStack': 'Avg Stack',
+  'info.elapsed': 'Elapsed',
+  'info.remaining': 'Remaining',
+  'info.payoutDetails': 'Payout Details',
+  // --- Settings Modal ---
+  'settings.modalTitle': 'Settings',
+  'settings.backToSetup': 'Back to Setup',
+  // --- Controls More Menu ---
+  'controls.more': 'More',
+  'controls.moreActions': 'More Actions',
+  // --- Player Panel Actions ---
+  'playerPanel.actions': 'Actions',
   // --- Custom Alerts ---
   'alerts.title': 'Custom Announcements',
   'alerts.add': 'Add Announcement',
