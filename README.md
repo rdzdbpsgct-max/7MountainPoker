@@ -240,8 +240,6 @@ A fully client-side web app for managing home poker tournaments. No server, no a
 | Call the Clock | Shot clock countdown (default 60s, configurable 10–300s) — tension beeps in last 10 sec (key: C) |
 | Tournament Clone | Repeat a past tournament from history — same blind structure, buy-in, and players |
 | League Player Import | When starting a tournament from league mode, players from the last 5 game days are pre-filled |
-| Tournament Cloning | Repeat a tournament configuration from history — same blinds, buy-in, players |
-| League Player Pre-fill | When starting from league mode, players from the last 5 game days are auto-suggested |
 
 ### Contributing
 

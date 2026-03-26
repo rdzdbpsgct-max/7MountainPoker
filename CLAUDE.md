@@ -77,7 +77,7 @@ src/
 │   ├── DealMaker.tsx             # Deal-Making / Chop Calculator modal (ICM, Chip, Even)
 │   ├── GameDayEditor.tsx         # Manual game day entry modal with player management
 │   ├── GameInfoBar.tsx           # Compact info bar above timer (players, prizepool, avg BB, time)
-│   ├── GameSettingsModal.tsx     # Modal wrapper for SettingsPanel in game mode
+│   ├── GameSettingsModal.tsx     # Modal wrapper for SettingsPanel in game mode, includes Reset Level and Restart Tournament
 │   ├── LeagueCharts.tsx           # SVG line charts for league trends (points, placement, balance)
 │   ├── LeagueCreationModal.tsx   # League creation modal — name, point system presets, ranking algorithm
 │   ├── LeagueSettings.tsx        # League settings — tiebreaker config, seasons, point system (with presets)
@@ -323,7 +323,7 @@ public/
 - **Duration estimates**: Factor in player count to estimate realistic tournament length
 - **Import/export**: Full config as JSON with backward compatibility for old formats (integrated into TemplateManager)
 - **Tournament templates**: Save/load/delete named configs via localStorage or local JSON files (File System Access API with download fallback)
-- **Clean View**: Toggle to hide stats, sidebars, and secondary controls during game (keyboard: F)
+- **Clean View**: Toggle to hide sidebars (PlayerPanel, LevelPreview, ChipSidebar, MultiTablePanel) and RebuyStatus during game (keyboard: F). GameInfoBar and all Controls remain visible
 - **Auto-start on level jump**: Timer automatically starts when pressing Next/Previous level
 - **Bubble detection**: `isBubble()` and `isInTheMoney()` based on active players vs paid places; `BubbleIndicator` also shows Add-On announcement banner (amber, center-screen) when rebuy phase ends — with break: shown during break + next level (timer runs); without break: timer pauses automatically for add-on
 - **Hand-for-Hand mode**: Manual toggle (keyboard: H) during bubble phase. Activates pause/resume cycle — timer pauses, user clicks "Next Hand" to resume, manually pauses after each hand. Red banner in BubbleIndicator and DisplayMode. Voice announcement on activation. Auto-deactivates when bubble bursts.

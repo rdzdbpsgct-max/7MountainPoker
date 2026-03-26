@@ -232,8 +232,8 @@ export const helpSections: HelpSection[] = [
       {
         title: { de: 'Clean View', en: 'Clean View' },
         body: {
-          de: 'Taste F blendet Statistiken, Sidebars und sekundäre Buttons aus. Nur Timer, Blinds und wichtige Banner bleiben sichtbar — ideal für fokussiertes Spiel.',
-          en: 'Press F to hide stats, sidebars, and secondary buttons. Only timer, blinds, and important banners remain visible — ideal for focused play.',
+          de: 'Taste F blendet Sidebars (Spieler, Levelvorschau, Chips, Multi-Table) und den Rebuy-Status aus. Info-Leiste und alle Steuerungsbuttons bleiben sichtbar — ideal für fokussiertes Spiel.',
+          en: 'Press F to hide sidebars (players, level preview, chips, multi-table) and the rebuy status. Info bar and all control buttons remain visible — ideal for focused play.',
         },
       },
       {
