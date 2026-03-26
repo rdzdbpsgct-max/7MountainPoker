@@ -1109,6 +1109,8 @@ function App() {
             onToggleFullscreen={toggleFullscreen}
             onShowInstallGuide={() => modals.setShowInstallGuide(true)}
             onShowIcm={() => modals.setShowIcm(true)}
+            onResetLevel={handleResetLevel}
+            onRestartTournament={handleRestart}
             onExitToSetup={handleExitToSetup}
             canUseCustomAccent={canUseCustomAccent}
             canUseCustomBackground={canUseCustomBackground}

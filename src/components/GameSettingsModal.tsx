@@ -15,6 +15,8 @@ interface Props {
   onToggleFullscreen: () => void;
   onShowInstallGuide: () => void;
   onShowIcm: () => void;
+  onResetLevel: () => void;
+  onRestartTournament: () => void;
   onExitToSetup: () => void;
   canUseCustomAccent?: boolean | undefined;
   canUseCustomBackground?: boolean | undefined;
@@ -30,6 +32,8 @@ export const GameSettingsModal = memo(function GameSettingsModal({
   onToggleFullscreen,
   onShowInstallGuide,
   onShowIcm,
+  onResetLevel,
+  onRestartTournament,
   onExitToSetup,
   canUseCustomAccent,
   canUseCustomBackground,
@@ -102,6 +106,19 @@ export const GameSettingsModal = memo(function GameSettingsModal({
             className="w-full px-3 py-2 bg-gray-100/80 dark:bg-gray-800/50 hover:bg-gray-200/80 dark:hover:bg-gray-700/60 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200/60 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600/40"
           >
             {t('icm.title')}
+          </button>
+          <div className="border-t border-gray-200/60 dark:border-gray-700/30 my-1" />
+          <button
+            onClick={() => { onResetLevel(); onClose(); }}
+            className="w-full px-3 py-2 bg-gray-100/80 dark:bg-gray-800/50 hover:bg-gray-200/80 dark:hover:bg-gray-700/60 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200/60 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600/40"
+          >
+            {t('controls.levelReset')}
+          </button>
+          <button
+            onClick={() => { onRestartTournament(); onClose(); }}
+            className="w-full px-3 py-2 bg-red-50/80 dark:bg-red-900/20 hover:bg-red-100/80 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl text-sm font-medium transition-all duration-200 border border-red-200/60 dark:border-red-700/30 hover:border-red-300 dark:hover:border-red-600/40"
+          >
+            {t('controls.tournamentRestart')}
           </button>
           <button
             onClick={() => { onExitToSetup(); onClose(); }}
