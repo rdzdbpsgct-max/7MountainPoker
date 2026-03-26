@@ -534,6 +534,23 @@ const de = {
   'game.handForHand': 'HAND FOR HAND',
   'game.handForHandHint': 'Timer pausiert nach jeder Hand',
 
+  // --- Game Mode Stacked Zones ---
+  'game.statusBar.settings': 'Einstellungen',
+  'game.statusBar.tv': 'TV-Modus',
+  'game.statusBar.log': 'Protokoll',
+  'game.statusBar.tools': 'Werkzeuge',
+  'game.statusBar.help': 'Hilfe',
+  'game.statusBar.icm': 'ICM',
+  'game.statusBar.exit': 'Beenden',
+  'game.playerList.title': 'Aktive Spieler',
+  'game.playerList.eliminated': 'Ausgeschieden',
+  'game.playerList.dealerToggle': 'Dealer anzeigen',
+  'game.quickInfo.nextLevel': 'Nächstes Level',
+  'game.quickInfo.blindSchedule': 'Blind-Struktur',
+  'game.quickInfo.prizepool': 'Prizepool & Auszahlung',
+  'game.quickInfo.chips': 'Chips & Color-Up',
+  'game.quickInfo.multiTable': 'Multi-Table',
+
   // --- Display Mode (TV) ---
   'display.exit': 'TV-Modus beenden (T)',
   'display.playersRemaining': 'Spieler',
@@ -2000,6 +2017,23 @@ const en: Record<TranslationKey, string> = {
   'game.lastHandHint': 'This is the last hand of the current level',
   'game.handForHand': 'HAND FOR HAND',
   'game.handForHandHint': 'Timer pauses after each hand',
+
+  // --- Game Mode Stacked Zones ---
+  'game.statusBar.settings': 'Settings',
+  'game.statusBar.tv': 'TV Mode',
+  'game.statusBar.log': 'Log',
+  'game.statusBar.tools': 'Tools',
+  'game.statusBar.help': 'Help',
+  'game.statusBar.icm': 'ICM',
+  'game.statusBar.exit': 'Exit',
+  'game.playerList.title': 'Active Players',
+  'game.playerList.eliminated': 'Eliminated',
+  'game.playerList.dealerToggle': 'Show Dealer',
+  'game.quickInfo.nextLevel': 'Next Level',
+  'game.quickInfo.blindSchedule': 'Blind Schedule',
+  'game.quickInfo.prizepool': 'Prizepool & Payout',
+  'game.quickInfo.chips': 'Chips & Color-Up',
+  'game.quickInfo.multiTable': 'Multi-Table',
 
   // --- Display Mode (TV) ---
   'display.exit': 'Exit TV Mode (T)',
