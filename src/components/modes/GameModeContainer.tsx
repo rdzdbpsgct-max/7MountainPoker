@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useCallback } from 'react';
+import { lazy, memo, Suspense, useCallback, useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   ChipDenomination,
@@ -10,7 +10,7 @@ import type {
   TournamentConfig,
 } from '../../domain/types';
 import type { useTimer } from '../../hooks/useTimer';
-import { advanceTableDealer } from '../../domain/logic';
+import { advanceTableDealer, computeEstimatedRemainingSeconds } from '../../domain/logic';
 import type { AppFeature } from '../../domain/entitlements';
 import { useTranslation } from '../../i18n';
 import { SectionErrorBoundary } from '../ErrorBoundary';
@@ -25,6 +25,7 @@ const RebuyStatus = lazy(() => import('../RebuyStatus').then((m) => ({ default: 
 const BubbleIndicator = lazy(() => import('../BubbleIndicator').then((m) => ({ default: m.BubbleIndicator })));
 const SettingsPanel = lazy(() => import('../SettingsPanel').then((m) => ({ default: m.SettingsPanel })));
 const MultiTablePanel = lazy(() => import('../MultiTablePanel').then((m) => ({ default: m.MultiTablePanel })));
+const GameInfoBar = lazy(() => import('../GameInfoBar').then((m) => ({ default: m.GameInfoBar })));
 
 type TimerController = ReturnType<typeof useTimer>;
 
@@ -123,6 +124,11 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
   const { t } = useTranslation();
   const { onUpdateTables } = actions;
 
+  const estimatedRemaining = useMemo(
+    () => computeEstimatedRemainingSeconds(config.levels, timer.timerState.currentLevelIndex, timer.timerState.remainingSeconds),
+    [config.levels, timer.timerState.currentLevelIndex, timer.timerState.remainingSeconds],
+  );
+
   const handleAdvanceTableDealer = useCallback((tableId: string) => {
     const tables = config.tables ?? [];
     const table = tables.find(tbl => tbl.id === tableId);
@@ -194,6 +200,19 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
 
           {/* Timer + Controls */}
           <div className="flex-1 flex flex-col items-center justify-center p-3 sm:p-6 gap-3 sm:gap-6 relative">
+            {!ui.cleanView && (
+              <GameInfoBar
+                players={config.players}
+                buyIn={config.buyIn}
+                rebuyConfig={config.rebuy}
+                addOnConfig={config.addOn}
+                averageStack={state.averageStack}
+                tournamentElapsed={state.tournamentElapsed}
+                estimatedRemaining={estimatedRemaining}
+                currency={config.currency}
+                onShowPayoutOverlay={actions.onShowPayoutOverlay}
+              />
+            )}
             <TimerDisplay
               timerState={timer.timerState}
               levels={config.levels}
