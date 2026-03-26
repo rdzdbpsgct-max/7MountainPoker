@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { LanguageProvider } from '../src/i18n';
 import { ThemeProvider } from '../src/theme';
+import { GameStatusBar } from '../src/components/GameStatusBar';
 import { NumberStepper } from '../src/components/NumberStepper';
 import { CollapsibleSection } from '../src/components/CollapsibleSection';
 import { CollapsibleSubSection } from '../src/components/CollapsibleSubSection';
@@ -1685,5 +1686,45 @@ describe('SetupTabs', () => {
     );
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
+  });
+});
+
+// --- GameStatusBar ---
+describe('GameStatusBar', () => {
+  const baseProps = {
+    players: [
+      { id: '1', name: 'Alice', status: 'active' as const, rebuys: 0, addOn: false, knockouts: 0 },
+      { id: '2', name: 'Bob', status: 'active' as const, rebuys: 0, addOn: false, knockouts: 0 },
+      { id: '3', name: 'Charlie', status: 'eliminated' as const, rebuys: 0, addOn: false, knockouts: 0, placement: 3 },
+    ],
+    prizePool: 300,
+    currency: 'EUR' as const,
+    elapsedSeconds: 2700,
+    averageStack: 15000,
+    currentBB: 200,
+    onShowSettings: vi.fn(),
+    onShowTV: vi.fn(),
+    onShowLog: vi.fn(),
+    onShowHelp: vi.fn(),
+    onShowIcm: vi.fn(),
+    onExitToSetup: vi.fn(),
+  };
+
+  it('renders player count and prizepool', () => {
+    render(<GameStatusBar {...baseProps} />, { wrapper: Wrapper });
+    expect(screen.getByText('2/3')).toBeInTheDocument();
+    expect(screen.getByText(/300/)).toBeInTheDocument();
+  });
+
+  it('renders icon buttons with aria-labels', () => {
+    render(<GameStatusBar {...baseProps} />, { wrapper: Wrapper });
+    expect(screen.getByRole('button', { name: /einstellungen/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /tv/i })).toBeInTheDocument();
+  });
+
+  it('calls onShowSettings when settings button clicked', () => {
+    render(<GameStatusBar {...baseProps} />, { wrapper: Wrapper });
+    fireEvent.click(screen.getByRole('button', { name: /einstellungen/i }));
+    expect(baseProps.onShowSettings).toHaveBeenCalledOnce();
   });
 });
