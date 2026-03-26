@@ -21,6 +21,9 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastCountdownSecRef = useRef<number | null>(null);
   const levelEndAudioPlayedRef = useRef(false);
+  // Epoch counter: bumped when we clearTick + setState to 'running' so the
+  // useEffect that starts the interval re-fires even when status stays 'running'.
+  const [tickEpoch, setTickEpoch] = useState(0);
 
   const clearTick = useCallback(() => {
     if (intervalRef.current !== null) {
@@ -102,7 +105,9 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
     });
   }, [levels, settings.autoAdvance, settings.countdownEnabled, settings.soundEnabled, settings.voiceEnabled, pauseAtLevelIndex]);
 
-  // Start the interval when running
+  // Start the interval when running. tickEpoch ensures the interval restarts
+  // when nextLevel/previousLevel are called while already running (status
+  // stays 'running' so without the epoch the effect would not re-fire).
   useEffect(() => {
     if (timerState.status === 'running') {
       clearTick();
@@ -111,7 +116,8 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
       clearTick();
     }
     return clearTick;
-  }, [timerState.status, tick, clearTick]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timerState.status, tick, clearTick, tickEpoch]);
 
   // Reset timer state when levels change externally (e.g. preset switch)
   // This is a legitimate prop→state sync — setState is needed to reset the timer.
@@ -204,6 +210,8 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
       }
       return next;
     });
+    // Bump epoch so the interval-useEffect re-fires even when status stays 'running'
+    setTickEpoch((e) => e + 1);
   }, [levels, clearTick]);
 
   const previousLevel = useCallback(() => {
@@ -220,6 +228,8 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
       }
       return next;
     });
+    // Bump epoch so the interval-useEffect re-fires even when status stays 'running'
+    setTickEpoch((e) => e + 1);
   }, [levels, clearTick]);
 
   const resetLevel = useCallback(() => {
