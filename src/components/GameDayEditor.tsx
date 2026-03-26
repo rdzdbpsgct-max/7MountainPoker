@@ -261,6 +261,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddPlayer(); }}
               list="editor-registered-players"
               placeholder={t('league.editor.addPlayerPlaceholder')}
+              aria-label={t('league.editor.addPlayerName')}
               maxLength={50}
               className="flex-1 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:outline-none"
             />

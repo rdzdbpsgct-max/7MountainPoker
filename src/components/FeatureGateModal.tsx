@@ -31,7 +31,7 @@ export function FeatureGateModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="paywall-title"
-        className="max-w-md w-full rounded-2xl border border-gray-300 dark:border-gray-700/50 bg-white/95 dark:bg-gray-900/95 shadow-2xl shadow-gray-300/35 dark:shadow-black/45 p-6 space-y-4 animate-scale-in"
+        className="max-w-md w-full rounded-2xl border border-gray-300 dark:border-gray-700/50 bg-white/95 dark:bg-gray-900/95 shadow-2xl shadow-gray-300/40 dark:shadow-black/40 p-6 space-y-4 animate-scale-in"
       >
         <div className="flex items-start justify-between gap-3">
           <div>

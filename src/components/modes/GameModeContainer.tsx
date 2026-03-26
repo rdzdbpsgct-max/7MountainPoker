@@ -25,6 +25,7 @@ const RebuyStatus = lazy(() => import('../RebuyStatus').then((m) => ({ default: 
 const BubbleIndicator = lazy(() => import('../BubbleIndicator').then((m) => ({ default: m.BubbleIndicator })));
 const MultiTablePanel = lazy(() => import('../MultiTablePanel').then((m) => ({ default: m.MultiTablePanel })));
 const GameInfoBar = lazy(() => import('../GameInfoBar').then((m) => ({ default: m.GameInfoBar })));
+const TournamentSidebar = lazy(() => import('../TournamentSidebar').then((m) => ({ default: m.TournamentSidebar })));
 
 type TimerController = ReturnType<typeof useTimer>;
 
@@ -139,6 +140,7 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
   return (
     <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
       <div className="flex-1 flex flex-col overflow-hidden relative">
+        <h1 className="sr-only">{t('game.pageTitle')}</h1>
         {/* Player Panel (LEFT) — hidden when details hidden */}
         {!ui.cleanView && ui.showPlayerPanel && config.players.length > 0 && (
           <aside className="w-full md:absolute md:left-0 md:top-0 md:bottom-0 md:w-64 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/30 border-b md:border-b-0 md:border-r border-gray-200/80 dark:border-gray-700/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-md p-3 sm:p-4 overflow-y-auto max-h-[35vh] sm:max-h-[45vh] md:max-h-none">
@@ -300,6 +302,15 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
         {/* Sidebar (RIGHT) — hidden when details hidden */}
         {!ui.cleanView && ui.showSidebar && (
           <aside className="w-full md:absolute md:right-0 md:top-0 md:bottom-0 md:w-64 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/30 border-t md:border-t-0 md:border-l border-gray-200/80 dark:border-gray-700/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-md p-3 sm:p-4 space-y-4 sm:space-y-5 overflow-y-auto max-h-[60vh] sm:max-h-[70vh] md:max-h-none">
+            <TournamentSidebar
+              players={config.players}
+              buyIn={config.buyIn}
+              payout={config.payout}
+              rebuyConfig={config.rebuy}
+              addOnConfig={config.addOn}
+              bountyConfig={config.bounty}
+              currency={config.currency}
+            />
             <LevelPreview timerState={timer.timerState} levels={config.levels} />
             {config.chips.enabled && (
               <ChipSidebar

@@ -525,6 +525,7 @@ const de = {
   // --- Clean View ---
   'controls.detailsShow': 'Details einblenden',
   'controls.detailsHide': 'Details ausblenden',
+  'game.pageTitle': 'Turnier läuft',
   'game.lastHand': 'LETZTE HAND!',
   'game.lastHandHint': 'Diese Hand ist die letzte des aktuellen Levels',
   'game.handForHand': 'HAND FOR HAND',
@@ -624,6 +625,7 @@ const de = {
   'section.payoutSummary': '{places} Plätze, {mode}',
   'section.allDisabled': 'Alles deaktiviert',
   'section.bountyLabel': 'Bounty: {amount} {symbol}',
+  'setup.pageTitle': 'Turnier-Setup',
   'setup.audioSummary.on': 'Sound, {volume}%',
   'setup.audioSummary.off': 'Sound aus',
   'setup.tabStructure': 'Struktur',
@@ -784,6 +786,7 @@ const de = {
   'league.newLeague': 'Neue Liga',
   'league.name': 'Liga-Name',
   'league.namePlaceholder': 'z.B. Freitagsrunde',
+  'league.editName': 'Liga-Name bearbeiten',
   'league.pointSystem': 'Punktesystem',
   'league.place': 'Platz {n}',
   'league.points': 'Punkte',
@@ -911,6 +914,7 @@ const de = {
   'league.hasConfig': 'Einstellungen hinterlegt',
 
   // --- League View (full-page mode) ---
+  'league.pageTitle': 'Liga-Verwaltung',
   'league.view.title': 'Liga-Modus',
   'league.view.createLeague': 'Neue Liga',
   'league.view.createFirst': 'Erste Liga erstellen',
@@ -978,6 +982,7 @@ const de = {
   'league.editor.defaultBuyIn': 'Standard Buy-In',
   'league.editor.addPlayer': 'Hinzufügen',
   'league.editor.addPlayerPlaceholder': 'Spieler-Name eingeben…',
+  'league.editor.addPlayerName': 'Spieler-Name',
   'league.editor.playerName': 'Name',
   'league.editor.payoutCol': 'Auszahlung',
   'league.editor.guest': 'Gast',
@@ -1277,6 +1282,15 @@ const de = {
   'info.elapsed': 'Spielzeit',
   'info.remaining': 'Rest',
   'info.payoutDetails': 'Auszahlungsdetails',
+  // --- Tournament Sidebar ---
+  'sidebar.tournamentInfo': 'Turnier-Info',
+  'sidebar.prizePool': 'Prizepool',
+  'sidebar.rebuyPot': 'Rebuy-Pot',
+  'sidebar.bountyPool': 'Bounty-Pool',
+  'sidebar.rebuys': 'Rebuys',
+  'sidebar.addOns': 'Add-Ons',
+  'sidebar.payouts': 'Auszahlung',
+  'sidebar.playersLeft': 'übrig',
   // --- Settings Modal ---
   'settings.modalTitle': 'Einstellungen',
   'settings.backToSetup': 'Zurück zum Setup',
@@ -2001,6 +2015,7 @@ const en: Record<TranslationKey, string> = {
   // --- Clean View ---
   'controls.detailsShow': 'Show details',
   'controls.detailsHide': 'Hide details',
+  'game.pageTitle': 'Tournament Running',
   'game.lastHand': 'LAST HAND!',
   'game.lastHandHint': 'This is the last hand of the current level',
   'game.handForHand': 'HAND FOR HAND',
@@ -2100,6 +2115,7 @@ const en: Record<TranslationKey, string> = {
   'section.payoutSummary': '{places} places, {mode}',
   'section.allDisabled': 'All disabled',
   'section.bountyLabel': 'Bounty: {amount} {symbol}',
+  'setup.pageTitle': 'Tournament Setup',
   'setup.audioSummary.on': 'Sound, {volume}%',
   'setup.audioSummary.off': 'Sound off',
   'setup.tabStructure': 'Structure',
@@ -2257,6 +2273,7 @@ const en: Record<TranslationKey, string> = {
   'league.newLeague': 'New League',
   'league.name': 'League Name',
   'league.namePlaceholder': 'e.g. Friday Night',
+  'league.editName': 'Edit league name',
   'league.pointSystem': 'Point System',
   'league.place': 'Place {n}',
   'league.points': 'Points',
@@ -2384,6 +2401,7 @@ const en: Record<TranslationKey, string> = {
   'league.hasConfig': 'Settings stored',
 
   // --- League View (full-page mode) ---
+  'league.pageTitle': 'League Management',
   'league.view.title': 'League Mode',
   'league.view.createLeague': 'New League',
   'league.view.createFirst': 'Create First League',
@@ -2451,6 +2469,7 @@ const en: Record<TranslationKey, string> = {
   'league.editor.defaultBuyIn': 'Default Buy-In',
   'league.editor.addPlayer': 'Add',
   'league.editor.addPlayerPlaceholder': 'Enter player name…',
+  'league.editor.addPlayerName': 'Player name',
   'league.editor.playerName': 'Name',
   'league.editor.payoutCol': 'Payout',
   'league.editor.guest': 'Guest',
@@ -2750,6 +2769,15 @@ const en: Record<TranslationKey, string> = {
   'info.elapsed': 'Elapsed',
   'info.remaining': 'Remaining',
   'info.payoutDetails': 'Payout Details',
+  // --- Tournament Sidebar ---
+  'sidebar.tournamentInfo': 'Tournament Info',
+  'sidebar.prizePool': 'Prize Pool',
+  'sidebar.rebuyPot': 'Rebuy Pot',
+  'sidebar.bountyPool': 'Bounty Pool',
+  'sidebar.rebuys': 'Rebuys',
+  'sidebar.addOns': 'Add-Ons',
+  'sidebar.payouts': 'Payouts',
+  'sidebar.playersLeft': 'left',
   // --- Settings Modal ---
   'settings.modalTitle': 'Settings',
   'settings.backToSetup': 'Back to Setup',

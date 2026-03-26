@@ -101,6 +101,7 @@ export function SetupPage({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
+      <h1 className="sr-only">{t('setup.pageTitle')}</h1>
       <SetupTabs
         activeTab={activeTab}
         onTabChange={goToTab}

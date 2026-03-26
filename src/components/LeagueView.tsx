@@ -176,6 +176,7 @@ export function LeagueView({ onStartTournament }: Props) {
 
   return (
     <div className="flex-1 overflow-y-auto">
+      <h1 className="sr-only">{t('league.pageTitle')}</h1>
       <div className="max-w-5xl mx-auto p-4 space-y-4">
         {/* League Selector */}
         <div className="bg-white/80 dark:bg-gray-800/40 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700/40 shadow-lg shadow-gray-300/30 dark:shadow-black/20 p-4">
@@ -253,6 +254,7 @@ export function LeagueView({ onStartTournament }: Props) {
                         onChange={(e) => setEditNameValue(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleRenameLeague(selectedLeague.id); if (e.key === 'Escape') setEditingName(null); }}
                         className="bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-2 py-1 text-sm w-32 focus:ring-2 focus:outline-none"
+                        aria-label={t('league.editName')}
                         autoFocus
                       />
                       <button onClick={() => handleRenameLeague(selectedLeague.id)} className="text-xs px-3 py-1.5 rounded" style={{ color: 'var(--accent-text)' }} aria-label={t('accessibility.confirm')}>✓</button>
