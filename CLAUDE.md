@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.12.0
+**Version**: 6.12.1
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1360 tests, single run)
+npm run test         # Vitest run (1380 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -50,7 +50,7 @@ src/
 │   ├── CollapsibleSubSection.tsx # Lighter collapsible for nesting inside cards
 │   ├── CallTheClock.tsx          # Call-the-Clock shot clock modal
 │   ├── ConfigEditor.tsx         # Blind level table editor
-│   ├── Controls.tsx             # Play/Pause/Next/Prev/Reset/Restart buttons
+│   ├── Controls.tsx             # Play/Pause/Next/Prev + icon buttons (Undo, Redo, Last Hand, H4H, Call the Clock) + details toggle
 │   ├── display/                 # TV/Projector display subfolder
 │   │   ├── DisplayMode.tsx      # Main orchestrator — timer + rotating screens
 │   │   ├── PlayersScreen.tsx    # Active players grid
@@ -208,7 +208,7 @@ tests/
 ├── tournamentActions.test.tsx   # 41 useTournamentActions hook tests
 ├── sound-speech.test.ts         # 41 sound effects + speech announcement + AudioBuffer cache tests
 ├── league-advanced.test.ts      # 31 league advanced tests (tiebreaker, ELO, weighted points, H2H, extended standings)
-├── controls.test.tsx            # 26 Controls component tests (buttons, callbacks, ARIA, break controls)
+├── controls.test.tsx            # 30 Controls component tests (buttons, icon buttons, ARIA, details toggle, break controls)
 ├── hooks.test.tsx               # 25 useKeyboardShortcuts + useGameEvents tests
 ├── persistence.test.ts          # 25 config/settings/checkpoint save/load round-trips
 ├── i18n.test.ts                 # 24 i18n key parity, parameters, placeholder consistency, quality
@@ -400,7 +400,7 @@ public/
 
 ## Testing
 
-- **1370 tests** across 21 test files + 1 setup file
+- **1380 tests** across 21 test files + 1 setup file
 - Core files: `logic.test.ts` (711), `components.test.tsx` (129), `edge-cases.test.ts` (101), `events.test.ts` (52), `integration.test.ts` (51), `tournamentActions.test.tsx` (41), `sound-speech.test.ts` (41), `league-advanced.test.ts` (31), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `alertEngine.test.ts` (18), `entitlements.test.ts` (12), `startValidation.test.ts` (11), `a11y.test.tsx` (6), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
@@ -438,6 +438,15 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.12.1 — Controls Redesign: Icon Buttons & Details Toggle
+
+- **Controls Icon Buttons**: ··· Popover entfernt — Last Hand, H4H, Call the Clock, Undo/Redo als kompakte Icon-Buttons direkt sichtbar (Row 3). Kein verstecktes Menü mehr.
+- **Details Toggle entkoppelt**: `cleanView` blendet nur noch Sidebars (PlayerPanel, LevelPreview, ChipSidebar, MultiTablePanel) + RebuyStatus aus. GameInfoBar und Controls bleiben immer sichtbar.
+- **Reset/Restart → Settings Modal**: Level-Reset und Turnier-Neustart aus Controls-Popover in GameSettingsModal verschoben (Footer-Bereich).
+- **Sidebar-Toggle bei Details**: Desktop-Pfeile und Mobile-Pill-Buttons nur sichtbar wenn Details eingeblendet. Zentrale ☰-Taste bei ausgeblendeten Details.
+- **4 neue Translation-Keys** (2 DE + 2 EN): `controls.detailsShow`, `controls.detailsHide`
+- **1380 Tests gesamt** (21 Testdateien)
 
 ### v6.12.0 — Game Mode UX Redesign
 

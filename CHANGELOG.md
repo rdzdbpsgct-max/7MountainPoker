@@ -5,6 +5,20 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.12.1] – 2026-03-26
+
+### Controls Redesign: Icon Buttons & Details Toggle
+
+- **Controls Icon Buttons**: ··· Popover komplett entfernt. Last Hand (✋), H4H, Call the Clock (⏱), Undo (↩), Redo (↪) als kompakte Icon-Buttons direkt sichtbar in Row 3. Kein verstecktes Menü mehr — alle wichtigen Aktionen mit einem Tap erreichbar.
+- **Details Toggle entkoppelt**: `cleanView` blendet jetzt nur noch Sidebars (PlayerPanel, LevelPreview, ChipSidebar, MultiTablePanel) und RebuyStatus aus. GameInfoBar und alle Controls bleiben immer sichtbar.
+- **Reset/Restart → Settings Modal**: Level-Reset und Turnier-Neustart aus dem entfernten Controls-Popover in den Footer des GameSettingsModal verschoben. Restart-Button in Rot hervorgehoben.
+- **Sidebar-Toggle bei Details**: Desktop-Pfeil-Buttons und Mobile-Pill-Buttons nur sichtbar wenn Details eingeblendet. Zentrale ☰-Taste bei ausgeblendeten Details ermöglicht Wiedereinblenden.
+- **4 neue Translation-Keys** (2 DE + 2 EN): `controls.detailsShow`, `controls.detailsHide`
+- **Controls-Tests aktualisiert**: Popover-Tests entfernt, Icon-Button-Tests und Details-Toggle-Tests hinzugefügt (26 → 30 Tests)
+- **1380 Tests gesamt** (21 Testdateien)
+
+---
+
 ## [6.12.0] – 2026-03-26
 
 ### Game Mode UX Redesign — Focused Tournament Experience
