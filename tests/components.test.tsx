@@ -23,6 +23,7 @@ import { ConfigEditor } from '../src/components/ConfigEditor';
 import { SettingsPanel } from '../src/components/SettingsPanel';
 import { LoadingFallback } from '../src/components/LoadingFallback';
 import { PlayerPanel } from '../src/components/PlayerPanel';
+import { SetupTabs } from '../src/components/SetupTabs';
 
 // Mock the speech module for useVoiceAnnouncements tests
 vi.mock('../src/domain/speech', () => ({
@@ -1635,5 +1636,54 @@ describe('collectStartErrors', () => {
     };
     const errors = collectStartErrors(config, (k: string) => k);
     expect(errors.length).toBe(0);
+  });
+});
+
+describe('SetupTabs', () => {
+  it('renders 4 tabs with correct labels', () => {
+    renderWithProviders(
+      <SetupTabs
+        activeTab={0}
+        onTabChange={() => {}}
+        tabStatus={{ basis: 'complete', players: 'incomplete', structure: 'incomplete', review: 'incomplete' }}
+      />
+    );
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(screen.getAllByRole('tab')).toHaveLength(4);
+  });
+
+  it('marks active tab with aria-selected', () => {
+    renderWithProviders(
+      <SetupTabs activeTab={1} onTabChange={() => {}} tabStatus={{ basis: 'complete', players: 'incomplete', structure: 'incomplete', review: 'incomplete' }} />
+    );
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'false');
+  });
+
+  it('calls onTabChange when tab clicked', () => {
+    const onChange = vi.fn();
+    renderWithProviders(
+      <SetupTabs activeTab={0} onTabChange={onChange} tabStatus={{ basis: 'incomplete', players: 'incomplete', structure: 'incomplete', review: 'incomplete' }} />
+    );
+    fireEvent.click(screen.getAllByRole('tab')[2]);
+    expect(onChange).toHaveBeenCalledWith(2);
+  });
+
+  it('shows completion badge on complete tabs', () => {
+    renderWithProviders(
+      <SetupTabs activeTab={0} onTabChange={() => {}} tabStatus={{ basis: 'complete', players: 'complete', structure: 'incomplete', review: 'incomplete' }} />
+    );
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs[0]).toHaveTextContent('\u2713');
+    expect(tabs[1]).toHaveTextContent('\u2713');
+  });
+
+  it('renders progress bar', () => {
+    renderWithProviders(
+      <SetupTabs activeTab={0} onTabChange={() => {}} tabStatus={{ basis: 'complete', players: 'complete', structure: 'incomplete', review: 'incomplete' }} />
+    );
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
   });
 });
