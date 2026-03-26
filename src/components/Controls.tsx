@@ -12,9 +12,6 @@ interface Props {
   isBreak?: boolean | undefined;
   onSkipBreak?: (() => void) | undefined;
   onExtendBreak?: ((seconds: number) => void) | undefined;
-  hideSecondaryControls?: boolean | undefined;
-  cleanView?: boolean | undefined;
-  onToggleCleanView?: (() => void) | undefined;
   lastHandActive?: boolean | undefined;
   onLastHand?: (() => void) | undefined;
   handForHandActive?: boolean | undefined;
@@ -41,9 +38,6 @@ export const Controls = memo(function Controls({
   isBreak,
   onSkipBreak,
   onExtendBreak,
-  hideSecondaryControls,
-  cleanView,
-  onToggleCleanView,
   lastHandActive,
   onLastHand,
   handForHandActive,
@@ -172,20 +166,6 @@ export const Controls = memo(function Controls({
             {t('controls.lastHand')}
           </button>
         )}
-        {onToggleCleanView && (
-          <button
-            onClick={onToggleCleanView}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
-              cleanView
-                ? 'text-white border-transparent'
-                : 'bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40 shadow-gray-200/30 dark:shadow-black/15'
-            }`}
-            style={cleanView ? { backgroundColor: 'var(--accent-600)', borderColor: 'var(--accent-500)' } : undefined}
-            title={cleanView ? t('game.cleanViewOff') : t('game.cleanViewOn')}
-          >
-            {cleanView ? t('game.cleanViewOn') : t('game.cleanViewOff')}
-          </button>
-        )}
         {onCallTheClock && callTheClockSeconds != null && (
           <button
             onClick={onCallTheClock}
@@ -197,7 +177,6 @@ export const Controls = memo(function Controls({
         )}
       </div>
 
-      {!hideSecondaryControls && (
         <div className="flex items-center gap-2 flex-wrap justify-center">
           {onUndo && (
             <button
@@ -246,7 +225,6 @@ export const Controls = memo(function Controls({
             {t('controls.tournamentRestart')}
           </button>
         </div>
-      )}
     </div>
   );
 }, (prev, next) =>
@@ -260,9 +238,6 @@ export const Controls = memo(function Controls({
   prev.isBreak === next.isBreak &&
   prev.onSkipBreak === next.onSkipBreak &&
   prev.onExtendBreak === next.onExtendBreak &&
-  prev.hideSecondaryControls === next.hideSecondaryControls &&
-  prev.cleanView === next.cleanView &&
-  prev.onToggleCleanView === next.onToggleCleanView &&
   prev.lastHandActive === next.lastHandActive &&
   prev.onLastHand === next.onLastHand &&
   prev.handForHandActive === next.handForHandActive &&

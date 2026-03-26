@@ -37,7 +37,6 @@ export const GameTimerZone = memo(function GameTimerZone({
           onScrub={timer.setRemainingSeconds}
           onScrubEnd={timer.start}
           chipConfig={config.chips}
-          cleanView={false}
           colorUpMap={state.colorUpMap}
           anteMode={config.anteMode}
         />
@@ -66,9 +65,6 @@ export const GameTimerZone = memo(function GameTimerZone({
           isBreak={state.isBreak}
           onSkipBreak={actions.onSkipBreak}
           onExtendBreak={actions.onExtendBreak}
-          hideSecondaryControls={false}
-          cleanView={false}
-          onToggleCleanView={actions.onToggleCleanView}
           lastHandActive={state.lastHandActive}
           onLastHand={actions.onLastHand}
           handForHandActive={state.handForHandActive}

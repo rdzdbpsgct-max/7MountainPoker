@@ -1,15 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { isWizardCompleted } from '../domain/configPersistence';
 
 /**
  * Centralized modal state management hook.
- * Extracts all modal boolean states + cleanView from App.tsx into a single hook.
+ * Extracts all modal boolean states from App.tsx into a single hook.
  */
 export function useModalManager() {
-  // Panel visibility (default: visible)
-  const [showPlayerPanel, setShowPlayerPanel] = useState(true);
-  const [showSidebar, setShowSidebar] = useState(true);
-
   // Modal visibility (default: false)
   const [showTemplates, setShowTemplates] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -42,32 +38,7 @@ export function useModalManager() {
     return false;
   });
 
-  // Clean view state
-  const [cleanView, setCleanView] = useState(false);
-
-  const toggleCleanView = useCallback(() => {
-    setCleanView((prev) => {
-      const next = !prev;
-      if (next) {
-        // Hiding details -> also hide both sidebars
-        setShowPlayerPanel(false);
-        setShowSidebar(false);
-      } else {
-        // Showing details -> also show both sidebars
-        setShowPlayerPanel(true);
-        setShowSidebar(true);
-      }
-      return next;
-    });
-  }, []);
-
   return {
-    // Panel visibility
-    showPlayerPanel,
-    setShowPlayerPanel,
-    showSidebar,
-    setShowSidebar,
-
     // Modal visibility
     showTemplates,
     setShowTemplates,
@@ -97,11 +68,6 @@ export function useModalManager() {
     setShowInstallGuide,
     showShareHub,
     setShowShareHub,
-
-    // Clean view
-    cleanView,
-    setCleanView,
-    toggleCleanView,
   };
 }
 

@@ -576,7 +576,6 @@ function App() {
     onNextLevel: timer.nextLevel,
     onPreviousLevel: timer.previousLevel,
     onResetLevel: handleResetLevelShortcut,
-    onToggleCleanView: modals.toggleCleanView,
     onLastHand: handleLastHand,
     onToggleTVWindow: handleToggleTVWindowWithGate,
     onHandForHand: handleHandForHand,
@@ -707,9 +706,6 @@ function App() {
       setPendingCheckpoint,
       setAddOnEndLevelIndex,
       setRecentTableMoves,
-      setCleanView: modals.setCleanView,
-      setShowPlayerPanel: modals.setShowPlayerPanel,
-      setShowSidebar: modals.setShowSidebar,
       setShowDealerBadges,
       setLastHandActive,
       setHandForHandActive,
@@ -726,15 +722,12 @@ function App() {
 
   // Destructure stable modal setters for useMemo dep array (avoids react-hooks/exhaustive-deps warning on `modals` object)
   const {
-    setShowPlayerPanel, setShowSidebar, toggleCleanView,
     setShowCallTheClock, setShowPayoutOverlay, setShowIcm, setShowInstallGuide: setShowInstallGuideModal,
   } = modals;
 
   // Memoize the actions object for GameModeContainer to avoid re-creating on every render.
   // All callbacks are already stable (useCallback / useState setters).
   const gameModeActions = useMemo(() => ({
-    onTogglePlayerPanel: () => setShowPlayerPanel((v: boolean) => !v),
-    onToggleSidebar: () => setShowSidebar((v: boolean) => !v),
     onUpdatePlayerRebuys: updatePlayerRebuys,
     onUpdatePlayerAddOn: updatePlayerAddOn,
     onEliminatePlayer: eliminatePlayer,
@@ -751,7 +744,6 @@ function App() {
     onExtendBreak: handleExtendBreak,
     onResetLevel: handleResetLevel,
     onRestartTournament: handleRestart,
-    onToggleCleanView: toggleCleanView,
     onLastHand: handleLastHand,
     onHandForHand: handleHandForHand,
     onNextHand: handleNextHand,
@@ -766,7 +758,6 @@ function App() {
     onExitToSetup: handleExitToSetup,
     onAcceptDeal: acceptDeal,
   }), [
-    setShowPlayerPanel, setShowSidebar, toggleCleanView,
     setShowCallTheClock, setShowPayoutOverlay, setShowIcm, setShowInstallGuideModal,
     updatePlayerRebuys, updatePlayerAddOn, eliminatePlayer, reinstatePlayer,
     handleAdvanceDealer, handleToggleDealerBadges, updatePlayerStack, initStacks, clearStacks,
@@ -786,10 +777,9 @@ function App() {
     handForHandActive, lateRegOpen, colorUpMap, recentTableMoves, isBreak]);
 
   const gameModeUi = useMemo(() => ({
-    cleanView: modals.cleanView, showPlayerPanel: modals.showPlayerPanel,
-    showSidebar: modals.showSidebar, showDealerBadges,
+    showDealerBadges,
     canUseCustomAccent, canUseCustomBackground, canUseCustomLayout,
-  }), [modals.cleanView, modals.showPlayerPanel, modals.showSidebar, showDealerBadges,
+  }), [showDealerBadges,
     canUseCustomAccent, canUseCustomBackground, canUseCustomLayout]);
 
   const gameModeUndo = useMemo(() => ({
@@ -1100,7 +1090,7 @@ function App() {
               onClick={() => modals.setShowSettingsModal(false)}
               className="mt-3 w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm transition-colors"
             >
-              {t('app.close')}
+              {t('templates.close')}
             </button>
           </div>
         </div>

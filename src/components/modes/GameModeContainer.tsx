@@ -46,9 +46,6 @@ export interface GameModeState {
 
 /** UI visibility toggles */
 export interface GameModeUiState {
-  cleanView: boolean;
-  showPlayerPanel: boolean;
-  showSidebar: boolean;
   showDealerBadges: boolean;
   canUseCustomAccent?: boolean | undefined;
   canUseCustomBackground?: boolean | undefined;
@@ -57,8 +54,6 @@ export interface GameModeUiState {
 
 /** All action callbacks for game mode */
 export interface GameModeActions {
-  onTogglePlayerPanel: () => void;
-  onToggleSidebar: () => void;
   onUpdatePlayerRebuys: (playerId: string, newCount: number) => void;
   onUpdatePlayerAddOn: (playerId: string, hasAddOn: boolean) => void;
   onEliminatePlayer: (playerId: string, eliminatedBy: string | null) => void;
@@ -75,7 +70,6 @@ export interface GameModeActions {
   onExtendBreak: (seconds: number) => void;
   onResetLevel: () => void;
   onRestartTournament: () => void;
-  onToggleCleanView: () => void;
   onLastHand: () => void;
   onHandForHand: () => void;
   onNextHand: () => void;

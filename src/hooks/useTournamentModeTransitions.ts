@@ -38,9 +38,6 @@ export interface TransitionSetters {
   setPendingCheckpoint: (value: SetStateAction<TournamentCheckpoint | null>) => void;
   setAddOnEndLevelIndex: (value: SetStateAction<number | null>) => void;
   setRecentTableMoves: (value: SetStateAction<TableMove[]>) => void;
-  setCleanView: (value: SetStateAction<boolean>) => void;
-  setShowPlayerPanel: (value: SetStateAction<boolean>) => void;
-  setShowSidebar: (value: SetStateAction<boolean>) => void;
   setShowDealerBadges: (value: SetStateAction<boolean>) => void;
   setLastHandActive: (value: SetStateAction<boolean>) => void;
   setHandForHandActive: (value: SetStateAction<boolean>) => void;
@@ -91,9 +88,6 @@ export function useTournamentModeTransitions({
     setPendingCheckpoint,
     setAddOnEndLevelIndex,
     setRecentTableMoves,
-    setCleanView,
-    setShowPlayerPanel,
-    setShowSidebar,
     setShowDealerBadges,
     setLastHandActive,
     setHandForHandActive,
@@ -127,9 +121,6 @@ export function useTournamentModeTransitions({
 
     setAddOnEndLevelIndex(null);
     setRecentTableMoves([]);
-    setCleanView(false);
-    setShowPlayerPanel(true);
-    setShowSidebar(true);
     setShowDealerBadges(true);
     setMode('game');
     initSpeech();
@@ -149,9 +140,6 @@ export function useTournamentModeTransitions({
     setPendingCheckpoint,
     setAddOnEndLevelIndex,
     setRecentTableMoves,
-    setCleanView,
-    setShowPlayerPanel,
-    setShowSidebar,
     setShowDealerBadges,
     setMode,
     timer,
@@ -222,9 +210,6 @@ export function useTournamentModeTransitions({
 
     setPendingCheckpoint(null);
     setShowSeatingOverlay(false);
-    setCleanView(false);
-    setShowPlayerPanel(true);
-    setShowSidebar(true);
     setMode('game');
   }, [
     pendingCheckpoint,
@@ -233,9 +218,6 @@ export function useTournamentModeTransitions({
     timer,
     setPendingCheckpoint,
     setTournamentEvents,
-    setCleanView,
-    setShowPlayerPanel,
-    setShowSidebar,
     setMode,
     t,
   ]);
