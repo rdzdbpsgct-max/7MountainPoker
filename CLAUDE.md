@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.11.1
+**Version**: 6.12.0
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1360 tests, single run)
+npm run test         # Vitest run (1367 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -109,9 +109,13 @@ src/
 │   ├── SharedResultView.tsx     # Read-only modal for QR-shared tournament results
 │   ├── TournamentHistory.tsx    # Tournament history modal with standings, player stats, export
 │   ├── Toast.tsx                # Lightweight toast notification system (portal-based, auto-dismiss)
-│   ├── TournamentStats.tsx      # Live stats bar (players, prizepool, avg BB, time)
+│   ├── GameLayout.tsx           # Game mode stacked zones orchestrator (Zone 1-2-3 composition)
+│   ├── GameStatusBar.tsx        # Zone 1: sticky compact stats bar + icon buttons (settings, share, TV, log)
+│   ├── GameTimerZone.tsx        # Zone 2: sticky timer display + controls wrapper
+│   ├── GamePlayerList.tsx       # Zone 3: scrollable player list with inline bounty picker
+│   ├── GameQuickInfo.tsx        # Zone 3: accordion cards for schedule, payout, chips
 │   └── modes/                   # Mode container components (extracted from App.tsx)
-│       ├── GameModeContainer.tsx         # Game mode orchestrator
+│       ├── GameModeContainer.tsx         # Game mode orchestrator (delegates to GameLayout)
 │       ├── LeagueModeContainer.tsx       # League mode container
 │       ├── SetupModeContainer.tsx        # Setup mode container
 │       └── TournamentFinishedContainer.tsx # Tournament finished container
@@ -311,7 +315,7 @@ public/
 - **Drift-free timer**: Uses `Date.now()` wall-clock timestamps, not interval counters
 - **Sound**: Web Audio API oscillators — no external audio files. Sound functions return Promises for precise voice coordination (victory: 1700ms, bubble: 1450ms, ITM: 700ms)
 - **Voice announcements**: Triple-fallback system — ElevenLabs pre-recorded MP3s (German: Ava, English: voice `xctasy8XvGp2cVO9HL9k`), HTMLAudioElement fallback, Web Speech API (`speechSynthesis`) as last resort. 295 MP3 files per language in `public/audio/de/` and `public/audio/en/` (590 total, PWA-cached for offline use). `audioPlayer.ts` handles gapless sequential MP3 playback via Web Audio API with trailing-silence trimming, falls back to HTMLAudioElement for maximum browser compatibility; `speech.ts` unified queue supports both `audio` and `speech` items. Manifest-based file lookup (110 blind pairs, 20 ante values, 25 levels, 30 break durations 1–30 min) determines MP3 availability; falls back to Web Speech API for missing files or dynamic content (player names, mystery bounty amounts). `VoiceSwitcher` header toggle (sound-only / voice). Announces: tournament start ("Shuffle up and deal!"), level changes, breaks (start + 30s warning + break over), 5-minute warning, last hand (before break / end of level), bubble, dynamic player count milestones (based on paid places — announces from paidPlaces down to 3 + heads-up), ITM, eliminations, rebuy taken, tournament winner (personalized with name), add-on, rebuy end, color-up (+ next-break warning), timer paused/resumed, mystery bounty draw, call the clock (start + expired), late registration closed, table moves (MP3 intro + speech details), table dissolution (MP3 intro + speech details), final table. Verbal countdown for last 10 seconds (play levels only, beeps during breaks). Sound effects finish before voice starts (delay-based coordination).
-- **Keyboard shortcuts** (in App.tsx): Space (play/pause), N (next level), V (previous), R (reset), F (clean view toggle), L (last hand toggle), T (TV display mode toggle), H (hand-for-hand toggle), C (call the clock), Cmd+Z (undo), Cmd+Shift+Z (redo)
+- **Keyboard shortcuts** (in App.tsx): Space (play/pause), N (next level), V (previous), R (reset), L (last hand toggle), T (TV display mode toggle), H (hand-for-hand toggle), C (call the clock), Cmd+Z (undo), Cmd+Shift+Z (redo)
 - **TV Display Mode**: Dedicated fullscreen overlay (`DisplayMode.tsx`) optimized for projectors/TVs at 3+ meter distance. Split-layout: **Timer always visible** (top ~55% — level label, blinds, countdown, progress bar, next level preview, banners) + **8 rotating secondary screens** (bottom ~45% — Players → Stats → Payout → Blind Schedule → Chips → Seating → League → Side-Pots, every 15 seconds). Players screen: active grid with CL badge, rebuys, eliminated compact. Stats screen: prizepool, active players, avg BB, elapsed/remaining, rebuys, add-ons, bounty pool. Payout screen: places with amounts, medal emojis top 3, bubble indicator. Dark background, large timer (8rem). Manual navigation via arrow keys. Indicator dots for secondary screens. Exit via T/Escape. Lazy-loaded (~13.5 KB chunk). 📺 button in header during game mode.
 - **Ante calculation**: Two modes — Standard (~12.5% of big blind, rounded to "nice" values) or Big Blind Ante (BBA, ante = big blind). Toggle in setup when ante is enabled. `AnteMode` type in `types.ts`
 - **Blind structure generator**: 3 speeds (fast/normal/slow) with distinct BB progressions scaled from 20k reference; chip-aware rounding via `roundToChipMultiple()` when denominations are active
@@ -320,12 +324,11 @@ public/
 - **Duration estimates**: Factor in player count to estimate realistic tournament length
 - **Import/export**: Full config as JSON with backward compatibility for old formats (integrated into TemplateManager)
 - **Tournament templates**: Save/load/delete named configs via localStorage or local JSON files (File System Access API with download fallback)
-- **Clean View**: Toggle to hide stats, sidebars, and secondary controls during game (keyboard: F)
 - **Auto-start on level jump**: Timer automatically starts when pressing Next/Previous level
 - **Bubble detection**: `isBubble()` and `isInTheMoney()` based on active players vs paid places; `BubbleIndicator` also shows Add-On announcement banner (amber, center-screen) when rebuy phase ends — with break: shown during break + next level (timer runs); without break: timer pauses automatically for add-on
 - **Hand-for-Hand mode**: Manual toggle (keyboard: H) during bubble phase. Activates pause/resume cycle — timer pauses, user clicks "Next Hand" to resume, manually pauses after each hand. Red banner in BubbleIndicator and DisplayMode. Voice announcement on activation. Auto-deactivates when bubble bursts.
 - **Stack Tracking**: Optional per-player `chips` field in Player interface. "Initialize stacks" button in PlayerPanel computes starting chips + rebuys + add-ons. Inline number input for editing stacks. Chip Leader badge ("C" amber circle). Auto-adjusts on rebuy/add-on/elimination. `initializePlayerStacks()`, `findChipLeader()`, `computeAverageStackFromPlayers()` in logic.ts.
-- **Tournament stats**: Live display of players, prizepool, avg stack in BB, elapsed/remaining time
+- **Tournament stats**: Live display of players, prizepool, avg stack in BB, elapsed/remaining time in GameStatusBar (Zone 1)
 - **Dark/Light mode**: 3-way toggle (System/Light/Dark) in header; `ThemeProvider` manages mode + system preference listener + `dark` class on `<html>`; `useTheme()` hook; `poker-timer-theme` in localStorage; PWA `theme-color` meta tag updated dynamically
 - **Code splitting**: Game-mode components lazy-loaded via `React.lazy()` + `Suspense`; `html-to-image` dynamically imported only when capturing screenshots; main bundle ~606KB + game chunks (incl. RemoteControl ~9KB)
 - **SVG Chevrons**: `ChevronIcon` component with CSS rotation animation replaces Unicode triangles for collapsible sections
@@ -394,11 +397,12 @@ public/
 - **Checkpoint Schema Versioning**: Version field in checkpoint for forward compatibility.
 - **Feature Discovery**: `isFeatureDiscovered()`, `markFeatureDiscovered()`, `getUndiscoveredFeatures()` in `entitlements.ts`. Tracks which features users have found.
 - **Conversion Telemetry**: `monetizationTelemetry.ts` tracks feature access patterns for conversion insights.
+- **Game Mode Stacked Zones Layout**: Single-column mobile-first layout replaces 3-panel (PlayerPanel left, Timer center, Sidebar right). `GameLayout.tsx` orchestrates 3 zones: **Zone 1** (`GameStatusBar`) — sticky compact stats bar with icon buttons (settings, share, TV, log); **Zone 2** (`GameTimerZone`) — sticky timer + controls; **Zone 3** — scrollable area with `GamePlayerList` (inline bounty picker, rebuy/add-on buttons, elimination) + `GameQuickInfo` (accordion cards for blind schedule, payout, chips). Clean View feature removed (stacked layout always shows all content). SettingsPanel renders as modal overlay. `TournamentStats` component removed (data in GameStatusBar).
 
 ## Testing
 
-- **1360 tests** across 21 test files + 1 setup file
-- Core files: `logic.test.ts` (711), `components.test.tsx` (117), `edge-cases.test.ts` (101), `events.test.ts` (52), `integration.test.ts` (51), `tournamentActions.test.tsx` (41), `sound-speech.test.ts` (41), `league-advanced.test.ts` (31), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `alertEngine.test.ts` (18), `entitlements.test.ts` (12), `startValidation.test.ts` (11), `a11y.test.tsx` (6), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
+- **1367 tests** across 21 test files + 1 setup file
+- Core files: `logic.test.ts` (711), `components.test.tsx` (124), `edge-cases.test.ts` (101), `events.test.ts` (52), `integration.test.ts` (51), `tournamentActions.test.tsx` (41), `sound-speech.test.ts` (41), `league-advanced.test.ts` (31), `controls.test.tsx` (23), `hooks.test.tsx` (24), `persistence.test.ts` (25), `i18n.test.ts` (24), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (12), `alertEngine.test.ts` (18), `entitlements.test.ts` (12), `startValidation.test.ts` (11), `a11y.test.tsx` (5), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures
 - When modifying `logic.ts`, add or update corresponding tests
@@ -435,6 +439,21 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v6.12.0 — Game Mode Stacked Zones Layout
+
+- **Stacked Zones Layout**: 3-Panel-Layout (PlayerPanel links, Timer Mitte, Sidebar rechts) durch einspaltiges Stacked-Zones-Layout ersetzt. Mobile-first, optimiert für Smartphone-Bedienung während des Spiels.
+- **GameLayout Orchestrator**: Neuer `GameLayout.tsx` orchestriert 3 Zonen: Zone 1 (StatusBar, sticky) → Zone 2 (Timer, sticky) → Zone 3 (scrollbarer Aktionsbereich).
+- **GameStatusBar (Zone 1)**: Kompakte Stats-Leiste (Spieler, Prizepool, Avg BB, Uhrzeit) + Icon-Buttons (Einstellungen, Share, TV, Protokoll). Ersetzt alte TournamentStats-Komponente.
+- **GameTimerZone (Zone 2)**: Timer-Display + Controls als sticky Wrapper. Immer sichtbar beim Scrollen.
+- **GamePlayerList (Zone 3)**: Spielerliste mit Inline-Bounty-Picker, Rebuy/Add-On-Buttons, Elimination. Ersetzt PlayerPanel in neuem Layout.
+- **GameQuickInfo (Zone 3)**: Aufklappbare Akkordeon-Karten für Blindstruktur, Auszahlung, Chip-Werte. Ersetzt LevelPreview und ChipSidebar.
+- **Clean View entfernt**: Keyboard-Shortcut F, Toggle-Button, State in useModalManager — alles entfernt. Stacked Layout zeigt immer alle Inhalte.
+- **TournamentStats gelöscht**: Daten jetzt in GameStatusBar integriert.
+- **SettingsPanel als Modal**: Rendert als Overlay statt als Sidebar.
+- **Neue Dateien**: `GameLayout.tsx`, `GameStatusBar.tsx`, `GameTimerZone.tsx`, `GamePlayerList.tsx`, `GameQuickInfo.tsx`
+- **~34 neue Translation-Keys** (17 DE + 17 EN)
+- **7 neue Tests** — **1367 Tests gesamt** (21 Testdateien)
 
 ### v6.11.1 — Abschluss-Audit, Deal-Finished & Stale-Connection-Eviction
 
