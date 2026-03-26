@@ -141,7 +141,7 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Player Panel (LEFT) — hidden when details hidden */}
         {!ui.cleanView && ui.showPlayerPanel && config.players.length > 0 && (
-          <aside className="w-full md:absolute md:left-0 md:top-0 md:bottom-0 md:w-64 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/30 border-b md:border-b-0 md:border-r border-gray-200/80 dark:border-gray-700/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-md p-3 sm:p-4 overflow-y-auto max-h-[40vh] sm:max-h-[50vh] md:max-h-none">
+          <aside className="w-full md:absolute md:left-0 md:top-0 md:bottom-0 md:w-64 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/30 border-b md:border-b-0 md:border-r border-gray-200/80 dark:border-gray-700/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-md p-3 sm:p-4 overflow-y-auto max-h-[35vh] sm:max-h-[45vh] md:max-h-none">
             <PlayerPanel
               players={config.players}
               dealerIndex={config.dealerIndex}

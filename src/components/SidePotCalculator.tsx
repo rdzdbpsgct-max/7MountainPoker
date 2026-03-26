@@ -418,7 +418,7 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
         {/* Player rows (Advanced Mode) */}
         {mode === 'advanced' && <div className="px-5 py-4 space-y-2">
           {/* Column headers */}
-          <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-medium px-1">
+          <div className="flex items-center gap-2 text-2xs uppercase tracking-wider text-gray-400 dark:text-gray-500 font-medium px-1">
             <span className="w-24 shrink-0">{t('sidePot.headerName')}</span>
             <span className="flex-1">{t('sidePot.headerInvested')}</span>
             <span className="w-28 shrink-0 text-center">{t('sidePot.headerStatus')}</span>
@@ -550,7 +550,7 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                       {pot.type === 'main' ? t('sidePot.mainPot') : t('sidePot.sidePot', { n: pot.index })}
-                      {isSplit && <span className="ml-1.5 text-[10px] font-normal px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded">{t('sidePot.split')}</span>}
+                      {isSplit && <span className="ml-1.5 text-2xs font-normal px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded">{t('sidePot.split')}</span>}
                     </span>
                     <span className="text-sm font-bold font-mono tabular-nums" style={{ color: 'var(--accent-text)' }}>
                       {pot.amount.toLocaleString()}
@@ -571,7 +571,7 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
                   {/* Winner selection buttons */}
                   {pot.eligiblePlayerIds.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500 self-center mr-0.5">{t('sidePot.winnerLabel')}:</span>
+                      <span className="text-2xs text-gray-400 dark:text-gray-500 self-center mr-0.5">{t('sidePot.winnerLabel')}:</span>
                       {pot.eligiblePlayerIds.map((playerId) => {
                         const isWinner = potWinners.has(playerId);
                         const name = playerNameById.get(playerId) ?? playerId;
@@ -665,7 +665,7 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
                     )}
                   </div>
                   {isZero && p.payout === 0 && (
-                    <div className="mt-0.5 text-[10px] text-gray-400 dark:text-gray-500">{t('sidePot.noWinnings')}</div>
+                    <div className="mt-0.5 text-2xs text-gray-400 dark:text-gray-500">{t('sidePot.noWinnings')}</div>
                   )}
                 </div>
               );
@@ -673,7 +673,7 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
 
             {/* Odd chip info */}
             {payoutResult.oddChips.length > 0 && (
-              <div className="px-3 pt-1 text-[10px] text-gray-400 dark:text-gray-500 space-y-0.5">
+              <div className="px-3 pt-1 text-2xs text-gray-400 dark:text-gray-500 space-y-0.5">
                 {payoutResult.oddChips.map((oc, i) => (
                   <div key={i}>
                     {t('sidePot.oddChip', { n: oc.remainder, player: playerNameById.get(oc.awardedTo) ?? oc.awardedTo })}

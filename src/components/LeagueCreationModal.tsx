@@ -185,7 +185,7 @@ export function LeagueCreationModal({ onClose, onCreate }: Props) {
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5">
+            <p className="text-2xs text-gray-400 dark:text-gray-500 mt-1.5">
               {t('league.creation.rankingHint')}
             </p>
           </div>

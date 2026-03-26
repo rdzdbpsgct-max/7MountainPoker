@@ -30,7 +30,7 @@ export function CollapsibleSubSection({ title, summary, defaultOpen = false, chi
         </div>
       </button>
       {isOpen && (
-        <div className="p-4 bg-gray-50 dark:bg-gray-900/30 animate-fade-in">
+        <div className="p-4 bg-gray-50 dark:bg-gray-900/20 animate-fade-in">
           {children}
         </div>
       )}

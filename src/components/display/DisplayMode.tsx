@@ -185,7 +185,23 @@ export function DisplayMode({
 }: Props) {
   const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const { t } = useTranslation();
-  const layoutConfig = getLayoutConfig(displayLayout);
+  const baseLayoutConfig = getLayoutConfig(displayLayout);
+
+  // Detect portrait orientation — increase timer ratio for better use of vertical space
+  const [isPortrait, setIsPortrait] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(orientation: portrait)').matches
+  );
+  useEffect(() => {
+    const mql = window.matchMedia('(orientation: portrait)');
+    const handler = (e: MediaQueryListEvent) => setIsPortrait(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
+  // In portrait, shift more space to the timer (70/30 split)
+  const layoutConfig = isPortrait
+    ? { ...baseLayoutConfig, timerFlex: Math.max(baseLayoutConfig.timerFlex, 7), secondaryFlex: Math.min(baseLayoutConfig.secondaryFlex, 3) }
+    : baseLayoutConfig;
 
   const rotationIntervalMs = (displayRotationInterval ?? DEFAULT_ROTATION_INTERVAL) * 1000;
 
@@ -505,7 +521,7 @@ export function DisplayMode({
       {/* Bottom bar: rotation hint */}
       {layoutConfig.showRotationHint && (
         <div className="px-6 py-1 border-t border-gray-800/60 text-center">
-          <p className="text-gray-600 text-[10px]">
+          <p className="text-gray-600 text-2xs">
             {secondaryScreens.length > 1
               ? `${t('display.rotationHint', { n: rotationIntervalMs / 1000 })} · ← → ${t('display.navigate')}`
               : `← → ${t('display.navigate')}`

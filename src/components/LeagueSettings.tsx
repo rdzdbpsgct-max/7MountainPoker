@@ -244,7 +244,7 @@ export function LeagueSettings({ league, onClose, onSaved }: Props) {
                   <label className="text-xs font-medium text-gray-600 dark:text-gray-300">{t('league.ranking.decay')}</label>
                   <NumberStepper value={decayFactor} onChange={setDecayFactor} min={0.5} max={1.0} step={0.05} />
                 </div>
-                <p className="text-[10px] text-gray-400 dark:text-gray-500">{t('league.ranking.decayHint')}</p>
+                <p className="text-2xs text-gray-400 dark:text-gray-500">{t('league.ranking.decayHint')}</p>
               </div>
             )}
           </div>
@@ -330,7 +330,7 @@ export function LeagueSettings({ league, onClose, onSaved }: Props) {
                       </span>
                     </span>
                     {activeSeasonId === s.id && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full text-white font-medium" style={{ backgroundColor: 'var(--accent-600)' }}>
+                      <span className="text-2xs px-1.5 py-0.5 rounded-full text-white font-medium" style={{ backgroundColor: 'var(--accent-600)' }}>
                         {t('league.settings.active')}
                       </span>
                     )}

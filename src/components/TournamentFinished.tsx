@@ -552,7 +552,7 @@ export function TournamentFinished({
               className="flex-1 px-4 py-2.5 bg-gray-100/80 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200 dark:border-gray-700/40 active:scale-[0.97] disabled:opacity-50"
               title={t('finished.downloadPDF')}
             >
-              {generatingPdf ? '...' : t('finished.downloadPDF')}
+              {generatingPdf ? (<><svg className="animate-spin h-4 w-4 inline mr-1" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>{t('finished.downloadPDF')}</>) : t('finished.downloadPDF')}
             </button>
             <button
               onClick={() => window.print()}

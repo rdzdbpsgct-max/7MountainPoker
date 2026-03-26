@@ -215,7 +215,7 @@ export function TemplateManager({ config, onLoad, onClose }: Props) {
             <span>↓</span> {t('templates.saveToFile')}
           </button>
           {!hasNativeSavePicker && (
-            <p className="text-gray-300 dark:text-gray-600 text-[10px] leading-tight">
+            <p className="text-gray-300 dark:text-gray-600 text-2xs leading-tight">
               {t('templates.saveHint')}
             </p>
           )}

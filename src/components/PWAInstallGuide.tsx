@@ -76,7 +76,7 @@ function PlatformCard({ platform, defaultOpen }: { platform: Platform; defaultOp
             {steps.map((step, i) => (
               <li key={i} className="flex items-start gap-2.5">
                 <span
-                  className="mt-0.5 flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white shrink-0"
+                  className="mt-0.5 flex items-center justify-center w-5 h-5 rounded-full text-2xs font-bold text-white shrink-0"
                   style={{ backgroundColor: 'var(--accent-600)' }}
                 >
                   {i + 1}

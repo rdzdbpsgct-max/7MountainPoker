@@ -138,9 +138,9 @@ function PlayerManagerInner({ players, dealerIndex, onChange, multiTableEnabled,
 
       {/* Player list with seating controls */}
       {players.length > 0 && (
-        <div className="space-y-1">
+        <ul className="space-y-1" role="list">
           {players.map((player, i) => (
-            <div
+            <li
               key={player.id}
               draggable
               onDragStart={(e) => handleDragStart(e, i)}
@@ -167,7 +167,7 @@ function PlayerManagerInner({ players, dealerIndex, onChange, multiTableEnabled,
               {/* Dealer badge */}
               {i === dealerIndex ? (
                 <span
-                  className="w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-sm shadow-red-500/30"
+                  className="w-5 h-5 rounded-full bg-red-600 text-white text-2xs font-bold flex items-center justify-center shrink-0 shadow-sm shadow-red-500/30"
                   title={t('playerManager.dealer')}
                 >
                   D
@@ -175,7 +175,7 @@ function PlayerManagerInner({ players, dealerIndex, onChange, multiTableEnabled,
               ) : (
                 <button
                   onClick={() => handleSetDealer(i)}
-                  className="w-5 h-5 rounded-full border border-gray-200 dark:border-gray-700/40 text-gray-300 dark:text-gray-600 hover:border-red-500 hover:text-red-400 text-[10px] font-bold flex items-center justify-center shrink-0 transition-colors"
+                  className="w-5 h-5 rounded-full border border-gray-200 dark:border-gray-700/40 text-gray-300 dark:text-gray-600 hover:border-red-500 hover:text-red-400 text-2xs font-bold flex items-center justify-center shrink-0 transition-colors"
                   title={t('playerManager.setDealer')}
                 >
                   D
@@ -222,9 +222,9 @@ function PlayerManagerInner({ players, dealerIndex, onChange, multiTableEnabled,
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       {/* Datalist for player name autocomplete */}

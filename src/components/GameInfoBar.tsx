@@ -62,7 +62,7 @@ export const GameInfoBar = memo(function GameInfoBar({
       )}
 
       <span className="flex items-center gap-1" title={t('info.avgStack')}>
-        <span className="text-[10px] font-medium">{t('info.avgStack')}</span>
+        <span className="text-2xs font-medium">{t('info.avgStack')}</span>
         <span className="font-mono tabular-nums">{averageStack.toLocaleString()}</span>
       </span>
 
@@ -73,7 +73,7 @@ export const GameInfoBar = memo(function GameInfoBar({
 
       {estimatedRemaining != null && estimatedRemaining > 0 && (
         <span className="flex items-center gap-1 opacity-70" title={t('info.remaining')}>
-          <span className="text-[10px]">~</span>
+          <span className="text-2xs">~</span>
           <span className="font-mono tabular-nums">{Math.round(estimatedRemaining / 60)} min</span>
         </span>
       )}

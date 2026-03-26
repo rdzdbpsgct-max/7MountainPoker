@@ -46,7 +46,7 @@ export function PlayersScreen({ players }: Props) {
       {eliminatedPlayers.length > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-x-2.5 gap-y-0.5 justify-center">
           {eliminatedPlayers.map((p) => (
-            <span key={p.id} className="text-gray-600 text-[10px]">
+            <span key={p.id} className="text-gray-600 text-2xs">
               {p.placement ?? '?'}. {p.name}
             </span>
           ))}

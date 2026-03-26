@@ -470,7 +470,7 @@ export function LeagueView({ onStartTournament }: Props) {
                 className="w-full bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:outline-none"
                 placeholder={t('league.correction.pointsPlaceholder')}
               />
-              <p className="text-[10px] text-gray-400 mt-0.5">{t('league.correction.hint')}</p>
+              <p className="text-2xs text-gray-400 mt-0.5">{t('league.correction.hint')}</p>
             </div>
 
             <div>

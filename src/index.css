@@ -267,6 +267,13 @@ select:focus {
   border-radius: 0.75rem;
 }
 
+/* === Typography Token === */
+
+@utility text-2xs {
+  font-size: 0.625rem;
+  line-height: 1rem;
+}
+
 /* Hide native number input spinners */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {

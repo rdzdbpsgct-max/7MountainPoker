@@ -33,7 +33,7 @@ export const ChipSidebar = memo(function ChipSidebar({ chipConfig, colorUpMap, c
         onClick={() => setCollapsed((v) => !v)}
         className="flex items-center justify-between w-full text-left group"
       >
-        <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
+        <h3 className="text-2xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
           {t('chipSidebar.title')}
         </h3>
         <ChevronIcon open={!collapsed} className="text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />

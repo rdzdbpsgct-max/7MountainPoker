@@ -19,7 +19,7 @@ export const LevelPreview = memo(function LevelPreview({ timerState, levels }: P
 
   return (
     <div className="w-full max-w-xl">
-      <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">{t('levelPreview.title')}</h3>
+      <h3 className="text-2xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">{t('levelPreview.title')}</h3>
       <div className="space-y-0.5">
         {visibleLevels.map(({ level, i }) => {
           const isCurrent = i === timerState.currentLevelIndex;

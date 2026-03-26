@@ -325,7 +325,7 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
                           </span>
                         )}
                         {dimmed && (
-                          <span className="ml-1 text-[10px] text-gray-400 dark:text-gray-500" title={t('league.ranking.notQualified')}>*</span>
+                          <span className="ml-1 text-2xs text-gray-400 dark:text-gray-500" title={t('league.ranking.notQualified')}>*</span>
                         )}
                       </td>
                       {rankingAlgorithm === 'points' && (

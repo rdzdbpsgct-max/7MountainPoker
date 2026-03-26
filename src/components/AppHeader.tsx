@@ -91,7 +91,7 @@ export const AppHeader = memo(function AppHeader({
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+      <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 flex-wrap justify-end">
         {mode !== 'game' && <ThemeSwitcher />}
         {mode !== 'game' && <LanguageSwitcher />}
         <VoiceSwitcher settings={settings} onChange={onSettingsChange} />
@@ -205,7 +205,7 @@ export const AppHeader = memo(function AppHeader({
             {mode === 'setup' && (
               <button
                 onClick={onShowTemplates}
-                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm transition-all duration-200 border border-gray-300 dark:border-gray-700/30"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-xs sm:text-sm transition-all duration-200 border border-gray-300 dark:border-gray-700/30"
                 title={t('app.templates')}
                 data-tour="templates"
               >
@@ -215,7 +215,7 @@ export const AppHeader = memo(function AppHeader({
 
             <button
               onClick={() => { markFeatureDiscovered('league'); if (canUseLeagueMode) { onToggleLeagueMode(); } else { onOpenFeatureGate('league'); } }}
-              className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 border ${
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 border ${
                 canUseLeagueMode
                   ? (mode === 'league'
                     ? 'text-white shadow-sm'
@@ -232,7 +232,7 @@ export const AppHeader = memo(function AppHeader({
             {mode === 'setup' && onShowSeries && (
               <button
                 onClick={onShowSeries}
-                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm transition-all duration-200 border border-gray-300 dark:border-gray-700/30"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-xs sm:text-sm transition-all duration-200 border border-gray-300 dark:border-gray-700/30"
                 title={t('app.series')}
               >
                 {t('app.series')}
@@ -241,7 +241,7 @@ export const AppHeader = memo(function AppHeader({
 
             <button
               onClick={onShowHistory}
-              className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm transition-all duration-200 border border-gray-300 dark:border-gray-700/30"
+              className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-xs sm:text-sm transition-all duration-200 border border-gray-300 dark:border-gray-700/30"
               title={t('app.history')}
             >
               {t('app.history')}

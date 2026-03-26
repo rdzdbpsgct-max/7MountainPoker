@@ -79,7 +79,7 @@ export function PayoutOverlay({ config, players, onClose }: Props) {
         <label className="block text-xs text-gray-500 dark:text-gray-400 mb-2">
           {t('payout.overlay.playersLeft')}: <span className="font-semibold text-gray-800 dark:text-gray-200">{simulatedCount}</span>
           {simulatedCount === activePlayers && (
-            <span className="ml-1 text-[10px] opacity-60">
+            <span className="ml-1 text-2xs opacity-60">
               ({t('payout.overlay.hint')})
             </span>
           )}
@@ -92,7 +92,7 @@ export function PayoutOverlay({ config, players, onClose }: Props) {
           onChange={(e) => setSimulatedCount(Number(e.target.value))}
           className="w-full accent-[var(--accent-500)]"
         />
-        <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
+        <div className="flex justify-between text-2xs text-gray-400 mt-0.5">
           <span>{sliderMin}</span>
           <span>{totalPlayers}</span>
         </div>

@@ -86,7 +86,7 @@ export function HeadToHeadMatrix({ matrix }: Props) {
                   className="px-1.5 py-1.5 text-center font-medium text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700/40 min-w-[48px] max-w-[64px]"
                   title={name}
                 >
-                  <span className="block truncate text-[10px]">{name}</span>
+                  <span className="block truncate text-2xs">{name}</span>
                 </th>
               ))}
             </tr>
@@ -132,7 +132,7 @@ export function HeadToHeadMatrix({ matrix }: Props) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-3 px-4 py-2 border-t border-gray-200 dark:border-gray-700/40 text-[10px] text-gray-400 dark:text-gray-500">
+      <div className="flex items-center justify-center gap-3 px-4 py-2 border-t border-gray-200 dark:border-gray-700/40 text-2xs text-gray-400 dark:text-gray-500">
         <span className="flex items-center gap-1">
           <span className="inline-block w-3 h-3 rounded bg-green-200 dark:bg-green-900/60" /> {t('league.h2h.wins')}
         </span>

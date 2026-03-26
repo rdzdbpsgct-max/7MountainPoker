@@ -26,7 +26,7 @@ export function ToastContainer() {
           role="status"
           aria-live="polite"
           onClick={() => handleDismiss(item.id)}
-          className="pointer-events-auto px-4 py-2 bg-gray-900/90 dark:bg-gray-100/90 text-white dark:text-gray-900 text-sm font-medium rounded-xl shadow-lg backdrop-blur-sm animate-fade-in cursor-pointer"
+          className="pointer-events-auto px-4 py-2 bg-gray-900/90 dark:bg-gray-800/95 text-white text-sm font-medium rounded-xl shadow-lg backdrop-blur-sm animate-fade-in cursor-pointer"
         >
           {item.message}
         </div>

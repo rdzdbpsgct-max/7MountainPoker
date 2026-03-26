@@ -79,7 +79,7 @@ export const PlayerPanel = memo(function PlayerPanel({
   const { t } = useTranslation();
   const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const [eliminatingId, setEliminatingId] = useState<string | null>(null);
-  const [selectedKiller, setSelectedKiller] = useState<string>('');
+  // selectedKiller removed — inline button grid replaced select dropdown
   const [showSidePot, setShowSidePot] = useState(false);
   const [showDealMaker, setShowDealMaker] = useState(false);
   const [showMoreActions, setShowMoreActions] = useState(false);
@@ -119,23 +119,19 @@ export const PlayerPanel = memo(function PlayerPanel({
       setEliminatingId(playerId);
       // Auto-select if only one possible killer (heads-up)
       const eligibleKillers = activePlayers.filter((p) => p.id !== playerId);
-      setSelectedKiller(eligibleKillers.length === 1 ? eligibleKillers[0]!.id : '');
+      // Auto-eliminate if only one possible killer (heads-up)
+      if (eligibleKillers.length === 1) {
+        onEliminatePlayer(playerId, eligibleKillers[0]!.id);
+        setEliminatingId(null);
+        return;
+      }
     } else {
       onEliminatePlayer(playerId, null);
     }
   };
 
-  const confirmElimination = () => {
-    if (eliminatingId && selectedKiller) {
-      onEliminatePlayer(eliminatingId, selectedKiller);
-      setEliminatingId(null);
-      setSelectedKiller('');
-    }
-  };
-
   const cancelElimination = () => {
     setEliminatingId(null);
-    setSelectedKiller('');
   };
 
   return (
@@ -156,21 +152,21 @@ export const PlayerPanel = memo(function PlayerPanel({
       {/* Stack Tracking */}
       {onInitStacks && onClearStacks && (
         <div className="flex items-center justify-between">
-          <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+          <h3 className="text-2xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
             {t('playerPanel.stackTracking')}
           </h3>
           <div className="flex gap-1">
             {!hasAnyStacks ? (
               <button
                 onClick={onInitStacks}
-                className="px-2.5 py-1 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
+                className="px-2.5 py-1 rounded-md text-2xs font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
               >
                 {t('playerPanel.initStacks')}
               </button>
             ) : (
               <button
                 onClick={onClearStacks}
-                className="px-2.5 py-1 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
+                className="px-2.5 py-1 rounded-md text-2xs font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
               >
                 {t('playerPanel.clearStacks')}
               </button>
@@ -193,14 +189,14 @@ export const PlayerPanel = memo(function PlayerPanel({
       {/* Active Players */}
       <div>
         <div className="space-y-1">
-          <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+          <h3 className="text-2xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
             {t('playerPanel.activePlayers')} ({allActivePlayers.length}{filterLower ? ` / ${activePlayers.length}` : ''})
           </h3>
           <div className="flex flex-wrap items-center gap-1">
             {lateRegOpen && onAddLatePlayer && (
               <button
                 onClick={onAddLatePlayer}
-                className="px-2 py-1 rounded-md text-[10px] font-medium transition-colors"
+                className="px-2 py-1 rounded-md text-2xs font-medium transition-colors"
                 style={{ backgroundColor: 'color-mix(in srgb, var(--accent-500) 15%, transparent)', color: 'var(--accent-text)', border: '1px solid color-mix(in srgb, var(--accent-500) 30%, transparent)' }}
                 title={t('lateReg.addPlayer')}
               >
@@ -210,7 +206,7 @@ export const PlayerPanel = memo(function PlayerPanel({
             {onToggleDealerBadges && (
               <button
                 onClick={onToggleDealerBadges}
-                className={`px-2 py-1 rounded-md text-[10px] font-medium transition-colors border ${
+                className={`px-2 py-1 rounded-md text-2xs font-medium transition-colors border ${
                   showDealerBadges
                     ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-300 dark:border-red-700/40'
                     : 'bg-gray-100 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700/40'
@@ -223,7 +219,7 @@ export const PlayerPanel = memo(function PlayerPanel({
             {showDealerBadges && activePlayers.length > 1 && (
               <button
                 onClick={onAdvanceDealer}
-                className="px-2 py-1 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
+                className="px-2 py-1 rounded-md text-2xs font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
                 title={t('playerPanel.advanceDealer')}
               >
                 D {String.fromCodePoint(0x2192)}
@@ -233,7 +229,7 @@ export const PlayerPanel = memo(function PlayerPanel({
             <div className="relative">
               <button
                 onClick={() => setShowMoreActions(prev => !prev)}
-                className="px-2 py-1 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
+                className="px-2 py-1 rounded-md text-2xs font-medium bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border border-gray-200 dark:border-gray-700/40"
                 title={t('controls.moreActions')}
               >
                 {String.fromCodePoint(0x22EF)}
@@ -275,12 +271,12 @@ export const PlayerPanel = memo(function PlayerPanel({
             </div>
           </div>
         </div>
-        <div className="mt-1 space-y-1">
+        <ul className="mt-1 space-y-1" role="list">
           {activePlayers.map((player) => {
             const seatIndex = players.indexOf(player);
             const isDealer = seatIndex === dealerIndex;
             return (
-            <div
+            <li
               key={player.id}
               className="px-2.5 py-1.5 bg-gray-100/60 dark:bg-gray-800/30 rounded-xl border border-gray-200/40 dark:border-gray-700/15 transition-all duration-200 hover:bg-gray-100/90 dark:hover:bg-gray-800/50 hover:border-gray-300/60 dark:hover:border-gray-600/30 hover:shadow-sm"
             >
@@ -288,24 +284,24 @@ export const PlayerPanel = memo(function PlayerPanel({
               <div className="flex items-center gap-1">
                 <span className="text-gray-400 dark:text-gray-500 text-xs shrink-0">#{seatIndex + 1}</span>
                 {showDealerBadges !== false && isDealer && (
-                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-600 text-white text-[10px] font-bold shrink-0 ring-2 ring-red-500/30">D</span>
+                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-600 text-white text-2xs font-bold shrink-0 ring-2 ring-red-500/30">D</span>
                 )}
                 <span className={`${nameSizeClass} text-gray-800 dark:text-gray-200 truncate`}>
                   {player.name}
                 </span>
                 {player.reEntryCount != null && player.reEntryCount > 0 && (
-                  <span className="text-[10px] text-purple-500 dark:text-purple-400 shrink-0">(RE×{player.reEntryCount})</span>
+                  <span className="text-2xs text-purple-500 dark:text-purple-400 shrink-0">(RE×{player.reEntryCount})</span>
                 )}
                 {multiTableActive && (() => {
                   const info = findPlayerSeat(tables!, player.id);
                   return info ? (
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono shrink-0">
+                    <span className="text-2xs text-gray-400 dark:text-gray-500 font-mono shrink-0">
                       {t('multiTable.seatShort', { n: info.seat.seatNumber })}
                     </span>
                   ) : null;
                 })()}
                 {chipLeaderId === player.id && (
-                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] font-bold shrink-0 ring-2 ring-amber-400/30" title={t('playerPanel.chipLeader')}>C</span>
+                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500 text-white text-2xs font-bold shrink-0 ring-2 ring-amber-400/30" title={t('playerPanel.chipLeader')}>C</span>
                 )}
                 {bountyConfig.enabled && player.knockouts > 0 && (
                   <span className="text-xs text-amber-600 dark:text-amber-400 shrink-0 ml-auto">
@@ -327,7 +323,7 @@ export const PlayerPanel = memo(function PlayerPanel({
               {/* Stack edit row */}
               {player.chips !== undefined && onUpdateStack && (
                 <div className="flex items-center gap-1 mt-0.5">
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500">{t('playerPanel.stack')}</span>
+                  <span className="text-2xs text-gray-400 dark:text-gray-500">{t('playerPanel.stack')}</span>
                   <NumberStepper
                     value={player.chips}
                     onChange={(v) => onUpdateStack(player.id, v)}
@@ -343,7 +339,7 @@ export const PlayerPanel = memo(function PlayerPanel({
                 {/* Rebuy controls (only during active rebuy phase) */}
                 {rebuyActive && (
                   <div className="flex items-center gap-1" title={t('app.rebuy')}>
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500">RB</span>
+                    <span className="text-2xs text-gray-400 dark:text-gray-500">RB</span>
                     <button
                       onClick={() =>
                         onUpdateRebuys(player.id, Math.max(0, player.rebuys - 1))
@@ -400,10 +396,10 @@ export const PlayerPanel = memo(function PlayerPanel({
                   </button>
                 )}
               </div>
-            </div>
+            </li>
             );
           })}
-        </div>
+        </ul>
       </div>
 
       {/* Bounty elimination dialog */}
@@ -412,47 +408,37 @@ export const PlayerPanel = memo(function PlayerPanel({
           <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">
             {t('playerPanel.whoEliminated', { name: players.find((p) => p.id === eliminatingId)?.name ?? '?' })}
           </p>
-          <select
-            value={selectedKiller}
-            onChange={(e) => setSelectedKiller(e.target.value)}
-            className="w-full px-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:border-amber-500"
-          >
-            <option value="">{t('playerPanel.selectPlayer')}</option>
+          <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
             {activePlayers
               .filter((p) => p.id !== eliminatingId)
               .map((p) => (
-                <option key={p.id} value={p.id}>
+                <button
+                  key={p.id}
+                  onClick={() => { onEliminatePlayer(eliminatingId!, p.id); setEliminatingId(null); }}
+                  className="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-sm font-medium text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700/40 hover:border-amber-400 dark:hover:border-amber-600/50 transition-all duration-150 active:scale-[0.95]"
+                >
                   {p.name}
-                </option>
+                </button>
               ))}
-          </select>
-          <div className="flex gap-2">
-            <button
-              onClick={cancelElimination}
-              className="flex-1 px-2 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg text-xs font-medium transition-colors"
-            >
-              {t('app.cancel')}
-            </button>
-            <button
-              onClick={confirmElimination}
-              disabled={!selectedKiller}
-              className="flex-1 px-2 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg text-xs font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              {t('playerPanel.confirm')}
-            </button>
           </div>
+          <button
+            onClick={cancelElimination}
+            className="w-full px-2 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg text-xs font-medium transition-colors"
+          >
+            {t('app.cancel')}
+          </button>
         </div>
       )}
 
       {/* Eliminated Players */}
       {eliminatedPlayers.length > 0 && (
         <div>
-          <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+          <h3 className="text-2xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
             {t('playerPanel.eliminated')}
           </h3>
-          <div className="mt-1 space-y-1">
+          <ul className="mt-1 space-y-1" role="list">
             {eliminatedPlayers.map((player) => (
-                <div
+                <li
                   key={player.id}
                   className="px-3 py-1.5 bg-gray-100/50 dark:bg-gray-800/20 rounded-lg opacity-40 space-y-0.5"
                 >
@@ -497,9 +483,9 @@ export const PlayerPanel = memo(function PlayerPanel({
                       {t('playerPanel.reinstate')}
                     </button>
                   </div>
-                </div>
+                </li>
               ))}
-          </div>
+          </ul>
         </div>
       )}
     </div>

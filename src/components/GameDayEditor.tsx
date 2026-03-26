@@ -306,7 +306,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                           <div className="flex items-center gap-1">
                             <span className="font-medium text-gray-900 dark:text-white">{p.name}</span>
                             {p.isGuest && (
-                              <span className="text-[10px] px-1 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">G</span>
+                              <span className="text-2xs px-1 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">G</span>
                             )}
                             <span className={`text-xs ml-1 ${netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                               {netBalance >= 0 ? '+' : ''}{netBalance} {currencySymbol}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { useRefSync } from './useRefSync';
 import type { TournamentConfig, Settings, TimerState, ChipDenomination, AlertConfig } from '../domain/types';
 import type { TranslationKey } from '../i18n/translations';
 import {
@@ -60,18 +61,12 @@ export function useVoiceAnnouncements({
   const displaySeconds = Math.floor(timerState.remainingSeconds);
 
   // Refs for values read inside effects with minimal dependency arrays (avoids stale closures)
-  const modeRef = useRef(mode);
-  useEffect(() => { modeRef.current = mode; });
-  const customAlertsRef = useRef(settings.customAlerts ?? []);
-  useEffect(() => { customAlertsRef.current = settings.customAlerts ?? []; });
-  const displaySecondsRef = useRef(displaySeconds);
-  useEffect(() => { displaySecondsRef.current = displaySeconds; });
-  const configLevelsRef = useRef(config.levels);
-  useEffect(() => { configLevelsRef.current = config.levels; });
-  const activePlayerCountRef = useRef(activePlayerCount);
-  useEffect(() => { activePlayerCountRef.current = activePlayerCount; });
-  const currentLevelIndexRef = useRef(timerState.currentLevelIndex);
-  useEffect(() => { currentLevelIndexRef.current = timerState.currentLevelIndex; });
+  const modeRef = useRefSync(mode);
+  const customAlertsRef = useRefSync(settings.customAlerts ?? [] as AlertConfig[]);
+  const displaySecondsRef = useRefSync(displaySeconds);
+  const configLevelsRef = useRefSync(config.levels);
+  const activePlayerCountRef = useRefSync(activePlayerCount);
+  const currentLevelIndexRef = useRefSync(timerState.currentLevelIndex);
 
   // Voice: Level change announcement
   const prevLevelIdxVoiceRef = useRef(timerState.currentLevelIndex);

@@ -134,14 +134,14 @@ export function MultiTablePanel({ config, recentMoves, onUpdateTables, onTableMo
                     {tbl.name}
                   </span>
                   {tbl.dealerSeat != null && (
-                    <span className="text-[10px] text-red-500 dark:text-red-400 font-bold">
+                    <span className="text-2xs text-red-500 dark:text-red-400 font-bold">
                       D:{tbl.dealerSeat}
                     </span>
                   )}
                   {onAdvanceTableDealer && (
                     <button
                       onClick={() => onAdvanceTableDealer(tbl.id)}
-                      className="px-1.5 py-0.5 text-[10px] font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 rounded hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                      className="px-1.5 py-0.5 text-2xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 rounded hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                       aria-label={t('multiTable.advanceDealer')}
                       title={t('multiTable.advanceDealer')}
                     >
@@ -208,7 +208,7 @@ export function MultiTablePanel({ config, recentMoves, onUpdateTables, onTableMo
                 <span className="text-xs text-gray-500 dark:text-gray-500 line-through">
                   {tbl.name}
                 </span>
-                <span className="text-[10px] text-gray-400 dark:text-gray-600 uppercase">
+                <span className="text-2xs text-gray-400 dark:text-gray-600 uppercase">
                   {t('multiTable.dissolved')}
                 </span>
               </div>
@@ -309,7 +309,7 @@ export function MultiTablePanel({ config, recentMoves, onUpdateTables, onTableMo
       {/* Recent moves log */}
       {recentMoves.length > 0 && (
         <div className="space-y-1 animate-fade-in">
-          <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          <h4 className="text-2xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
             {t('multiTable.moveLog')}
           </h4>
           {recentMoves.map((move, i) => (
@@ -318,7 +318,7 @@ export function MultiTablePanel({ config, recentMoves, onUpdateTables, onTableMo
               className="px-2.5 py-1.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/40 rounded-lg text-xs text-amber-700 dark:text-amber-300 space-y-0.5"
             >
               <div className="flex items-center gap-1.5">
-                <span className="shrink-0 px-1 py-0.5 bg-amber-200/50 dark:bg-amber-800/30 rounded text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                <span className="shrink-0 px-1 py-0.5 bg-amber-200/50 dark:bg-amber-800/30 rounded text-2xs font-medium text-amber-600 dark:text-amber-400">
                   {t(reasonKey[move.reason] as Parameters<typeof t>[0])}
                 </span>
                 <span className="font-medium">{move.playerName}</span>
