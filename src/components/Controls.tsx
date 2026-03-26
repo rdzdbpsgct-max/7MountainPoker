@@ -143,7 +143,7 @@ export const Controls = memo(function Controls({
           <button
             onClick={onUndo}
             disabled={!canUndo}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
+            className={`min-w-[2.5rem] h-10 px-3 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm touch-manipulation ${
               canUndo
                 ? 'bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40'
                 : 'bg-gray-100 dark:bg-gray-800/40 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700/30 cursor-not-allowed'
@@ -158,7 +158,7 @@ export const Controls = memo(function Controls({
           <button
             onClick={onRedo}
             disabled={!canRedo}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
+            className={`min-w-[2.5rem] h-10 px-3 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm touch-manipulation ${
               canRedo
                 ? 'bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40'
                 : 'bg-gray-100 dark:bg-gray-800/40 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700/30 cursor-not-allowed'
@@ -172,7 +172,7 @@ export const Controls = memo(function Controls({
         {onLastHand && (
           <button
             onClick={onLastHand}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
+            className={`min-w-[2.5rem] h-10 px-3 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm touch-manipulation ${
               lastHandActive
                 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-600/40'
                 : 'bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40'
@@ -186,7 +186,7 @@ export const Controls = memo(function Controls({
         {showHandForHand && onHandForHand && !handForHandActive && (
           <button
             onClick={onHandForHand}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-red-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40"
+            className="min-w-[2.5rem] h-10 px-3 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm touch-manipulation bg-white dark:bg-gray-800/80 hover:bg-red-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40"
             title={t('controls.handForHand')}
             aria-label={t('controls.handForHand')}
           >
@@ -196,7 +196,7 @@ export const Controls = memo(function Controls({
         {handForHandActive && onHandForHand && (
           <button
             onClick={onHandForHand}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-600/40"
+            className="min-w-[2.5rem] h-10 px-3 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm touch-manipulation bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-600/40"
             title={t('controls.handForHand')}
             aria-label={t('controls.handForHand')}
           >
@@ -206,7 +206,7 @@ export const Controls = memo(function Controls({
         {onCallTheClock && callTheClockSeconds != null && (
           <button
             onClick={onCallTheClock}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40"
+            className="min-w-[2.5rem] h-10 px-3 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm touch-manipulation bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600/40"
             title={t('controls.callTheClock')}
             aria-label={t('controls.callTheClock')}
           >

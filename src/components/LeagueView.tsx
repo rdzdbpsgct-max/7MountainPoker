@@ -186,6 +186,7 @@ export function LeagueView({ onStartTournament }: Props) {
                 <select
                   value={selectedLeagueId ?? ''}
                   onChange={(e) => setSelectedLeagueId(e.target.value || null)}
+                  aria-label={t('league.view.title')}
                   className="bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-3 py-1.5 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:outline-none min-w-0"
                 >
                   {leagues.map((l) => (
@@ -198,6 +199,7 @@ export function LeagueView({ onStartTournament }: Props) {
                 <select
                   value={seasonFilter}
                   onChange={(e) => setSeasonFilter(e.target.value)}
+                  aria-label={t('league.settings.allSeasons')}
                   className="bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300 focus:ring-2 focus:outline-none"
                 >
                   <option value="all">{t('league.settings.allSeasons')}</option>

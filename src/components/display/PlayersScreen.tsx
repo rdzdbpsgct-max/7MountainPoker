@@ -30,10 +30,10 @@ export function PlayersScreen({ players }: Props) {
         {activePlayers.map((p, i) => (
           <div
             key={p.id}
-            className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-800/60 border border-gray-700/40 text-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-gray-800/60 border border-gray-700/40 text-sm"
           >
-            <span className="text-gray-500 font-mono w-4 shrink-0">{i + 1}</span>
-            <span className="text-gray-200 font-medium truncate flex-1">{p.name}</span>
+            <span className="text-gray-500 font-mono w-5 shrink-0">{i + 1}</span>
+            <span className="text-gray-200 font-medium truncate flex-1 text-sm">{p.name}</span>
             {p.id === chipLeaderId && (
               <span className="text-amber-400 font-bold shrink-0">{t('display.chipLeaderBadge')}</span>
             )}

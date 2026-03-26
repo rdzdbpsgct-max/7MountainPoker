@@ -15,23 +15,23 @@
 }
 
 @keyframes countdown-pulse {
-  0%, 100% { text-shadow: 0 0 20px rgba(239, 68, 68, 0.5); transform: scale(1); }
-  50%      { text-shadow: 0 0 50px rgba(239, 68, 68, 0.8); transform: scale(1.02); }
+  0%, 100% { text-shadow: 0 0 20px rgba(var(--color-danger), 0.5); transform: scale(1); }
+  50%      { text-shadow: 0 0 50px rgba(var(--color-danger), 0.8); transform: scale(1.02); }
 }
 
 @keyframes bubble-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  50%      { box-shadow: 0 0 20px 4px rgba(239, 68, 68, 0.2); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--color-danger), 0.4); }
+  50%      { box-shadow: 0 0 20px 4px rgba(var(--color-danger), 0.2); }
 }
 
 @keyframes itm-flash {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  50%      { box-shadow: 0 0 20px 4px rgba(16, 185, 129, 0.2); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--color-success), 0.4); }
+  50%      { box-shadow: 0 0 20px 4px rgba(var(--color-success), 0.2); }
 }
 
 @keyframes addon-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-  50%      { box-shadow: 0 0 20px 4px rgba(245, 158, 11, 0.2); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--color-warning), 0.4); }
+  50%      { box-shadow: 0 0 20px 4px rgba(var(--color-warning), 0.2); }
 }
 
 @keyframes scale-in {
@@ -136,6 +136,10 @@
   --accent-glow-strong: rgba(16,185,129,0.5);
   /* Accessible accent text color — uses -700 on light bg for ≥4.5:1 contrast */
   --accent-text: var(--accent-700);
+  /* Semantic status colors — intentionally fixed, not affected by accent theme */
+  --color-danger: 239, 68, 68;
+  --color-success: 16, 185, 129;
+  --color-warning: 245, 158, 11;
   /* Background pattern — overridden dynamically by ThemeContext */
   --bg-pattern: none;
 }
@@ -196,6 +200,71 @@ body {
 }
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #4b5563;
+}
+
+/* === Select Element Styling === */
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  padding-right: 1.75rem;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.375rem 1.75rem 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #111827;
+  transition: border-color 200ms, box-shadow 200ms;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--accent-500);
+  box-shadow: 0 0 0 2px var(--accent-ring);
+}
+
+.dark select {
+  background-color: rgba(31, 41, 55, 0.8);
+  border-color: rgba(55, 65, 81, 0.6);
+  color: white;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+}
+
+/* === Button Size Tokens === */
+
+@utility btn-sm {
+  min-width: 2rem;
+  height: 2rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  border-radius: 0.5rem;
+}
+
+@utility btn-md {
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border-radius: 0.5rem;
+}
+
+@utility btn-lg {
+  min-width: 3rem;
+  height: 3rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  border-radius: 0.75rem;
 }
 
 /* Hide native number input spinners */

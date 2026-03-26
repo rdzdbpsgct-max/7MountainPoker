@@ -189,6 +189,7 @@ function PlayerManagerInner({ players, dealerIndex, onChange, multiTableEnabled,
                 onChange={(e) => updateName(i, e.target.value)}
                 list="registered-players"
                 placeholder={t('playerManager.playerN', { n: i + 1 })}
+                aria-label={t('playerManager.playerN', { n: i + 1 })}
                 maxLength={50}
                 className={`flex-1 min-w-0 px-2 py-1 bg-white dark:bg-gray-800/80 border rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 transition-all duration-200 ${
                   duplicateNames.has(player.name.trim().toLowerCase())
