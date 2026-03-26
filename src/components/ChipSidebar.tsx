@@ -24,30 +24,28 @@ export const ChipSidebar = memo(function ChipSidebar({ chipConfig, colorUpMap, c
     <div>
       <button
         onClick={() => setCollapsed((v) => !v)}
-        className="flex items-center justify-between w-full text-left"
+        className="flex items-center justify-between w-full text-left group"
       >
-        <h3 className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+        <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
           {t('chipSidebar.title')}
         </h3>
-        <ChevronIcon open={!collapsed} className="text-gray-500 dark:text-gray-400" />
+        <ChevronIcon open={!collapsed} className="text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
       </button>
 
       {!collapsed && (
-        <div className="mt-2 space-y-1">
+        <div className="mt-2 space-y-0.5">
           {sorted.map((denom) => {
             const isRemoved = removedIds.has(denom.id);
             return (
               <div
                 key={denom.id}
-                className={`flex items-center gap-2 px-2 py-1 rounded-lg text-sm ${
-                  isRemoved ? 'opacity-40' : 'bg-gray-100/80 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700/20'
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm transition-all ${
+                  isRemoved ? 'opacity-30' : 'hover:bg-gray-100/60 dark:hover:bg-gray-800/30'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full shrink-0 border ${
-                    isRemoved ? 'border-gray-300 dark:border-gray-600' : 'border-gray-400 dark:border-gray-500'
-                  }`}
-                  style={{ backgroundColor: denom.color }}
+                  className={`w-5 h-5 rounded-full shrink-0 shadow-sm ${isRemoved ? 'scale-75' : ''}`}
+                  style={{ backgroundColor: denom.color, border: `2px solid color-mix(in srgb, ${denom.color} 60%, white)` }}
                 />
                 <span
                   className={`flex-1 ${
@@ -57,23 +55,22 @@ export const ChipSidebar = memo(function ChipSidebar({ chipConfig, colorUpMap, c
                   {denom.label}
                 </span>
                 <span
-                  className={`font-mono text-xs ${
+                  className={`font-mono text-xs tabular-nums ${
                     isRemoved ? 'line-through text-gray-300 dark:text-gray-600' : 'text-gray-500 dark:text-gray-400'
                   }`}
                 >
                   {denom.value.toLocaleString()}
                 </span>
-                {isRemoved && <span className="text-xs text-red-400/70">✕</span>}
               </div>
             );
           })}
 
           {/* Next color-up info (only when color-up is enabled) */}
           {chipConfig.colorUpEnabled && (
-            <div className="pt-1 border-t border-gray-200 dark:border-gray-700/40 mt-2">
+            <div className="pt-2 mt-2 border-t border-gray-200/60 dark:border-gray-700/30">
               {nextColorUpLevel !== null ? (
-                <div className="text-xs text-amber-400/80">
-                  <span className="font-medium">{t('chipSidebar.nextColorUp')}: </span>
+                <div className="text-xs px-2.5 py-1.5 rounded-lg bg-amber-50/80 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400/80 border border-amber-200/60 dark:border-amber-700/30">
+                  <span className="font-semibold">{t('chipSidebar.nextColorUp')}: </span>
                   {(() => {
                     const targetLevel = levels[nextColorUpLevel];
                     const isBreak = targetLevel?.type === 'break';
@@ -94,7 +91,7 @@ export const ChipSidebar = memo(function ChipSidebar({ chipConfig, colorUpMap, c
                   })()}
                 </div>
               ) : (
-                <p className="text-xs text-gray-400 dark:text-gray-500">{t('chipSidebar.noMore')}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 px-2.5">{t('chipSidebar.noMore')}</p>
               )}
             </div>
           )}

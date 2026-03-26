@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.11.1
+**Version**: 6.11.2
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -449,6 +449,16 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - **Neue Testdateien**: `tests/startValidation.test.ts`, `tests/alertEngine.test.ts`
 - **6 neue Deal-Translation-Keys** (3 DE + 3 EN): `finished.dealMade`, `finished.dealMethod`, `finished.dealParticipants`
 - **1360 Tests gesamt** (21 Testdateien)
+
+### v6.11.2 — UI-Modernisierung: Game-Mode Sidebars
+
+- **Glassmorphism-Sidebars**: `backdrop-blur-md`, halbtransparente Hintergründe, weichere Borders auf beiden Seitenleisten.
+- **Dezentere Toggle-Buttons**: Schlanker, Frosted-Glass, Hover-Expand. Mobile als Pill-Buttons.
+- **LevelPreview**: Linker Akzent-Border statt Vollflächenfarbe, Hover-Effekte.
+- **ChipSidebar**: Größere Chip-Kreise mit Glow-Border, Color-Up in Amber-Karte.
+- **PlayerPanel**: Einheitliche Headers, größere Prizepool-Summe, Top-3 Gold-Akzent, Spieler-Rows mit `rounded-xl` und Hover-Shadow.
+- **SettingsPanel**: Cleaner Kbd-Styling, Bottom-Buttons mit Trennlinie.
+- **1370 Tests gesamt** (21 Testdateien)
 
 ### v6.11.0 — Audit-Pakete C/D/E: Deal-Making, Liga-Charts, QA-Härtung
 

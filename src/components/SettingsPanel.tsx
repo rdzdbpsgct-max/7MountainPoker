@@ -72,7 +72,7 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
 
   return (
     <div className="space-y-3">
-      <h3 className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t('settings.title')}</h3>
+      <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{t('settings.title')}</h3>
 
       {/* Section 1: Audio Quick-Access (Sound + Volume) */}
       <CollapsibleSubSection title={t('settings.sectionAudio' as Parameters<typeof t>[0])} defaultOpen={true}>
@@ -295,14 +295,14 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
       </CollapsibleSubSection>
 
       {/* Keyboard shortcuts reference */}
-      <div className="pt-2 border-t border-gray-200 dark:border-gray-700/40">
-        <h4 className="text-xs text-gray-300 dark:text-gray-600 uppercase tracking-wider mb-1">{t('settings.shortcuts')}</h4>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-gray-400 dark:text-gray-500">
-          <span><kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800/80 rounded-md border border-gray-300 dark:border-gray-700/50 text-gray-500 dark:text-gray-400 shadow-sm shadow-gray-200/30 dark:shadow-black/10">Space</kbd> {t('settings.shortcutStartPause')}</span>
-          <span><kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800/80 rounded-md border border-gray-300 dark:border-gray-700/50 text-gray-500 dark:text-gray-400 shadow-sm shadow-gray-200/30 dark:shadow-black/10">N</kbd> {t('settings.shortcutNext')}</span>
-          <span><kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800/80 rounded-md border border-gray-300 dark:border-gray-700/50 text-gray-500 dark:text-gray-400 shadow-sm shadow-gray-200/30 dark:shadow-black/10">V</kbd> {t('settings.shortcutPrevious')}</span>
-          <span><kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800/80 rounded-md border border-gray-300 dark:border-gray-700/50 text-gray-500 dark:text-gray-400 shadow-sm shadow-gray-200/30 dark:shadow-black/10">R</kbd> {t('settings.shortcutReset')}</span>
-          <span><kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800/80 rounded-md border border-gray-300 dark:border-gray-700/50 text-gray-500 dark:text-gray-400 shadow-sm shadow-gray-200/30 dark:shadow-black/10">C</kbd> {t('settings.shortcutClock')}</span>
+      <div className="pt-2 border-t border-gray-200/60 dark:border-gray-700/30">
+        <h4 className="text-[10px] font-semibold text-gray-300 dark:text-gray-600 uppercase tracking-widest mb-1.5">{t('settings.shortcuts')}</h4>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-400 dark:text-gray-500">
+          <span className="flex items-center gap-1.5"><kbd className="inline-flex items-center justify-center min-w-[1.75rem] px-1.5 py-0.5 bg-white dark:bg-gray-800/60 rounded border border-gray-200/80 dark:border-gray-700/40 text-gray-500 dark:text-gray-400 text-[10px] font-mono">Space</kbd> {t('settings.shortcutStartPause')}</span>
+          <span className="flex items-center gap-1.5"><kbd className="inline-flex items-center justify-center min-w-[1.75rem] px-1.5 py-0.5 bg-white dark:bg-gray-800/60 rounded border border-gray-200/80 dark:border-gray-700/40 text-gray-500 dark:text-gray-400 text-[10px] font-mono">N</kbd> {t('settings.shortcutNext')}</span>
+          <span className="flex items-center gap-1.5"><kbd className="inline-flex items-center justify-center min-w-[1.75rem] px-1.5 py-0.5 bg-white dark:bg-gray-800/60 rounded border border-gray-200/80 dark:border-gray-700/40 text-gray-500 dark:text-gray-400 text-[10px] font-mono">V</kbd> {t('settings.shortcutPrevious')}</span>
+          <span className="flex items-center gap-1.5"><kbd className="inline-flex items-center justify-center min-w-[1.75rem] px-1.5 py-0.5 bg-white dark:bg-gray-800/60 rounded border border-gray-200/80 dark:border-gray-700/40 text-gray-500 dark:text-gray-400 text-[10px] font-mono">R</kbd> {t('settings.shortcutReset')}</span>
+          <span className="flex items-center gap-1.5"><kbd className="inline-flex items-center justify-center min-w-[1.75rem] px-1.5 py-0.5 bg-white dark:bg-gray-800/60 rounded border border-gray-200/80 dark:border-gray-700/40 text-gray-500 dark:text-gray-400 text-[10px] font-mono">C</kbd> {t('settings.shortcutClock')}</span>
         </div>
       </div>
     </div>

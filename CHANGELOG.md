@@ -5,6 +5,23 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.11.2] – 2026-03-26
+
+### UI-Modernisierung: Game-Mode Sidebars
+
+Visuelle Aufwertung der linken und rechten Seitenleisten im Spielmodus — moderneres, aufgeräumteres Design.
+
+- **Glassmorphism-Sidebars**: Frosted-Glass-Effekt (`backdrop-blur-md`, halbtransparente Hintergründe) auf beiden Seitenleisten. Weichere Borders und tiefere Schatten für schwebenden Panel-Look.
+- **Dezentere Toggle-Buttons**: Desktop-Chevrons schlanker (w-6 statt w-8), mit Frosted-Glass-Effekt und Hover-Expand-Animation. Mobile-Toggles als Pill-Buttons (`rounded-full`).
+- **LevelPreview modernisiert**: Linker Akzent-Border statt Vollflächenfarbe für aktuelles Level. Engerer Zeilenabstand, Hover-Effekte auf zukünftigen Levels.
+- **ChipSidebar aufgewertet**: Größere Chip-Kreise mit Glow-Border, Hover-Effekte. Color-Up-Info in gestylter Amber-Karte.
+- **PlayerPanel bereinigt**: Einheitliche Section-Headers (kleiner, fetter, weiter gesperrt). Prizepool-Karte mit mehr Weißraum und größerer Summe. Top-3-Plätze mit Gold-Akzent. Spieler-Rows mit sanfterem Radius (`rounded-xl`), Hover-Shadow.
+- **SettingsPanel poliert**: Keyboard-Shortcuts mit Flexbox-Alignment und cleanerem Kbd-Styling. Bottom-Buttons (ICM, Zurück) mit Trennlinie und Border-Hover.
+- **5 Dateien geändert** — rein visuelles Refactoring, keine Logik, keine neuen Dependencies
+- **1370 Tests gesamt**
+
+---
+
 ## [6.11.1] – 2026-03-23
 
 ### Abschluss-Audit, Deal-Finished & Stale-Connection-Eviction

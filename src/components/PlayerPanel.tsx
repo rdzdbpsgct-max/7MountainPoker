@@ -145,24 +145,23 @@ export const PlayerPanel = memo(function PlayerPanel({
     <div className="space-y-4">
       {/* Prize Pool */}
       <div>
-        <h3 className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t('playerPanel.prizePool')}</h3>
-        <div className="mt-1 px-3 py-2 rounded-xl shadow-md" style={{ backgroundColor: 'color-mix(in srgb, var(--accent-500) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--accent-500) 30%, transparent)', border: '1px solid color-mix(in srgb, var(--accent-500) 30%, transparent)' }}>
-          <p className="text-lg font-bold" style={{ color: 'var(--accent-text)' }}>
+        <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{t('playerPanel.prizePool')}</h3>
+        <div className="mt-1.5 px-3 py-2.5 rounded-xl shadow-sm" style={{ backgroundColor: 'color-mix(in srgb, var(--accent-500) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent-500) 20%, transparent)' }}>
+          <p className="text-xl font-bold tabular-nums" style={{ color: 'var(--accent-text)' }}>
             {prizePool.toFixed(2)} {sym}
           </p>
-          <p className="text-xs" style={{ color: 'var(--accent-text)' }}>
+          <p className="text-xs opacity-70 mt-0.5" style={{ color: 'var(--accent-text)' }}>
             {players.length} &times; {buyIn} {sym}
             {totalRebuys > 0 && !rebuyConfig.separatePot && (
-              <> + {totalRebuys} Rebuy{totalRebuys > 1 ? 's' : ''} &times; {rebuyConfig.rebuyCost} {sym}</>
+              <> + {totalRebuys} RB &times; {rebuyConfig.rebuyCost} {sym}</>
             )}
             {totalAddOns > 0 && (
-              <> + {totalAddOns} Add-On{totalAddOns > 1 ? 's' : ''} &times; {addOnConfig.cost} {sym}</>
+              <> + {totalAddOns} AO &times; {addOnConfig.cost} {sym}</>
             )}
           </p>
           {bountyConfig.enabled && (
-            <p className="text-amber-600 dark:text-amber-500/70 text-xs mt-0.5">
-              + Bounty-Pool: {(players.length * bountyConfig.amount).toFixed(2)} {sym}
-              ({players.length} &times; {bountyConfig.amount} {sym})
+            <p className="text-amber-600 dark:text-amber-500/70 text-xs mt-1">
+              + Bounty: {(players.length * bountyConfig.amount).toFixed(2)} {sym}
             </p>
           )}
         </div>
@@ -180,27 +179,28 @@ export const PlayerPanel = memo(function PlayerPanel({
 
       {/* Payout breakdown */}
       <div>
-        <h3 className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t('playerPanel.payout')}</h3>
-        <div className="mt-1 space-y-1">
+        <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{t('playerPanel.payout')}</h3>
+        <div className="mt-1.5 space-y-0.5">
           {payoutAmounts.map((p) => (
             <div
               key={p.place}
-              className="flex justify-between px-3 py-1 bg-gray-100 dark:bg-gray-800/50 rounded-lg text-sm"
+              className="flex justify-between items-center px-2.5 py-1.5 rounded-lg text-sm hover:bg-gray-100/60 dark:hover:bg-gray-800/30 transition-colors"
             >
-              <span className="text-gray-500 dark:text-gray-400">
-                {p.place}. {t('playerPanel.place')}
+              <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                <span className={`text-xs font-bold ${p.place <= 3 ? 'text-amber-500' : ''}`}>{p.place}.</span>
+                {t('playerPanel.place')}
               </span>
-              <span className="text-gray-900 dark:text-white font-medium">{p.amount.toFixed(2)} {sym}</span>
+              <span className="text-gray-900 dark:text-white font-medium tabular-nums">{p.amount.toFixed(2)} {sym}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Average Stack */}
-      <div className="px-3 py-2 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
+      <div className="px-2.5 py-2 bg-gray-100/60 dark:bg-gray-800/30 rounded-xl border border-gray-200/40 dark:border-gray-700/20">
         <div className="flex justify-between items-center">
-          <span className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t('playerPanel.avgStack')}</span>
-          <span className="text-gray-900 dark:text-white text-sm font-mono font-bold">
+          <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{t('playerPanel.avgStack')}</span>
+          <span className="text-gray-900 dark:text-white text-sm font-mono font-bold tabular-nums">
             {averageStack.toLocaleString()}
           </span>
         </div>
@@ -221,7 +221,7 @@ export const PlayerPanel = memo(function PlayerPanel({
       {/* Stack Tracking */}
       {onInitStacks && onClearStacks && (
         <div className="flex items-center justify-between">
-          <h3 className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
             {t('playerPanel.stackTracking')}
           </h3>
           <div className="flex gap-1">
@@ -258,7 +258,7 @@ export const PlayerPanel = memo(function PlayerPanel({
       {/* Active Players */}
       <div>
         <div className="space-y-1">
-          <h3 className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
             {t('playerPanel.activePlayers')} ({allActivePlayers.length}{filterLower ? ` / ${activePlayers.length}` : ''})
           </h3>
           <div className="flex flex-wrap items-center gap-1">
@@ -335,7 +335,7 @@ export const PlayerPanel = memo(function PlayerPanel({
             return (
             <div
               key={player.id}
-              className="px-3 py-1.5 bg-gray-100/80 dark:bg-gray-800/40 rounded-lg border border-gray-200 dark:border-gray-700/20 transition-colors hover:bg-gray-200/60 dark:hover:bg-gray-800/60 hover:border-gray-300 dark:hover:border-gray-600/40"
+              className="px-2.5 py-1.5 bg-gray-100/60 dark:bg-gray-800/30 rounded-xl border border-gray-200/40 dark:border-gray-700/15 transition-all duration-200 hover:bg-gray-100/90 dark:hover:bg-gray-800/50 hover:border-gray-300/60 dark:hover:border-gray-600/30 hover:shadow-sm"
             >
               {/* Name row — full width */}
               <div className="flex items-center gap-1">
@@ -500,7 +500,7 @@ export const PlayerPanel = memo(function PlayerPanel({
       {/* Eliminated Players */}
       {eliminatedPlayers.length > 0 && (
         <div>
-          <h3 className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          <h3 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
             {t('playerPanel.eliminated')}
           </h3>
           <div className="mt-1 space-y-1">

@@ -136,7 +136,7 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Player Panel (LEFT) */}
         {ui.showPlayerPanel && config.players.length > 0 && (
-          <aside className="w-full md:absolute md:left-0 md:top-0 md:bottom-0 md:w-60 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/20 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700/30 bg-gray-50 dark:bg-gray-900/40 p-3 sm:p-4 overflow-y-auto max-h-[40vh] sm:max-h-[50vh] md:max-h-none">
+          <aside className="w-full md:absolute md:left-0 md:top-0 md:bottom-0 md:w-64 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/30 border-b md:border-b-0 md:border-r border-gray-200/80 dark:border-gray-700/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-md p-3 sm:p-4 overflow-y-auto max-h-[40vh] sm:max-h-[50vh] md:max-h-none">
             <PlayerPanel
               players={config.players}
               dealerIndex={config.dealerIndex}
@@ -178,7 +178,7 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
           {config.players.length > 0 && (
             <button
               onClick={actions.onTogglePlayerPanel}
-              className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-30 w-8 h-24 items-center justify-center bg-white/90 dark:bg-gray-800/90 hover:bg-gray-200 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-r-xl text-sm transition-all duration-200 border-r border-y border-gray-200 dark:border-gray-700/30 shadow-lg shadow-gray-300/30 dark:shadow-black/20"
+              className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-30 w-6 h-20 items-center justify-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-700/90 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-r-lg text-xs transition-all duration-200 border-r border-y border-gray-200/60 dark:border-gray-700/20 shadow-md shadow-gray-300/20 dark:shadow-black/20 hover:w-7"
               title={ui.showPlayerPanel ? t('app.hidePlayers') : t('app.showPlayers')}
             >
               {ui.showPlayerPanel ? '\u25C0' : '\u25B6'}
@@ -186,7 +186,7 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
           )}
           <button
             onClick={actions.onToggleSidebar}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 w-8 h-24 items-center justify-center bg-white/90 dark:bg-gray-800/90 hover:bg-gray-200 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-l-xl text-sm transition-all duration-200 border-l border-y border-gray-200 dark:border-gray-700/30 shadow-lg shadow-gray-300/30 dark:shadow-black/20"
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 w-6 h-20 items-center justify-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-700/90 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-l-lg text-xs transition-all duration-200 border-l border-y border-gray-200/60 dark:border-gray-700/20 shadow-md shadow-gray-300/20 dark:shadow-black/20 hover:w-7"
             title={ui.showSidebar ? t('app.hideSidebar') : t('app.showSidebar')}
           >
             {ui.showSidebar ? '\u25B6' : '\u25C0'}
@@ -254,37 +254,37 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
           </div>
 
           {/* Mobile: sidebar toggle buttons */}
-          <div className="flex md:hidden justify-center gap-2 px-3 pb-2">
+          <div className="flex md:hidden justify-center gap-1.5 px-3 pb-2">
             {config.players.length > 0 && (
               <button
                 onClick={actions.onTogglePlayerPanel}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border ${
                   ui.showPlayerPanel
-                    ? 'text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                    ? 'text-white shadow-sm'
+                    : 'bg-white/60 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 border-gray-200/60 dark:border-gray-700/30'
                 }`}
-                style={ui.showPlayerPanel ? { backgroundColor: 'var(--accent-700)' } : undefined}
+                style={ui.showPlayerPanel ? { backgroundColor: 'var(--accent-600)', borderColor: 'var(--accent-700)' } : undefined}
               >
-                {ui.showPlayerPanel ? `✓ ${t('app.players')}` : t('app.players')}
+                {t('app.players')}
               </button>
             )}
             <button
               onClick={actions.onToggleSidebar}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border ${
                 ui.showSidebar
-                  ? 'text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                  ? 'text-white shadow-sm'
+                  : 'bg-white/60 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 border-gray-200/60 dark:border-gray-700/30'
               }`}
-              style={ui.showSidebar ? { backgroundColor: 'var(--accent-700)' } : undefined}
+              style={ui.showSidebar ? { backgroundColor: 'var(--accent-600)', borderColor: 'var(--accent-700)' } : undefined}
             >
-              {ui.showSidebar ? `✓ ${t('app.sidebar')}` : t('app.sidebar')}
+              {t('app.sidebar')}
             </button>
           </div>
         </div>
 
         {/* Sidebar (RIGHT) */}
         {ui.showSidebar && (
-          <aside className="w-full md:absolute md:right-0 md:top-0 md:bottom-0 md:w-64 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/20 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700/30 bg-gray-50 dark:bg-gray-900/40 p-3 sm:p-4 space-y-4 sm:space-y-6 overflow-y-auto max-h-[60vh] sm:max-h-[70vh] md:max-h-none">
+          <aside className="w-full md:absolute md:right-0 md:top-0 md:bottom-0 md:w-64 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/30 border-t md:border-t-0 md:border-l border-gray-200/80 dark:border-gray-700/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-md p-3 sm:p-4 space-y-4 sm:space-y-5 overflow-y-auto max-h-[60vh] sm:max-h-[70vh] md:max-h-none">
             <LevelPreview timerState={timer.timerState} levels={config.levels} />
             {config.chips.enabled && (
               <ChipSidebar
@@ -313,18 +313,20 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
               canUseCustomLayout={ui.canUseCustomLayout}
               onOpenFeatureGate={onOpenFeatureGate ? (f) => onOpenFeatureGate(f as AppFeature) : undefined}
             />
-            <button
-              onClick={actions.onShowIcm}
-              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm transition-colors"
-            >
-              {t('icm.title')}
-            </button>
-            <button
-              onClick={actions.onExitToSetup}
-              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-sm transition-colors"
-            >
-              {t('app.backToSetup')}
-            </button>
+            <div className="pt-2 border-t border-gray-200/60 dark:border-gray-700/30 space-y-2">
+              <button
+                onClick={actions.onShowIcm}
+                className="w-full px-3 py-2 bg-gray-100/80 dark:bg-gray-800/50 hover:bg-gray-200/80 dark:hover:bg-gray-700/60 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200/60 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600/40"
+              >
+                {t('icm.title')}
+              </button>
+              <button
+                onClick={actions.onExitToSetup}
+                className="w-full px-3 py-2 bg-gray-100/80 dark:bg-gray-800/50 hover:bg-gray-200/80 dark:hover:bg-gray-700/60 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200/60 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600/40"
+              >
+                {t('app.backToSetup')}
+              </button>
+            </div>
           </aside>
         )}
       </div>
