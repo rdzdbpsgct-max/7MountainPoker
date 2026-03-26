@@ -139,8 +139,8 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
   return (
     <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        {/* Player Panel (LEFT) */}
-        {ui.showPlayerPanel && config.players.length > 0 && (
+        {/* Player Panel (LEFT) — hidden when details hidden */}
+        {!ui.cleanView && ui.showPlayerPanel && config.players.length > 0 && (
           <aside className="w-full md:absolute md:left-0 md:top-0 md:bottom-0 md:w-64 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/30 border-b md:border-b-0 md:border-r border-gray-200/80 dark:border-gray-700/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-md p-3 sm:p-4 overflow-y-auto max-h-[40vh] sm:max-h-[50vh] md:max-h-none">
             <PlayerPanel
               players={config.players}
@@ -179,8 +179,8 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
 
         {/* Timer area (CENTER) with edge toggle buttons */}
         <div className="flex-1 flex flex-col relative">
-          {/* Desktop: side toggle buttons */}
-          {config.players.length > 0 && (
+          {/* Desktop: side toggle buttons — hidden when details hidden */}
+          {!ui.cleanView && config.players.length > 0 && (
             <button
               onClick={actions.onTogglePlayerPanel}
               className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-30 w-6 h-20 items-center justify-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-700/90 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-r-lg text-xs transition-all duration-200 border-r border-y border-gray-200/60 dark:border-gray-700/20 shadow-md shadow-gray-300/20 dark:shadow-black/20 hover:w-7"
@@ -189,29 +189,29 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
               {ui.showPlayerPanel ? '\u25C0' : '\u25B6'}
             </button>
           )}
-          <button
-            onClick={actions.onToggleSidebar}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 w-6 h-20 items-center justify-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-700/90 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-l-lg text-xs transition-all duration-200 border-l border-y border-gray-200/60 dark:border-gray-700/20 shadow-md shadow-gray-300/20 dark:shadow-black/20 hover:w-7"
-            title={ui.showSidebar ? t('app.hideSidebar') : t('app.showSidebar')}
-          >
-            {ui.showSidebar ? '\u25B6' : '\u25C0'}
-          </button>
+          {!ui.cleanView && (
+            <button
+              onClick={actions.onToggleSidebar}
+              className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 w-6 h-20 items-center justify-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-700/90 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-l-lg text-xs transition-all duration-200 border-l border-y border-gray-200/60 dark:border-gray-700/20 shadow-md shadow-gray-300/20 dark:shadow-black/20 hover:w-7"
+              title={ui.showSidebar ? t('app.hideSidebar') : t('app.showSidebar')}
+            >
+              {ui.showSidebar ? '\u25B6' : '\u25C0'}
+            </button>
+          )}
 
           {/* Timer + Controls */}
           <div className="flex-1 flex flex-col items-center justify-center p-3 sm:p-6 gap-3 sm:gap-6 relative">
-            {!ui.cleanView && (
-              <GameInfoBar
-                players={config.players}
-                buyIn={config.buyIn}
-                rebuyConfig={config.rebuy}
-                addOnConfig={config.addOn}
-                averageStack={state.averageStack}
-                tournamentElapsed={state.tournamentElapsed}
-                estimatedRemaining={estimatedRemaining}
-                currency={config.currency}
-                onShowPayoutOverlay={actions.onShowPayoutOverlay}
-              />
-            )}
+            <GameInfoBar
+              players={config.players}
+              buyIn={config.buyIn}
+              rebuyConfig={config.rebuy}
+              addOnConfig={config.addOn}
+              averageStack={state.averageStack}
+              tournamentElapsed={state.tournamentElapsed}
+              estimatedRemaining={estimatedRemaining}
+              currency={config.currency}
+              onShowPayoutOverlay={actions.onShowPayoutOverlay}
+            />
             <TimerDisplay
               timerState={timer.timerState}
               levels={config.levels}
@@ -251,9 +251,8 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
               isBreak={state.isBreak}
               onSkipBreak={actions.onSkipBreak}
               onExtendBreak={actions.onExtendBreak}
-              hideSecondaryControls={ui.cleanView}
-              cleanView={ui.cleanView}
-              onToggleCleanView={actions.onToggleCleanView}
+              detailsHidden={ui.cleanView}
+              onToggleDetails={actions.onToggleCleanView}
               lastHandActive={state.lastHandActive}
               onLastHand={actions.onLastHand}
               handForHandActive={state.handForHandActive}
@@ -271,8 +270,8 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
             />
           </div>
 
-          {/* Mobile: sidebar toggle buttons */}
-          <div className="flex md:hidden justify-center gap-1.5 px-3 pb-2">
+          {/* Mobile: sidebar toggle buttons — hidden when details hidden */}
+          {!ui.cleanView && <div className="flex md:hidden justify-center gap-1.5 px-3 pb-2">
             {config.players.length > 0 && (
               <button
                 onClick={actions.onTogglePlayerPanel}
@@ -297,11 +296,11 @@ export const GameModeContainer = memo(function GameModeContainer({ config, setti
             >
               {t('app.sidebar')}
             </button>
-          </div>
+          </div>}
         </div>
 
-        {/* Sidebar (RIGHT) */}
-        {ui.showSidebar && (
+        {/* Sidebar (RIGHT) — hidden when details hidden */}
+        {!ui.cleanView && ui.showSidebar && (
           <aside className="w-full md:absolute md:right-0 md:top-0 md:bottom-0 md:w-64 lg:w-72 md:z-20 md:shadow-xl md:shadow-black/30 border-t md:border-t-0 md:border-l border-gray-200/80 dark:border-gray-700/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-md p-3 sm:p-4 space-y-4 sm:space-y-5 overflow-y-auto max-h-[60vh] sm:max-h-[70vh] md:max-h-none">
             <LevelPreview timerState={timer.timerState} levels={config.levels} />
             {config.chips.enabled && (
