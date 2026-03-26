@@ -92,8 +92,8 @@ export const AppHeader = memo(function AppHeader({
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
-        <ThemeSwitcher />
-        <LanguageSwitcher />
+        {mode !== 'game' && <ThemeSwitcher />}
+        {mode !== 'game' && <LanguageSwitcher />}
         <VoiceSwitcher settings={settings} onChange={onSettingsChange} />
 
         {mode === 'game' && !tournamentFinished && onShowShareHub && (
