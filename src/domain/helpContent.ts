@@ -230,6 +230,13 @@ export const helpSections: HelpSection[] = [
         },
       },
       {
+        title: { de: 'Clean View', en: 'Clean View' },
+        body: {
+          de: 'Taste F blendet Statistiken, Sidebars und sekundäre Buttons aus. Nur Timer, Blinds und wichtige Banner bleiben sichtbar — ideal für fokussiertes Spiel.',
+          en: 'Press F to hide stats, sidebars, and secondary buttons. Only timer, blinds, and important banners remain visible — ideal for focused play.',
+        },
+      },
+      {
         title: { de: 'Bubble & In The Money', en: 'Bubble & In The Money' },
         body: {
           de: 'Wenn noch ein Spieler mehr als die Auszahlungsplätze übrig ist, erscheint der "BUBBLE!"-Banner. Beim Burst gibt es einen "In The Money"-Flash. Sound-Effekte und Sprachansagen begleiten beide Events.',
@@ -808,7 +815,8 @@ export const shortcutEntries: ShortcutEntry[] = [
   { key: 'N', label: { de: 'Nächstes Level', en: 'Next Level' }, context: 'game' },
   { key: 'V', label: { de: 'Vorheriges Level', en: 'Previous Level' }, context: 'game' },
   { key: 'R', label: { de: 'Level zurücksetzen', en: 'Reset Level' }, context: 'game' },
-{ key: 'L', label: { de: 'Letzte Hand', en: 'Last Hand' }, context: 'game' },
+  { key: 'F', label: { de: 'Clean View ein/aus', en: 'Clean View toggle' }, context: 'game' },
+  { key: 'L', label: { de: 'Letzte Hand', en: 'Last Hand' }, context: 'game' },
   { key: 'T', label: { de: 'TV-Modus ein/aus', en: 'TV Mode toggle' }, context: 'game' },
   { key: 'H', label: { de: 'Hand-for-Hand', en: 'Hand-for-Hand' }, context: 'game' },
   { key: 'C', label: { de: 'Call the Clock', en: 'Call the Clock' }, context: 'game' },

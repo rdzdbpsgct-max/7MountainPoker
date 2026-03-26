@@ -3,8 +3,6 @@ import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { LanguageProvider } from '../src/i18n';
 import { ThemeProvider } from '../src/theme';
-import { GameStatusBar } from '../src/components/GameStatusBar';
-import { GamePlayerList } from '../src/components/GamePlayerList';
 import { NumberStepper } from '../src/components/NumberStepper';
 import { CollapsibleSection } from '../src/components/CollapsibleSection';
 import { CollapsibleSubSection } from '../src/components/CollapsibleSubSection';
@@ -1687,93 +1685,5 @@ describe('SetupTabs', () => {
     );
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
-  });
-});
-
-// --- GameStatusBar ---
-describe('GameStatusBar', () => {
-  const baseProps = {
-    players: [
-      { id: '1', name: 'Alice', status: 'active' as const, rebuys: 0, addOn: false, knockouts: 0 },
-      { id: '2', name: 'Bob', status: 'active' as const, rebuys: 0, addOn: false, knockouts: 0 },
-      { id: '3', name: 'Charlie', status: 'eliminated' as const, rebuys: 0, addOn: false, knockouts: 0, placement: 3 },
-    ],
-    prizePool: 300,
-    currency: 'EUR' as const,
-    elapsedSeconds: 2700,
-    averageStack: 15000,
-    currentBB: 200,
-    onShowSettings: vi.fn(),
-    onShowTV: vi.fn(),
-    onShowLog: vi.fn(),
-    onShowHelp: vi.fn(),
-    onShowIcm: vi.fn(),
-    onExitToSetup: vi.fn(),
-  };
-
-  it('renders player count and prizepool', () => {
-    render(<GameStatusBar {...baseProps} />, { wrapper: Wrapper });
-    expect(screen.getByText('2/3')).toBeInTheDocument();
-    expect(screen.getByText(/300/)).toBeInTheDocument();
-  });
-
-  it('renders icon buttons with aria-labels', () => {
-    render(<GameStatusBar {...baseProps} />, { wrapper: Wrapper });
-    expect(screen.getByRole('button', { name: /einstellungen/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /tv/i })).toBeInTheDocument();
-  });
-
-  it('calls onShowSettings when settings button clicked', () => {
-    render(<GameStatusBar {...baseProps} />, { wrapper: Wrapper });
-    fireEvent.click(screen.getByRole('button', { name: /einstellungen/i }));
-    expect(baseProps.onShowSettings).toHaveBeenCalledOnce();
-  });
-});
-
-// --- GamePlayerList ---
-describe('GamePlayerList', () => {
-  const activePlayers = [
-    { id: '1', name: 'Alice', status: 'active' as const, rebuys: 1, addOn: false, knockouts: 0, chips: 15000 },
-    { id: '2', name: 'Bob', status: 'active' as const, rebuys: 0, addOn: false, knockouts: 0, chips: 20000 },
-  ];
-  const eliminatedPlayer = { id: '3', name: 'Charlie', status: 'eliminated' as const, rebuys: 0, addOn: false, knockouts: 0, placement: 3 };
-
-  const baseProps = {
-    players: [...activePlayers, eliminatedPlayer],
-    dealerIndex: 0,
-    rebuyActive: false,
-    rebuyConfig: { enabled: false, rebuyCost: 10, rebuyChips: 1000, maxRebuys: 3, maxRebuysPerPlayer: 3, rebuyLevels: 3, separatePot: false },
-    addOnConfig: { enabled: false, cost: 10, chips: 1000 },
-    addOnWindowOpen: false,
-    bountyConfig: { enabled: false, amount: 5, type: 'fixed' as const },
-    onUpdateRebuys: vi.fn(),
-    onUpdateAddOn: vi.fn(),
-    onEliminatePlayer: vi.fn(),
-    onReinstatePlayer: vi.fn(),
-    onAdvanceDealer: vi.fn(),
-    showDealerBadges: true,
-    onToggleDealerBadges: vi.fn(),
-  };
-
-  it('renders active player rows', () => {
-    render(<GamePlayerList {...baseProps} />, { wrapper: Wrapper });
-    expect(screen.getByText('Alice')).toBeInTheDocument();
-    expect(screen.getByText('Bob')).toBeInTheDocument();
-  });
-
-  it('renders eliminated players with placement', () => {
-    render(<GamePlayerList {...baseProps} />, { wrapper: Wrapper });
-    expect(screen.getByText('Charlie')).toBeInTheDocument();
-    expect(screen.getByText('3.')).toBeInTheDocument();
-  });
-
-  it('shows inline bounty picker when eliminating with bounty', () => {
-    const bountyProps = { ...baseProps, bountyConfig: { enabled: true, amount: 5, type: 'fixed' as const } };
-    render(<GamePlayerList {...bountyProps} />, { wrapper: Wrapper });
-    // Click eliminate on Alice
-    const eliminateButtons = screen.getAllByTitle('Raus');
-    fireEvent.click(eliminateButtons[0]!);
-    // Should show Bob as a clickable button (inline, not dropdown)
-    expect(screen.getByRole('button', { name: 'Bob' })).toBeInTheDocument();
   });
 });

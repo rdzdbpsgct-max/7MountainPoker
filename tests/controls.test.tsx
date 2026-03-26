@@ -33,6 +33,8 @@ vi.mock('../src/i18n', () => ({
         'controls.lastHandTooltip': 'Toggle last hand',
         'controls.handForHandTooltip': 'Toggle hand for hand',
         'controls.nextHandTooltip': 'Next hand',
+        'game.cleanViewOn': 'Clean View',
+        'game.cleanViewOff': 'Normal View',
         'controls.skipBreak': 'Skip Break',
         'controls.extendBreak2': '+2 min',
         'controls.extendBreak5': '+5 min',
@@ -125,6 +127,12 @@ describe('Controls', () => {
     expect(screen.getByText('Restart')).toBeDefined();
   });
 
+  it('hides secondary controls when hideSecondaryControls is true', () => {
+    renderControls({ hideSecondaryControls: true });
+    expect(screen.queryByText('Reset Level')).toBeNull();
+    expect(screen.queryByText('Restart')).toBeNull();
+  });
+
   it('calls onReset when reset button is clicked', () => {
     const handler = vi.fn();
     renderControls({ onReset: handler });
@@ -183,6 +191,17 @@ describe('Controls', () => {
       timerState: runningTimer(),
     });
     expect(screen.queryByText('Next Hand')).toBeNull();
+  });
+
+  // --- Clean View ---
+  it('renders clean view toggle when onToggleCleanView is provided', () => {
+    renderControls({ onToggleCleanView: noop, cleanView: false });
+    expect(screen.getByText('Normal View')).toBeDefined();
+  });
+
+  it('shows Clean View label when cleanView is true', () => {
+    renderControls({ onToggleCleanView: noop, cleanView: true });
+    expect(screen.getByText('Clean View')).toBeDefined();
   });
 
   // --- Call the Clock ---

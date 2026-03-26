@@ -35,6 +35,7 @@ describe('useKeyboardShortcuts', () => {
       onNextLevel: vi.fn(),
       onPreviousLevel: vi.fn(),
       onResetLevel: vi.fn(),
+      onToggleCleanView: vi.fn(),
       onLastHand: vi.fn(),
       onToggleTVWindow: vi.fn(),
       onHandForHand: vi.fn(),
@@ -72,6 +73,14 @@ describe('useKeyboardShortcuts', () => {
 
     fireEvent.keyDown(window, { code: 'KeyR' });
     expect(handlers.onResetLevel).toHaveBeenCalledTimes(1);
+  });
+
+  it('F triggers onToggleCleanView in game mode', () => {
+    const handlers = createHandlers();
+    renderHook(() => useKeyboardShortcuts({ mode: 'game', ...handlers }));
+
+    fireEvent.keyDown(window, { code: 'KeyF' });
+    expect(handlers.onToggleCleanView).toHaveBeenCalledTimes(1);
   });
 
   it('L triggers onLastHand in game mode', () => {

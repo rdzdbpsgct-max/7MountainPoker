@@ -37,7 +37,6 @@ import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useTranslation } from './i18n';
 import { showToast } from './domain/toast';
-import type { AppFeature } from './domain/entitlements';
 import {
   getRequiredTier,
 } from './domain/entitlements';
@@ -96,7 +95,6 @@ const SeriesManager = lazy(() => import('./components/SeriesManager').then(m => 
 const CustomAudioEditor = lazy(() => import('./components/CustomAudioEditor').then(m => ({ default: m.CustomAudioEditor })));
 const ShareHub = lazy(() => import('./components/ShareHub').then(m => ({ default: m.ShareHub })));
 const IcmCalculator = lazy(() => import('./components/IcmCalculator').then(m => ({ default: m.IcmCalculator })));
-const SettingsPanel = lazy(() => import('./components/SettingsPanel').then(m => ({ default: m.SettingsPanel })));
 const LicenseActivation = lazy(() => import('./components/LicenseActivation').then(m => ({ default: m.LicenseActivation })));
 
 type Mode = 'setup' | 'game' | 'league';
@@ -576,6 +574,7 @@ function App() {
     onNextLevel: timer.nextLevel,
     onPreviousLevel: timer.previousLevel,
     onResetLevel: handleResetLevelShortcut,
+    onToggleCleanView: modals.toggleCleanView,
     onLastHand: handleLastHand,
     onToggleTVWindow: handleToggleTVWindowWithGate,
     onHandForHand: handleHandForHand,
@@ -706,6 +705,9 @@ function App() {
       setPendingCheckpoint,
       setAddOnEndLevelIndex,
       setRecentTableMoves,
+      setCleanView: modals.setCleanView,
+      setShowPlayerPanel: modals.setShowPlayerPanel,
+      setShowSidebar: modals.setShowSidebar,
       setShowDealerBadges,
       setLastHandActive,
       setHandForHandActive,
@@ -722,12 +724,15 @@ function App() {
 
   // Destructure stable modal setters for useMemo dep array (avoids react-hooks/exhaustive-deps warning on `modals` object)
   const {
+    setShowPlayerPanel, setShowSidebar, toggleCleanView,
     setShowCallTheClock, setShowPayoutOverlay, setShowIcm, setShowInstallGuide: setShowInstallGuideModal,
   } = modals;
 
   // Memoize the actions object for GameModeContainer to avoid re-creating on every render.
   // All callbacks are already stable (useCallback / useState setters).
   const gameModeActions = useMemo(() => ({
+    onTogglePlayerPanel: () => setShowPlayerPanel((v: boolean) => !v),
+    onToggleSidebar: () => setShowSidebar((v: boolean) => !v),
     onUpdatePlayerRebuys: updatePlayerRebuys,
     onUpdatePlayerAddOn: updatePlayerAddOn,
     onEliminatePlayer: eliminatePlayer,
@@ -744,6 +749,7 @@ function App() {
     onExtendBreak: handleExtendBreak,
     onResetLevel: handleResetLevel,
     onRestartTournament: handleRestart,
+    onToggleCleanView: toggleCleanView,
     onLastHand: handleLastHand,
     onHandForHand: handleHandForHand,
     onNextHand: handleNextHand,
@@ -758,6 +764,7 @@ function App() {
     onExitToSetup: handleExitToSetup,
     onAcceptDeal: acceptDeal,
   }), [
+    setShowPlayerPanel, setShowSidebar, toggleCleanView,
     setShowCallTheClock, setShowPayoutOverlay, setShowIcm, setShowInstallGuideModal,
     updatePlayerRebuys, updatePlayerAddOn, eliminatePlayer, reinstatePlayer,
     handleAdvanceDealer, handleToggleDealerBadges, updatePlayerStack, initStacks, clearStacks,
@@ -777,9 +784,10 @@ function App() {
     handForHandActive, lateRegOpen, colorUpMap, recentTableMoves, isBreak]);
 
   const gameModeUi = useMemo(() => ({
-    showDealerBadges,
+    cleanView: modals.cleanView, showPlayerPanel: modals.showPlayerPanel,
+    showSidebar: modals.showSidebar, showDealerBadges,
     canUseCustomAccent, canUseCustomBackground, canUseCustomLayout,
-  }), [showDealerBadges,
+  }), [modals.cleanView, modals.showPlayerPanel, modals.showSidebar, showDealerBadges,
     canUseCustomAccent, canUseCustomBackground, canUseCustomLayout]);
 
   const gameModeUndo = useMemo(() => ({
@@ -936,10 +944,6 @@ function App() {
               canUseSidePot={canUseSidePot}
               canUseMultiTable={canUseMultiTable}
               onOpenFeatureGate={openFeatureGate}
-              onShowSettings={() => modals.setShowSettingsModal(true)}
-              onShowTV={handleToggleTVWindowWithGate}
-              onShowLog={() => modals.setShowTournamentLog(true)}
-              onShowHelp={() => modals.setShowHelp(true)}
             />
           </TournamentProvider>
         )}
@@ -1068,32 +1072,6 @@ function App() {
         <SectionErrorBoundary><Suspense fallback={null}>
           <HelpCenter onClose={() => modals.setShowHelp(false)} />
         </Suspense></SectionErrorBoundary>
-      )}
-
-      {/* Settings Modal (game mode) */}
-      {modals.showSettingsModal && mode === 'game' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => modals.setShowSettingsModal(false)}>
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-4 max-h-[80vh] overflow-y-auto animate-scale-in" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
-            <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
-              <SettingsPanel
-                settings={settings}
-                onChange={setSettings}
-                onToggleFullscreen={toggleFullscreen}
-                onShowInstallGuide={() => modals.setShowInstallGuide(true)}
-                canUseCustomAccent={canUseCustomAccent}
-                canUseCustomBackground={canUseCustomBackground}
-                canUseCustomLayout={canUseCustomLayout}
-                onOpenFeatureGate={openFeatureGate ? (f) => openFeatureGate(f as AppFeature) : undefined}
-              />
-            </Suspense></SectionErrorBoundary>
-            <button
-              onClick={() => modals.setShowSettingsModal(false)}
-              className="mt-3 w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm transition-colors"
-            >
-              {t('templates.close')}
-            </button>
-          </div>
-        </div>
       )}
 
       {/* Tournament Log */}

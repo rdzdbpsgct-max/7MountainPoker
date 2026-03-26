@@ -6,10 +6,10 @@
 
 **Der Poker-Turnier-Timer für deinen Spieleabend**
 
-[![Version](https://img.shields.io/badge/Version-6.12.0-blue?style=flat-square)](#)
+[![Version](https://img.shields.io/badge/Version-6.11.1-blue?style=flat-square)](#)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-34d399?style=flat-square&logo=github)](https://rdzdbpsgct-max.github.io/7MountainPoker/)
 [![Vercel](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=flat-square&logo=vercel)](https://7mountainpoker.vercel.app/)
-[![Tests](https://img.shields.io/badge/Tests-1367%20passed-brightgreen?style=flat-square)](#)
+[![Tests](https://img.shields.io/badge/Tests-1360%20passed-brightgreen?style=flat-square)](#)
 [![Build](https://img.shields.io/badge/Build-passing-brightgreen?style=flat-square)](#)
 [![PWA](https://img.shields.io/badge/PWA-installierbar-7c3aed?style=flat-square)](#)
 
@@ -263,13 +263,13 @@ Please make sure `npm run lint` and `npm run test` pass without errors.
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7-646cff?style=flat-square&logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06b6d4?style=flat-square&logo=tailwindcss&logoColor=white)
-![Vitest](https://img.shields.io/badge/Vitest-1367_Tests-6e9f18?style=flat-square&logo=vitest&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-1360_Tests-6e9f18?style=flat-square&logo=vitest&logoColor=white)
 
 - **React 19** — Funktionale Komponenten und Hooks / Functional components and hooks
 - **TypeScript 5.9** — Strikte Typisierung / Strict typing
 - **Vite 7** — Build-Tool / Build tool
 - **Tailwind CSS 4** — Styling (keine CSS-Dateien / no CSS files)
-- **Vitest** — 1367 Tests / Unit tests
+- **Vitest** — 1360 Tests / Unit tests
 - **GitHub Actions** — CI/CD mit Deploy auf GitHub Pages / with deploy to GitHub Pages
 - **Vercel** — Automatisches Deploy / Auto-deploy on push
 - **PWA** — vite-plugin-pwa, offline-fähig / offline-capable
@@ -303,7 +303,7 @@ App: `http://localhost:5173/`
 
 ```bash
 npm run lint        # ESLint
-npm run test        # 1367 Tests
+npm run test        # 1360 Tests
 npm run build       # Production-Build → ./dist
 ```
 
@@ -383,7 +383,7 @@ public/
   audio/de/             # 295 ElevenLabs MP3 Audiodateien (Deutsch, Stimme: Ava)
   audio/en/             # 295 ElevenLabs MP3 Audiodateien (Englisch)
 tests/
-  logic.test.ts         # 1367 Tests (21 Testdateien / test files)
+  logic.test.ts         # 1360 Tests (21 Testdateien / test files)
 ```
 
 ## Architektur / Architecture

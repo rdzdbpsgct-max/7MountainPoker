@@ -155,6 +155,32 @@ describe('a11y: TimerDisplay', () => {
   });
 });
 
+describe('a11y: TournamentStats', () => {
+  it('has no a11y violations', async () => {
+    const { TournamentStats } = await import('../src/components/TournamentStats');
+    const players = [
+      { id: '1', name: 'Alice', rebuys: 0, addOn: false, status: 'active' as const, placement: null, eliminatedBy: null, knockouts: 0 },
+      { id: '2', name: 'Bob', rebuys: 0, addOn: false, status: 'active' as const, placement: null, eliminatedBy: null, knockouts: 0 },
+    ];
+    const levels = [
+      { id: '1', type: 'level' as const, durationSeconds: 900, smallBlind: 25, bigBlind: 50 },
+    ];
+    const { container } = renderWithProviders(
+      <TournamentStats
+        players={players}
+        levels={levels}
+        currentLevelIndex={0}
+        remainingSeconds={600}
+        averageStack={5000}
+        elapsedSeconds={300}
+        estimatedRemainingSeconds={3600}
+        prizePool={100}
+      />,
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});
 
 describe('a11y: SettingsPanel', () => {
   it('has no a11y violations', async () => {

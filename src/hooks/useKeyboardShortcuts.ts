@@ -6,6 +6,7 @@ interface KeyboardShortcutHandlers {
   onNextLevel: () => void;
   onPreviousLevel: () => void;
   onResetLevel: () => void;
+  onToggleCleanView: () => void;
   onLastHand: () => void;
   onToggleTVWindow: () => void;
   onHandForHand: () => void;
@@ -17,7 +18,7 @@ interface KeyboardShortcutHandlers {
 /**
  * Game-mode keyboard shortcuts.
  * Space = play/pause, N = next, V = previous, R = reset,
- * L = last hand, T = TV display, H = hand-for-hand, C = call the clock
+ * F = clean view, L = last hand, T = TV display, H = hand-for-hand, C = call the clock
  */
 export function useKeyboardShortcuts({
   mode,
@@ -25,6 +26,7 @@ export function useKeyboardShortcuts({
   onNextLevel,
   onPreviousLevel,
   onResetLevel,
+  onToggleCleanView,
   onLastHand,
   onToggleTVWindow,
   onHandForHand,
@@ -64,6 +66,9 @@ export function useKeyboardShortcuts({
         case 'KeyR':
           onResetLevel();
           break;
+        case 'KeyF':
+          onToggleCleanView();
+          break;
         case 'KeyL':
           onLastHand();
           break;
@@ -80,5 +85,5 @@ export function useKeyboardShortcuts({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, onToggleStartPause, onNextLevel, onPreviousLevel, onResetLevel, onLastHand, onToggleTVWindow, onHandForHand, onCallTheClock, onUndo, onRedo]);
+  }, [mode, onToggleStartPause, onNextLevel, onPreviousLevel, onResetLevel, onToggleCleanView, onLastHand, onToggleTVWindow, onHandForHand, onCallTheClock, onUndo, onRedo]);
 }

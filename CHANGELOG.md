@@ -5,26 +5,6 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
-## [6.12.0] – 2026-03-26
-
-### Game Mode Stacked Zones Layout
-
-Das 3-Panel-Game-Layout (Spieler links, Timer Mitte, Sidebar rechts) wird durch ein einspaltiges **Stacked-Zones-Layout** ersetzt — mobile-first, optimiert für Smartphone-Bedienung während des Spiels.
-
-- **GameLayout Orchestrator**: Neuer `GameLayout.tsx` orchestriert 3 Zonen: Zone 1 (StatusBar, sticky) → Zone 2 (Timer, sticky) → Zone 3 (scrollbarer Aktionsbereich)
-- **GameStatusBar (Zone 1)**: Kompakte Stats-Leiste (Spieler, Prizepool, Avg BB, Uhrzeit) + Icon-Buttons (Einstellungen ⚙, Share 📡, TV 📺, Protokoll 📋)
-- **GameTimerZone (Zone 2)**: Timer-Display + Controls als sticky Wrapper — immer sichtbar beim Scrollen
-- **GamePlayerList (Zone 3)**: Spielerliste mit Inline-Bounty-Picker, Rebuy/Add-On-Buttons, Elimination
-- **GameQuickInfo (Zone 3)**: Aufklappbare Akkordeon-Karten für Blindstruktur, Auszahlung, Chip-Werte
-- **Clean View entfernt**: Keyboard-Shortcut F, Toggle-Button und State entfernt — Stacked Layout zeigt immer alle Inhalte
-- **TournamentStats gelöscht**: Daten jetzt in GameStatusBar integriert
-- **SettingsPanel als Modal**: Rendert als Overlay statt als Sidebar
-- **Neue Dateien**: `GameLayout.tsx`, `GameStatusBar.tsx`, `GameTimerZone.tsx`, `GamePlayerList.tsx`, `GameQuickInfo.tsx`
-- **~34 neue Translation-Keys** (17 DE + 17 EN)
-- **7 neue Tests** — **1367 Tests gesamt** (21 Testdateien)
-
----
-
 ## [6.11.1] – 2026-03-23
 
 ### Abschluss-Audit, Deal-Finished & Stale-Connection-Eviction
