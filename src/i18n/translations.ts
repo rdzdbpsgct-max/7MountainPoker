@@ -118,13 +118,9 @@ const de = {
   'controls.next': 'Weiter ⏭',
   'controls.nextTooltip': 'Nächstes Level (N)',
   'controls.levelReset': '↺ Level zurücksetzen',
-  'controls.levelResetTooltip': 'Level zurücksetzen (R)',
   'controls.tournamentRestart': '⟲ Turnier Restart',
-  'controls.tournamentRestartTooltip': 'Turnier neu starten',
   'controls.lastHand': 'Letzte Hand',
-  'controls.lastHandTooltip': 'Letzte Hand ansagen (L)',
   'controls.handForHand': 'Hand-für-Hand',
-  'controls.handForHandTooltip': 'Hand-for-Hand-Modus (H)',
   'controls.callTheClock': 'Uhr ansagen',
   'controls.skipBreak': 'Pause überspringen',
   'controls.extendBreak2': '+2 Min',
@@ -527,8 +523,6 @@ const de = {
   'templates.saveHint': 'Tipp: In Safari → Einstellungen → Allgemein → Download-Ort auf „Nachfragen" stellen, um den Speicherort zu wählen.',
 
   // --- Clean View ---
-  'game.cleanViewOn': 'Details einblenden',
-  'game.cleanViewOff': 'Details ausblenden',
   'controls.detailsShow': 'Details einblenden',
   'controls.detailsHide': 'Details ausblenden',
   'game.lastHand': 'LETZTE HAND!',
@@ -1286,8 +1280,6 @@ const de = {
   // --- Settings Modal ---
   'settings.modalTitle': 'Einstellungen',
   'settings.backToSetup': 'Zurück zum Setup',
-  // --- Controls More Menu ---
-  'controls.more': 'Mehr',
   'controls.moreActions': 'Weitere Aktionen',
   // --- Player Panel Actions ---
   'playerPanel.actions': 'Aktionen',
@@ -1602,13 +1594,9 @@ const en: Record<TranslationKey, string> = {
   'controls.next': 'Next ⏭',
   'controls.nextTooltip': 'Next Level (N)',
   'controls.levelReset': '↺ Level Reset',
-  'controls.levelResetTooltip': 'Reset Level (R)',
   'controls.tournamentRestart': '⟲ Restart',
-  'controls.tournamentRestartTooltip': 'Restart tournament',
   'controls.lastHand': 'Last Hand',
-  'controls.lastHandTooltip': 'Announce last hand (L)',
   'controls.handForHand': 'Hand for Hand',
-  'controls.handForHandTooltip': 'Hand-for-Hand mode (H)',
   'controls.callTheClock': 'Call the Clock',
   'controls.skipBreak': 'Skip Break',
   'controls.extendBreak2': '+2 min',
@@ -2011,8 +1999,6 @@ const en: Record<TranslationKey, string> = {
   'templates.saveHint': 'Tip: In Safari → Settings → General, set download location to "Ask for each download" to choose where to save.',
 
   // --- Clean View ---
-  'game.cleanViewOn': 'Show details',
-  'game.cleanViewOff': 'Hide details',
   'controls.detailsShow': 'Show details',
   'controls.detailsHide': 'Hide details',
   'game.lastHand': 'LAST HAND!',
@@ -2767,8 +2753,6 @@ const en: Record<TranslationKey, string> = {
   // --- Settings Modal ---
   'settings.modalTitle': 'Settings',
   'settings.backToSetup': 'Back to Setup',
-  // --- Controls More Menu ---
-  'controls.more': 'More',
   'controls.moreActions': 'More Actions',
   // --- Player Panel Actions ---
   'playerPanel.actions': 'Actions',

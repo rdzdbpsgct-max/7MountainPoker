@@ -218,8 +218,8 @@ export const helpSections: HelpSection[] = [
       {
         title: { de: 'Timer-Steuerung', en: 'Timer Controls' },
         body: {
-          de: 'Start/Pause mit der Leertaste oder dem Button. Der Timer nutzt Wall-Clock-Zeit (keine Drift). Per Slider kannst du die Zeit im aktuellen Level anpassen. Timer startet automatisch bei Levelwechsel.',
-          en: 'Start/pause with spacebar or the button. The timer uses wall-clock time (no drift). Use the slider to adjust time within the current level. Timer auto-starts on level change.',
+          de: 'Start/Pause mit der Leertaste oder dem Button. Der Timer nutzt Wall-Clock-Zeit (keine Drift). Per Slider kannst du die Zeit im aktuellen Level anpassen. Timer startet automatisch bei Levelwechsel. Unter den Hauptbuttons findest du kompakte Icon-Buttons für Undo/Redo, Letzte Hand, Hand-for-Hand und Call the Clock. Level zurücksetzen und Turnier-Neustart erreichst du über das ⚙️-Menü im Header.',
+          en: 'Start/pause with spacebar or the button. The timer uses wall-clock time (no drift). Use the slider to adjust time within the current level. Timer auto-starts on level change. Below the main buttons you\'ll find compact icon buttons for Undo/Redo, Last Hand, Hand-for-Hand, and Call the Clock. Reset Level and Restart Tournament are in the ⚙️ settings menu in the header.',
         },
       },
       {
@@ -246,8 +246,8 @@ export const helpSections: HelpSection[] = [
       {
         title: { de: 'Letzte Hand & Hand-for-Hand', en: 'Last Hand & Hand-for-Hand' },
         body: {
-          de: 'Taste L sagt die letzte Hand an (unterscheidet vor Pause / Ende des Levels). Hand-for-Hand (Taste H) pausiert nach jeder Hand — ideal während der Bubble-Phase. Deaktiviert sich automatisch wenn die Bubble platzt.',
-          en: 'Press L to announce last hand (distinguishes before break / end of level). Hand-for-hand (key H) pauses after each hand — ideal during bubble phase. Auto-deactivates when bubble bursts.',
+          de: 'Letzte Hand (✋-Button oder Taste L) sagt die letzte Hand an (unterscheidet vor Pause / Ende des Levels). Hand-for-Hand (H4H-Button oder Taste H) pausiert nach jeder Hand — ideal während der Bubble-Phase. Deaktiviert sich automatisch wenn die Bubble platzt.',
+          en: 'Last Hand (✋ button or key L) announces last hand (distinguishes before break / end of level). Hand-for-Hand (H4H button or key H) pauses after each hand — ideal during bubble phase. Auto-deactivates when bubble bursts.',
         },
       },
       {
