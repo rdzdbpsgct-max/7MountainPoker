@@ -5,6 +5,25 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [6.12.0] – 2026-03-26
+
+### Game Mode UX Redesign — Focused Tournament Experience
+
+- **GameInfoBar**: Kompakte Info-Zeile über dem Timer — Spieler, Prizepool, Ø BB, Spielzeit, geschätzte Restzeit. Ersetzt verstreute Statistiken aus PlayerPanel und TournamentStats.
+- **GameSettingsModal**: Einstellungen als Modal statt Sidebar-Sektion. ⚙️-Button im Header öffnet SettingsPanel als Overlay.
+- **PlayerPanel verschlankt**: Prizepool-Anzeige, Payout-Aufschlüsselung und Avg Stack entfernt (jetzt in GameInfoBar). Aktions-Buttons konsolidiert — Late Reg + Dealer inline, Side Pot/Deal/Payout im ···-Popover.
+- **Controls auf 2 Reihen reduziert**: Reihe 1 (Prev/Play/Next) immer sichtbar. Reihe 2 kontextuell (Break-Controls, H4H Next Hand, H4H-Toggle). Alle weiteren Aktionen (Last Hand, Clean View, Call the Clock, Undo/Redo, Reset, Restart) im ···-Popover. Indikator-Punkt wenn Last Hand oder Clean View aktiv.
+- **BubbleIndicator Prioritäts-Banner**: Nur noch höchstpriorisierter Banner sichtbar (ITM > Bubble > H4H > LastHand > AddOn) statt alle gleichzeitig.
+- **LevelPreview begrenzt**: Zeigt nur aktuelles Level + nächste 3. Vergangene Levels entfernt. Kein Scrollen nötig.
+- **AppHeader im Spielmodus aufgeräumt**: ThemeSwitcher und LanguageSwitcher während Spielmodus ausgeblendet (verfügbar via Settings-Modal).
+- **ChipSidebar smart-collapse**: Standardmäßig eingeklappt wenn kein Color-Up in den nächsten 3 Levels ansteht. Automatisch offen bei anstehendem Color-Up.
+- **Neue Dateien**: `GameInfoBar.tsx`, `GameSettingsModal.tsx`, `useModalManager.ts`
+- **11 neue Translation-Keys** (DE + EN): `gameInfo.*`, `settings.modalTitle`
+- **10 neue Tests** (6 GameInfoBar + 2 BubbleIndicator-Priorität + 2 Controls-Popover)
+- **1370 Tests gesamt** (21 Testdateien)
+
+---
+
 ## [6.11.2] – 2026-03-26
 
 ### UI-Modernisierung: Game-Mode Sidebars
