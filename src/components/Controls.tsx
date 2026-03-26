@@ -7,8 +7,6 @@ interface Props {
   onToggleStartPause: () => void;
   onNext: () => void;
   onPrevious: () => void;
-  onReset: () => void;
-  onRestart: () => void;
   isBreak?: boolean | undefined;
   onSkipBreak?: (() => void) | undefined;
   onExtendBreak?: ((seconds: number) => void) | undefined;
@@ -217,15 +215,19 @@ export const Controls = memo(function Controls({
         )}
       </div>
 
-      {/* Details toggle — only shown when details are hidden */}
-      {detailsHidden && onToggleDetails && (
+      {/* Details toggle — show/hide sidebars */}
+      {onToggleDetails && (
         <button
           onClick={onToggleDetails}
-          className="px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600/40"
-          title={t('controls.detailsShow')}
-          aria-label={t('controls.detailsShow')}
+          className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.97] border shadow-sm ${
+            detailsHidden
+              ? 'bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600/40'
+              : 'bg-gray-100 dark:bg-gray-800/40 hover:bg-gray-200 dark:hover:bg-gray-700/60 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-700/30'
+          }`}
+          title={detailsHidden ? t('controls.detailsShow') : t('controls.detailsHide')}
+          aria-label={detailsHidden ? t('controls.detailsShow') : t('controls.detailsHide')}
         >
-          {'\u2630'} {t('controls.detailsShow')}
+          {detailsHidden ? '\u2630' : '\u2715'} {detailsHidden ? t('controls.detailsShow') : t('controls.detailsHide')}
         </button>
       )}
     </div>
@@ -236,8 +238,6 @@ export const Controls = memo(function Controls({
   prev.onToggleStartPause === next.onToggleStartPause &&
   prev.onNext === next.onNext &&
   prev.onPrevious === next.onPrevious &&
-  prev.onReset === next.onReset &&
-  prev.onRestart === next.onRestart &&
   prev.isBreak === next.isBreak &&
   prev.onSkipBreak === next.onSkipBreak &&
   prev.onExtendBreak === next.onExtendBreak &&

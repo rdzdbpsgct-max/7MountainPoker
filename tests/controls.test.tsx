@@ -65,8 +65,6 @@ describe('Controls', () => {
       onToggleStartPause: noop,
       onNext: noop,
       onPrevious: noop,
-      onReset: noop,
-      onRestart: noop,
       ...overrides,
     };
     return render(<Controls {...props} />);
@@ -214,20 +212,27 @@ describe('Controls', () => {
   });
 
   // --- Details toggle ---
-  it('shows details toggle button when detailsHidden is true', () => {
+  it('shows "Show details" button when detailsHidden is true', () => {
     renderControls({ detailsHidden: true, onToggleDetails: noop });
     expect(screen.getByLabelText('Show details')).toBeDefined();
   });
 
-  it('hides details toggle button when detailsHidden is false', () => {
+  it('shows "Hide details" button when detailsHidden is false', () => {
     renderControls({ detailsHidden: false, onToggleDetails: noop });
-    expect(screen.queryByLabelText('Show details')).toBeNull();
+    expect(screen.getByLabelText('Hide details')).toBeDefined();
   });
 
-  it('calls onToggleDetails when details button is clicked', () => {
+  it('calls onToggleDetails when show-details button is clicked', () => {
     const handler = vi.fn();
     renderControls({ detailsHidden: true, onToggleDetails: handler });
     fireEvent.click(screen.getByLabelText('Show details'));
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onToggleDetails when hide-details button is clicked', () => {
+    const handler = vi.fn();
+    renderControls({ detailsHidden: false, onToggleDetails: handler });
+    fireEvent.click(screen.getByLabelText('Hide details'));
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
@@ -239,8 +244,6 @@ describe('Controls', () => {
         onToggleStartPause={noop}
         onNext={noop}
         onPrevious={noop}
-        onReset={noop}
-        onRestart={noop}
       />
     );
     const btn = screen.getByText('Pause');
@@ -252,8 +255,6 @@ describe('Controls', () => {
         onToggleStartPause={noop}
         onNext={noop}
         onPrevious={noop}
-        onReset={noop}
-        onRestart={noop}
       />
     );
     const startBtn = screen.getByText('Start');
