@@ -266,7 +266,7 @@ export function SetupTabBasis({
                   <div className="px-3 pb-2 pt-1 space-y-2 animate-fade-in">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{t('setup.quickStartPlayers')}</span>
-                      <NumberStepper value={quickStartPlayers} onChange={setQuickStartPlayers} min={2} max={30} step={1} />
+                      <NumberStepper value={quickStartPlayers} onChange={setQuickStartPlayers} min={2} max={30} step={1} inputClassName="w-14" />
                     </div>
                     <button
                       onClick={() => {

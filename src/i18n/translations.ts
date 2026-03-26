@@ -330,7 +330,7 @@ const de = {
   'setup.currency': 'Währung',
   'setup.quickStart': 'Direkt starten',
   'setup.quickStartGo': 'Los!',
-  'setup.quickStartPlayers': 'Spieleranzahl',
+  'setup.quickStartPlayers': 'Spieler',
 
   // --- Rebuy Editor ---
   'rebuyEditor.enabled': 'Rebuy deaktivieren',
@@ -1806,7 +1806,7 @@ const en: Record<TranslationKey, string> = {
   'setup.currency': 'Currency',
   'setup.quickStart': 'Quick Start',
   'setup.quickStartGo': 'Go!',
-  'setup.quickStartPlayers': 'Number of players',
+  'setup.quickStartPlayers': 'Players',
 
   // --- Rebuy Editor ---
   'rebuyEditor.enabled': 'Disable Rebuy',
