@@ -1,9 +1,9 @@
 /**
- * Controls Component Tests — Phase 3
+ * Controls Component Tests — v6.12.1
  *
  * Tests the primary user interaction surface during a tournament:
- * Play/Pause, Next Level, Previous Level, Reset, Restart, Last Hand,
- * Hand-for-Hand, Clean View, Call the Clock.
+ * Play/Pause, Next Level, Previous Level, icon buttons (Undo, Redo,
+ * Last Hand, Hand-for-Hand, Call the Clock), details toggle, break controls.
  */
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Controls } from '../src/components/Controls';
@@ -19,8 +19,6 @@ vi.mock('../src/i18n', () => ({
         'controls.end': 'End',
         'controls.next': 'Next',
         'controls.previous': 'Previous',
-        'controls.levelReset': 'Reset Level',
-        'controls.tournamentRestart': 'Restart',
         'controls.lastHand': 'Last Hand',
         'controls.handForHand': 'Hand for Hand',
         'controls.callTheClock': 'Call the Clock',
@@ -28,17 +26,14 @@ vi.mock('../src/i18n', () => ({
         'controls.previousTooltip': 'Previous level',
         'controls.nextTooltip': 'Next level',
         'controls.startPauseTooltip': 'Start/Pause',
-        'controls.levelResetTooltip': 'Reset this level',
-        'controls.tournamentRestartTooltip': 'Restart tournament',
         'controls.lastHandTooltip': 'Toggle last hand',
         'controls.handForHandTooltip': 'Toggle hand for hand',
         'controls.nextHandTooltip': 'Next hand',
-        'game.cleanViewOn': 'Clean View',
-        'game.cleanViewOff': 'Normal View',
         'controls.skipBreak': 'Skip Break',
         'controls.extendBreak2': '+2 min',
         'controls.extendBreak5': '+5 min',
-        'controls.moreActions': 'More actions',
+        'controls.detailsShow': 'Show details',
+        'controls.detailsHide': 'Hide details',
         'undo.undo': 'Undo',
         'undo.redo': 'Redo',
       };
@@ -123,65 +118,63 @@ describe('Controls', () => {
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
-  // --- Helper: open ··· more menu ---
-  function openMoreMenu() {
-    fireEvent.click(screen.getByTitle('More actions'));
-  }
-
-  // --- Secondary controls (now inside ··· popover) ---
-  it('renders reset and restart in more menu', () => {
-    renderControls();
-    openMoreMenu();
-    expect(screen.getByText('Reset Level')).toBeDefined();
-    expect(screen.getByText('Restart')).toBeDefined();
+  // --- Icon buttons: Undo / Redo ---
+  it('renders undo button when onUndo is provided', () => {
+    renderControls({ onUndo: noop, canUndo: true });
+    expect(screen.getByLabelText('Undo')).toBeDefined();
   });
 
-  it('hides more menu when hideSecondaryControls is true', () => {
-    renderControls({ hideSecondaryControls: true });
-    expect(screen.queryByTitle('More actions')).toBeNull();
+  it('disables undo button when canUndo is false', () => {
+    renderControls({ onUndo: noop, canUndo: false });
+    const btn = screen.getByLabelText('Undo');
+    expect(btn.hasAttribute('disabled')).toBe(true);
   });
 
-  it('calls onReset from more menu', () => {
+  it('calls onUndo when undo button is clicked', () => {
     const handler = vi.fn();
-    renderControls({ onReset: handler });
-    openMoreMenu();
-    fireEvent.click(screen.getByText('Reset Level'));
+    renderControls({ onUndo: handler, canUndo: true });
+    fireEvent.click(screen.getByLabelText('Undo'));
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onRestart from more menu', () => {
-    const handler = vi.fn();
-    renderControls({ onRestart: handler });
-    openMoreMenu();
-    fireEvent.click(screen.getByText('Restart'));
-    expect(handler).toHaveBeenCalledTimes(1);
+  it('renders redo button when onRedo is provided', () => {
+    renderControls({ onRedo: noop, canRedo: true });
+    expect(screen.getByLabelText('Redo')).toBeDefined();
   });
 
-  // --- Last Hand (inside ··· popover) ---
-  it('renders last hand in more menu when onLastHand is provided', () => {
+  it('disables redo button when canRedo is false', () => {
+    renderControls({ onRedo: noop, canRedo: false });
+    const btn = screen.getByLabelText('Redo');
+    expect(btn.hasAttribute('disabled')).toBe(true);
+  });
+
+  // --- Icon buttons: Last Hand ---
+  it('renders last hand icon button when onLastHand is provided', () => {
     renderControls({ onLastHand: noop });
-    openMoreMenu();
-    expect(screen.getByText(/Last Hand/)).toBeDefined();
+    expect(screen.getByLabelText('Last Hand')).toBeDefined();
   });
 
   it('does not render last hand button when onLastHand is undefined', () => {
     renderControls();
-    openMoreMenu();
-    expect(screen.queryByText(/Last Hand/)).toBeNull();
+    expect(screen.queryByLabelText('Last Hand')).toBeNull();
   });
 
-  it('calls onLastHand from more menu', () => {
+  it('calls onLastHand when last hand button is clicked', () => {
     const handler = vi.fn();
     renderControls({ onLastHand: handler });
-    openMoreMenu();
-    fireEvent.click(screen.getByText(/Last Hand/));
+    fireEvent.click(screen.getByLabelText('Last Hand'));
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
-  // --- Hand-for-Hand ---
-  it('renders hand-for-hand button when showHandForHand + onHandForHand', () => {
+  // --- Icon buttons: Hand-for-Hand ---
+  it('renders H4H button when showHandForHand and onHandForHand', () => {
     renderControls({ showHandForHand: true, onHandForHand: noop });
-    expect(screen.getByText('Hand for Hand')).toBeDefined();
+    expect(screen.getByLabelText('Hand for Hand')).toBeDefined();
+  });
+
+  it('renders active H4H button when handForHandActive', () => {
+    renderControls({ handForHandActive: true, onHandForHand: noop });
+    expect(screen.getByLabelText('Hand for Hand')).toBeDefined();
   });
 
   it('shows Next Hand button when handForHandActive and timer not running', () => {
@@ -206,32 +199,35 @@ describe('Controls', () => {
     expect(screen.queryByText('Next Hand')).toBeNull();
   });
 
-  // --- Clean View (inside ··· popover) ---
-  it('renders clean view toggle in more menu when onToggleCleanView is provided', () => {
-    renderControls({ onToggleCleanView: noop, cleanView: false });
-    openMoreMenu();
-    expect(screen.getByText(/Normal View/)).toBeDefined();
-  });
-
-  it('shows Clean View label in more menu when cleanView is true', () => {
-    renderControls({ onToggleCleanView: noop, cleanView: true });
-    openMoreMenu();
-    expect(screen.getByText(/Clean View/)).toBeDefined();
-  });
-
-  // --- Call the Clock (inside ··· popover) ---
-  it('renders call the clock button with seconds in more menu', () => {
+  // --- Icon buttons: Call the Clock ---
+  it('renders call the clock button with seconds', () => {
     renderControls({ onCallTheClock: noop, callTheClockSeconds: 60 });
-    openMoreMenu();
-    const btn = screen.getByText(/Call the Clock/);
+    const btn = screen.getByLabelText('Call the Clock');
     expect(btn.textContent).toContain('60');
   });
 
-  it('calls onCallTheClock from more menu', () => {
+  it('calls onCallTheClock when button is clicked', () => {
     const handler = vi.fn();
     renderControls({ onCallTheClock: handler, callTheClockSeconds: 30 });
-    openMoreMenu();
-    fireEvent.click(screen.getByText(/Call the Clock/));
+    fireEvent.click(screen.getByLabelText('Call the Clock'));
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  // --- Details toggle ---
+  it('shows details toggle button when detailsHidden is true', () => {
+    renderControls({ detailsHidden: true, onToggleDetails: noop });
+    expect(screen.getByLabelText('Show details')).toBeDefined();
+  });
+
+  it('hides details toggle button when detailsHidden is false', () => {
+    renderControls({ detailsHidden: false, onToggleDetails: noop });
+    expect(screen.queryByLabelText('Show details')).toBeNull();
+  });
+
+  it('calls onToggleDetails when details button is clicked', () => {
+    const handler = vi.fn();
+    renderControls({ detailsHidden: true, onToggleDetails: handler });
+    fireEvent.click(screen.getByLabelText('Show details'));
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
