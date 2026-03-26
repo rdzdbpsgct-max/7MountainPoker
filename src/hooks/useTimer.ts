@@ -116,7 +116,6 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
       clearTick();
     }
     return clearTick;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timerState.status, tick, clearTick, tickEpoch]);
 
   // Reset timer state when levels change externally (e.g. preset switch)
@@ -125,7 +124,7 @@ export function useTimer(levels: Level[], settings: Settings, pauseAtLevelIndex?
   useEffect(() => {
     if (levels !== prevLevelsRef.current) {
       prevLevelsRef.current = levels;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate prop→state sync
       setTimerState(restartTournament(levels));
       // clearTick will happen via the status-based useEffect above
       // since restartTournament returns status='stopped'
