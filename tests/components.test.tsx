@@ -484,15 +484,21 @@ describe('BubbleIndicator', () => {
 
   it('renders add-on window banner', () => {
     renderWithProviders(<BubbleIndicator {...defaultProps} addOnWindowOpen addOnCost={15} addOnChips={10000} />);
-    const statuses = screen.getAllByRole('status');
-    expect(statuses.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  it('renders multiple banners simultaneously', () => {
+  it('shows only highest-priority banner (bubble > lastHand)', () => {
     renderWithProviders(<BubbleIndicator {...defaultProps} isBubble lastHandActive handForHandActive />);
-    // bubble (role="alert") + lastHand + handForHand (role="status")
+    // Only bubble banner shown (highest priority among these three)
     expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(screen.getAllByRole('status').length).toBe(2);
+    expect(screen.queryAllByRole('status').length).toBe(0);
+  });
+
+  it('shows ITM over bubble when both active', () => {
+    renderWithProviders(<BubbleIndicator {...defaultProps} isBubble showItmFlash />);
+    // ITM has role="status", bubble has role="alert" — only ITM shown
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
 
