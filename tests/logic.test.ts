@@ -6485,6 +6485,16 @@ describe('League Module', () => {
     });
   });
 
+  describe('Remote requestState command', () => {
+    it('requestState is a valid command action type', () => {
+      const cmd: import('../src/domain/remote').RemoteCommand = {
+        type: 'command',
+        action: 'requestState',
+      };
+      expect(cmd.action).toBe('requestState');
+    });
+  });
+
   // ---------------------------------------------------------------------------
   // Sprint 4: displayChannel Tests
   // ---------------------------------------------------------------------------

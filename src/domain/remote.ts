@@ -290,7 +290,8 @@ export interface RemoteCommand {
     | 'rebuyPlayer'
     | 'addOnPlayer'
     | 'skipBreak'
-    | 'extendBreak';
+    | 'extendBreak'
+    | 'requestState';
   payload?: Record<string, unknown> | undefined;
   /** HMAC-SHA256 signature (hex) — required when secret is configured */
   hmac?: string | undefined;
@@ -369,6 +370,7 @@ const VALID_COMMAND_ACTIONS: ReadonlySet<RemoteCommand['action']> = new Set([
   'call-the-clock', 'advanceDealer', 'toggleSound',
   'eliminatePlayer', 'rebuyPlayer', 'addOnPlayer',
   'skipBreak', 'extendBreak',
+  'requestState',
 ]);
 
 export type HostStatus = 'initializing' | 'ready' | 'connected' | 'error';
@@ -594,7 +596,7 @@ export class RemoteHost {
             this.callbacks.onControllerCountChange?.(this.controllerConns.size);
           }
           // Re-process this first message through normal handler
-          this.handleIncoming(raw);
+          this.handleIncoming(raw, conn);
         };
 
         conn.on('data', onFirstData);
@@ -674,7 +676,7 @@ export class RemoteHost {
     });
 
     conn.on('data', (raw) => {
-      this.handleIncoming(raw);
+      this.handleIncoming(raw, conn);
     });
 
     conn.on('close', () => {
@@ -703,7 +705,7 @@ export class RemoteHost {
     });
   }
 
-  private handleIncoming(raw: unknown): void {
+  private handleIncoming(raw: unknown, conn?: DataConnection): void {
     try {
       const str = typeof raw === 'string' ? raw : JSON.stringify(raw);
 
@@ -728,14 +730,14 @@ export class RemoteHost {
         }
 
         // M31: HMAC verification (async)
-        void this.verifyAndDispatch(msg);
+        void this.verifyAndDispatch(msg, conn);
       }
     } catch {
       // Invalid message
     }
   }
 
-  private async verifyAndDispatch(msg: RemoteCommand): Promise<void> {
+  private async verifyAndDispatch(msg: RemoteCommand, conn?: DataConnection): Promise<void> {
     // Ensure HMAC key is ready before verifying
     await this.hmacKeyReady;
 
@@ -773,6 +775,16 @@ export class RemoteHost {
       if (msg.action === 'eliminatePlayer' && typeof p.playerId !== 'string') return;
       if (msg.action === 'rebuyPlayer' && typeof p.playerId !== 'string') return;
       if (msg.action === 'addOnPlayer' && typeof p.playerId !== 'string') return;
+    }
+
+    // requestState: send cached state immediately, no game action needed
+    if (msg.action === 'requestState') {
+      if (this.lastBuiltState && conn?.open) {
+        try {
+          void conn.send(JSON.stringify(this.lastBuiltState));
+        } catch { /* ignore */ }
+      }
+      return;
     }
 
     this.callbacks.onCommand(msg);
@@ -1008,6 +1020,8 @@ export class RemoteController {
     conn.on('open', () => {
       this.setStatus('connected');
       this.reconnectAttempts = 0;
+      // Request full state snapshot on (re)connect
+      void this.sendCommand('requestState');
     });
 
     conn.on('data', (raw) => {
