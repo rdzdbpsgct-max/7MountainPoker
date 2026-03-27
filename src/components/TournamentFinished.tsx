@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, TournamentResult, TournamentEvent, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
-import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, formatEventAsText, formatTime } from '../domain/logic';
+import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, formatResultAsHendonMobCSV, formatEventAsText, formatTime } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
 import { ChevronIcon } from './ChevronIcon';
@@ -81,6 +81,18 @@ export function TournamentFinished({
       setGeneratingPdf(false);
     }
   }, [tournamentResult, generatingPdf, t]);
+
+  const handleDownloadHendonMob = useCallback(() => {
+    if (!tournamentResult) return;
+    const csv = formatResultAsHendonMobCSV(tournamentResult);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(tournamentResult.name || 'tournament').replace(/[^a-zA-Z0-9-_]/g, '_')}-hendonmob.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [tournamentResult]);
 
   const captureScreenshot = useCallback(async () => {
     if (!resultsRef.current || capturing) return;
@@ -572,6 +584,15 @@ export function TournamentFinished({
               title={t('finished.print')}
             >
               {t('finished.print')}
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleDownloadHendonMob}
+              className="flex-1 px-4 py-2.5 bg-gray-100/80 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200 dark:border-gray-700/40 active:scale-[0.97]"
+              title={t('finished.downloadHendonMob')}
+            >
+              {t('finished.downloadHendonMob')}
             </button>
           </div>
         </div>

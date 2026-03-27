@@ -176,6 +176,8 @@ import {
   DB_VERSION,
   cloneConfigFromResult,
   getLeaguePlayerNames,
+  formatResultAsHendonMobCSV,
+  formatBlindStructureAsCSV,
 } from '../src/domain/logic';
 import { sanitizeFilename, formatDuration } from '../src/domain/format';
 import { exportTournamentResult, exportConfigBackup, createFullBackup, exportFullBackup, parseFullBackup, restoreFullBackup } from '../src/domain/cloudExport';
@@ -8797,5 +8799,102 @@ describe('getLeaguePlayerNames', () => {
 
     const names = getLeaguePlayerNames(league.id);
     expect(names).toEqual(['Alice', 'Bob', 'Charlie']); // sorted, deduplicated
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Hendon Mob CSV
+// ---------------------------------------------------------------------------
+
+describe('Hendon Mob CSV', () => {
+  it('generates CSV with BOM and correct columns', () => {
+    const result: TournamentResult = {
+      id: 'test',
+      name: 'Home Game',
+      date: '2026-03-27T12:00:00Z',
+      playerCount: 8,
+      buyIn: 50,
+      prizePool: 400,
+      bountyEnabled: false,
+      bountyAmount: 0,
+      rebuyEnabled: false,
+      totalRebuys: 0,
+      addOnEnabled: false,
+      totalAddOns: 0,
+      elapsedSeconds: 7200,
+      levelsPlayed: 10,
+      currency: 'EUR',
+      players: [
+        { name: 'Alice', place: 1, payout: 200, rebuys: 0, addOn: false, knockouts: 3, bountyEarned: 0, netBalance: 150 },
+        { name: 'Bob', place: 2, payout: 100, rebuys: 1, addOn: false, knockouts: 1, bountyEarned: 0, netBalance: 50 },
+      ],
+    };
+    const csv = formatResultAsHendonMobCSV(result);
+    expect(csv.startsWith('\uFEFF')).toBe(true);
+    expect(csv).toContain('Event,Date,Place,Prize,Entries,Buy-In');
+    expect(csv).toContain('"Home Game"');
+    expect(csv).toContain('2026-03-27');
+    expect(csv).toContain(',1,200,8,50');
+    expect(csv).toContain(',2,100,8,50');
+  });
+
+  it('escapes double quotes in event name', () => {
+    const result: TournamentResult = {
+      id: 'test2',
+      name: 'The "Big" Game',
+      date: '2026-01-01T00:00:00Z',
+      playerCount: 4,
+      buyIn: 20,
+      prizePool: 80,
+      bountyEnabled: false,
+      bountyAmount: 0,
+      rebuyEnabled: false,
+      totalRebuys: 0,
+      addOnEnabled: false,
+      totalAddOns: 0,
+      elapsedSeconds: 3600,
+      levelsPlayed: 5,
+      players: [
+        { name: 'P1', place: 1, payout: 80, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: 60 },
+      ],
+    };
+    const csv = formatResultAsHendonMobCSV(result);
+    expect(csv).toContain('"The ""Big"" Game"');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Blind Structure CSV
+// ---------------------------------------------------------------------------
+
+describe('Blind structure CSV', () => {
+  it('exports play and break levels correctly', () => {
+    const levels: Level[] = [
+      { id: '1', smallBlind: 25, bigBlind: 50, ante: 0, durationSeconds: 900, type: 'level' },
+      { id: '2', durationSeconds: 600, type: 'break' },
+      { id: '3', smallBlind: 50, bigBlind: 100, ante: 10, durationSeconds: 900, type: 'level' },
+    ];
+    const csv = formatBlindStructureAsCSV(levels);
+    expect(csv.startsWith('\uFEFF')).toBe(true);
+    expect(csv).toContain('Level,Small Blind,Big Blind,Ante,Duration (min),Type');
+    expect(csv).toContain('1,25,50,0,15,Play');
+    expect(csv).toContain(',,,,10,Break');
+    expect(csv).toContain('2,50,100,10,15,Play');
+  });
+
+  it('numbers only play levels', () => {
+    const levels: Level[] = [
+      { id: '1', smallBlind: 10, bigBlind: 20, durationSeconds: 600, type: 'level' },
+      { id: '2', durationSeconds: 300, type: 'break' },
+      { id: '3', smallBlind: 20, bigBlind: 40, durationSeconds: 600, type: 'level' },
+      { id: '4', smallBlind: 30, bigBlind: 60, durationSeconds: 600, type: 'level' },
+    ];
+    const csv = formatBlindStructureAsCSV(levels);
+    const lines = csv.split('\n');
+    // header + 4 data rows + trailing empty after final \n
+    expect(lines[1]).toContain('1,10,20,');
+    expect(lines[2]).toContain(',,,,5,Break');
+    expect(lines[3]).toContain('2,20,40,');
+    expect(lines[4]).toContain('3,30,60,');
   });
 });

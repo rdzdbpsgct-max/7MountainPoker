@@ -816,3 +816,25 @@ export function formatSidePotsAsText(
     return `${label}: ${amount} between ${names}`;
   }).join('. ') + '.';
 }
+
+// ---------------------------------------------------------------------------
+// Hendon Mob CSV Export
+// ---------------------------------------------------------------------------
+
+export function formatResultAsHendonMobCSV(result: TournamentResult): string {
+  const BOM = '\uFEFF';
+  const date = new Date(result.date).toISOString().split('T')[0];
+  const eventName = (result.name || 'Tournament').replace(/"/g, '""');
+  const header = 'Event,Date,Place,Prize,Entries,Buy-In';
+  const rows = result.players.map(p =>
+    [
+      `"${eventName}"`,
+      date,
+      p.place,
+      p.payout || 0,
+      result.playerCount,
+      result.buyIn || 0,
+    ].join(',')
+  );
+  return BOM + header + '\n' + rows.join('\n') + '\n';
+}

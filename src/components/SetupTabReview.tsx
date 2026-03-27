@@ -2,7 +2,7 @@ import { useMemo, lazy, Suspense } from 'react';
 import type { TournamentConfig, Settings } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
 import { useTranslation } from '../i18n';
-import { computeBlindStructureSummary, estimatePlayedLevels, estimateDuration } from '../domain/logic';
+import { computeBlindStructureSummary, estimatePlayedLevels, estimateDuration, formatBlindStructureAsCSV } from '../domain/logic';
 import { LoadingFallback } from './LoadingFallback';
 const SetupQRCode = lazy(() => import('./SetupQRCode').then(m => ({ default: m.SetupQRCode })));
 
@@ -111,6 +111,21 @@ export function SetupTabReview({ config, settings, startErrors, onSwitchToGame, 
           className="w-full px-4 py-2 bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors border border-gray-200 dark:border-gray-700/40 no-print"
         >
           {t('print.button')}
+        </button>
+        <button
+          onClick={() => {
+            const csv = formatBlindStructureAsCSV(config.levels);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'blind-structure.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="w-full px-4 py-2 bg-white dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors border border-gray-200 dark:border-gray-700/40 no-print"
+        >
+          {t('setup.exportBlinds')}
         </button>
       </div>
       <Suspense fallback={<LoadingFallback />}>

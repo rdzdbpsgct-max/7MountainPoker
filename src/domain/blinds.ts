@@ -504,3 +504,27 @@ export function computeHistoricalDurationEstimate(
 
   return { estimateSeconds, confidence, sampleSize: similar.length };
 }
+
+// ---------------------------------------------------------------------------
+// Blind Structure CSV Export
+// ---------------------------------------------------------------------------
+
+export function formatBlindStructureAsCSV(levels: Level[]): string {
+  const BOM = '\uFEFF';
+  const header = 'Level,Small Blind,Big Blind,Ante,Duration (min),Type';
+  let levelNum = 0;
+  const rows = levels.map(level => {
+    const isBreak = level.type === 'break';
+    const type = isBreak ? 'Break' : 'Play';
+    if (!isBreak) levelNum++;
+    return [
+      isBreak ? '' : levelNum,
+      isBreak ? '' : (level.smallBlind ?? 0),
+      isBreak ? '' : (level.bigBlind ?? 0),
+      isBreak ? '' : (level.ante ?? 0),
+      Math.floor(level.durationSeconds / 60),
+      type,
+    ].join(',');
+  });
+  return BOM + header + '\n' + rows.join('\n') + '\n';
+}

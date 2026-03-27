@@ -609,6 +609,7 @@ const de = {
   'finished.downloadCSV': 'CSV herunterladen',
   'finished.print': 'Ergebnis drucken',
   'finished.downloadPDF': 'PDF herunterladen',
+  'finished.downloadHendonMob': 'Hendon Mob CSV',
   'finished.qrApp': 'App installieren',
 
   // --- PDF Export ---
@@ -826,6 +827,7 @@ const de = {
 
   // --- Print ---
   'print.button': 'Blindstruktur drucken',
+  'setup.exportBlinds': 'Blindstruktur exportieren',
   'print.title': 'Blindstruktur',
   'print.results': 'Turnierergebnis',
   'print.name': 'Name',
@@ -2118,6 +2120,7 @@ const en: Record<TranslationKey, string> = {
   'finished.downloadCSV': 'Download CSV',
   'finished.print': 'Print Results',
   'finished.downloadPDF': 'Download PDF',
+  'finished.downloadHendonMob': 'Hendon Mob CSV',
   'finished.qrApp': 'Install App',
 
   // --- PDF Export ---
@@ -2332,6 +2335,7 @@ const en: Record<TranslationKey, string> = {
 
   // --- Print ---
   'print.button': 'Print Blind Structure',
+  'setup.exportBlinds': 'Export blind structure',
   'print.title': 'Blind Structure',
   'print.results': 'Tournament Results',
   'print.name': 'Name',
