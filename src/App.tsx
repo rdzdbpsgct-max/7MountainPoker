@@ -50,7 +50,7 @@ import {
   announceBreakSkipped,
   announceBreakExtended,
 } from './domain/speech';
-import { setAudioMasterVolume, setAudioLanguage } from './domain/audioService';
+import { setAudioMasterVolume, setAudioLanguage, setAudioCategories } from './domain/audioService';
 // Setup-mode components (static imports — used immediately on load)
 import { isTourCompleted, resetTourCompleted, resetWizardCompleted } from './domain/configPersistence';
 import { useModalManager } from './hooks/useModalManager';
@@ -301,6 +301,11 @@ function App() {
   useEffect(() => {
     setAudioMasterVolume(settings.volume / 100);
   }, [settings.volume]);
+
+  // Sync per-category audio toggles
+  useEffect(() => {
+    setAudioCategories(settings.audioCategories);
+  }, [settings.audioCategories]);
 
   // Wake Lock: prevent screen from sleeping during active tournament
   useWakeLock(mode === 'game' && timer.timerState.status === 'running');

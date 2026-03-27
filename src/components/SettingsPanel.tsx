@@ -82,21 +82,39 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
             <CheckBox checked={settings.soundEnabled} onChange={() => toggle('soundEnabled')} />
           </label>
           {settings.soundEnabled && (
-            <div className="flex items-center gap-3 pl-1">
-              <span className="text-xs text-gray-500 dark:text-gray-400 w-20 shrink-0">{t('settings.volume')}</span>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={5}
-                value={settings.volume}
-                onChange={(e) => onChange({ ...settings, volume: Number(e.target.value) })}
-                className="flex-1 h-1.5 cursor-pointer"
-                style={{ accentColor: 'var(--accent-500)' }}
-                aria-label={t('settings.volume')}
-              />
-              <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums w-8 text-right">{settings.volume}%</span>
-            </div>
+            <>
+              <div className="flex items-center gap-3 pl-1">
+                <span className="text-xs text-gray-500 dark:text-gray-400 w-20 shrink-0">{t('settings.volume')}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={settings.volume}
+                  onChange={(e) => onChange({ ...settings, volume: Number(e.target.value) })}
+                  className="flex-1 h-1.5 cursor-pointer"
+                  style={{ accentColor: 'var(--accent-500)' }}
+                  aria-label={t('settings.volume')}
+                />
+                <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums w-8 text-right">{settings.volume}%</span>
+              </div>
+              <div className="space-y-2 pt-2">
+                {(['voice', 'effects', 'countdown', 'alerts'] as const).map((cat) => (
+                  <label key={cat} className="flex items-center justify-between cursor-pointer">
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      {t(`settings.audio${cat.charAt(0).toUpperCase() + cat.slice(1)}` as Parameters<typeof t>[0])}
+                    </span>
+                    <CheckBox
+                      checked={settings.audioCategories?.[cat] ?? true}
+                      onChange={() => {
+                        const current = settings.audioCategories ?? { voice: true, effects: true, countdown: true, alerts: true };
+                        onChange({ ...settings, audioCategories: { ...current, [cat]: !current[cat] } });
+                      }}
+                    />
+                  </label>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </CollapsibleSubSection>

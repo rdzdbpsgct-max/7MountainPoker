@@ -194,6 +194,13 @@ export interface Settings {
   displayRotationInterval?: number | undefined;
   /** Display layout for TV mode. Default: 'standard'. */
   displayLayout?: DisplayLayout | undefined;
+  /** Per-category audio toggles. All default to true. */
+  audioCategories?: {
+    voice: boolean;
+    effects: boolean;
+    countdown: boolean;
+    alerts: boolean;
+  } | undefined;
 }
 
 export interface TournamentCheckpoint {

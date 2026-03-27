@@ -3,6 +3,7 @@
 import type { Language, TranslationKey } from '../i18n/translations';
 import { playAudioSequence, cancelAudioPlayback, setAudioLanguage } from './audioPlayer';
 import { getCustomAudioForAnnouncement } from './customAudio';
+import { isCategoryEnabled } from './audioCategories';
 
 type TranslateFn = (key: TranslationKey, params?: Record<string, string | number>) => string;
 
@@ -294,6 +295,7 @@ export function announceLevelChange(
   ante: number | undefined,
   t: TranslateFn,
 ): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('level-change')) return;
   const pairKey = `${smallBlind}-${bigBlind}`;
   const canMp3 = levelNumber >= 1 && levelNumber <= MAX_LEVEL && BLIND_PAIRS.has(pairKey);
@@ -326,6 +328,7 @@ export function announceBreakStart(
   t: TranslateFn,
   label?: string,
 ): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('break-start')) return;
   if (durationMinutes >= 1 && durationMinutes <= MAX_BREAK_MINUTES) {
     const file = `breaks/break-${String(durationMinutes).padStart(2, '0')}min.mp3`;
@@ -345,6 +348,7 @@ export function announceBreakStart(
 
 /** Break warning — "30 seconds left in the break" */
 export function announceBreakWarning(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('break-warning')) return;
   enqueue(audioOrSpeech(['fixed/break-warning.mp3'], t('voice.breakWarning')));
 }
@@ -354,6 +358,7 @@ export function announceBreakWarning(t: TranslateFn): void {
  * Returns true so caller knows voice is handling it (no beep needed).
  */
 export function announceCountdown(second: number): boolean {
+  if (!isCategoryEnabled('countdown')) return false;
   if (second >= 1 && second <= MAX_COUNTDOWN) {
     const file = `countdown/countdown-${String(second).padStart(2, '0')}.mp3`;
     enqueueImmediate(audioOrSpeech([file], String(second), { rate: 0.85 }));
@@ -365,53 +370,62 @@ export function announceCountdown(second: number): boolean {
 
 /** Bubble — "We're on the bubble!" */
 export function announceBubble(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('bubble')) return;
   enqueue(audioOrSpeech(['fixed/bubble.mp3'], t('voice.bubble')));
 }
 
 /** In The Money — "In the money! Congratulations!" */
 export function announceInTheMoney(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('itm')) return;
   enqueue(audioOrSpeech(['fixed/itm.mp3'], t('voice.inTheMoney')));
 }
 
 /** Player eliminated — generic announcement without player name */
 export function announceElimination(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('elimination')) return;
   enqueue(audioOrSpeech(['fixed/player-eliminated.mp3'], t('voice.playerEliminated')));
 }
 
 /** Tournament winner — generic announcement without player name */
 export function announceWinner(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('winner')) return;
   enqueue(audioOrSpeech(['fixed/tournament-winner.mp3'], t('voice.winner')));
 }
 
 /** Bounty collected — "Bounty collected! What a knockout!" */
 export function announceBounty(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('bounty')) return;
   enqueue(audioOrSpeech(['fixed/bounty-collected.mp3'], t('voice.bountyCollected')));
 }
 
 /** Add-On available */
 export function announceAddOn(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('addon')) return;
   enqueue(audioOrSpeech(['fixed/addon-available.mp3'], t('voice.addOnAvailable')));
 }
 
 /** Rebuy available — reminder after elimination during rebuy phase */
 export function announceRebuyAvailable(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   enqueue(audioOrSpeech(['fixed/rebuy-available.mp3'], t('voice.rebuyAvailable')));
 }
 
 /** Rebuy phase ended */
 export function announceRebuyEnded(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('rebuy-ended')) return;
   enqueue(audioOrSpeech(['fixed/rebuy-ended.mp3'], t('voice.rebuyEnded')));
 }
 
 /** Color-Up — "Color-Up: Chips will be colored up" */
 export function announceColorUp(chipLabels: string, t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('color-up')) return;
   enqueue(audioOrSpeech(
     ['building-blocks/color-up.mp3', 'fixed/colorup-action.mp3'],
@@ -421,18 +435,21 @@ export function announceColorUp(chipLabels: string, t: TranslateFn): void {
 
 /** Tournament start — "Shuffle up and deal!" */
 export function announceTournamentStart(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('shuffle-up')) return;
   enqueue(audioOrSpeech(['fixed/shuffle-up-and-deal.mp3'], t('voice.tournamentStart')));
 }
 
 /** Heads-Up — "Heads-Up!" */
 export function announceHeadsUp(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('heads-up')) return;
   enqueue(audioOrSpeech(['fixed/heads-up.mp3'], t('voice.headsUp')));
 }
 
 /** Last hand of the level (or before break) */
 export function announceLastHand(nextIsBreak: boolean, t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('last-hand')) return;
   if (nextIsBreak) {
     enqueue(audioOrSpeech(['fixed/last-hand-before-break.mp3'], t('voice.lastHandBeforeBreak')));
@@ -443,17 +460,20 @@ export function announceLastHand(nextIsBreak: boolean, t: TranslateFn): void {
 
 /** Five minutes remaining in this level */
 export function announceFiveMinutes(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('five-minutes')) return;
   enqueue(audioOrSpeech(['fixed/five-minutes.mp3'], t('voice.fiveMinutes')));
 }
 
 /** Three players remaining */
 export function announceThreeRemaining(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   enqueue(audioOrSpeech(['fixed/three-remaining.mp3'], t('voice.threeRemaining')));
 }
 
 /** N players remaining (dynamic count for paidPlaces milestones) */
 export function announcePlayersRemaining(count: number, t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('players-remaining')) return;
   if (count >= 4 && count <= 10) {
     enqueue(audioOrSpeech(
@@ -467,54 +487,63 @@ export function announcePlayersRemaining(count: number, t: TranslateFn): void {
 
 /** Break is over — please take your seats */
 export function announceBreakOver(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('break-over')) return;
   enqueue(audioOrSpeech(['fixed/break-over.mp3'], t('voice.breakOver')));
 }
 
 /** Break skipped — "Pause übersprungen" / "Break skipped" */
 export function announceBreakSkipped(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('break-skipped')) return;
   enqueue(audioOrSpeech(['fixed/break-skipped.mp3'], t('voice.breakSkipped')));
 }
 
 /** Break extended — "Pause verlängert um N Minuten" / "Break extended by N minutes" */
 export function announceBreakExtended(minutes: number, t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('break-extended')) return;
   enqueue(audioOrSpeech(['fixed/break-extended.mp3'], t('voice.breakExtended', { minutes })));
 }
 
 /** Color-Up warning — next break */
 export function announceColorUpWarning(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('color-up-warning')) return;
   enqueue(audioOrSpeech(['fixed/colorup-next-break.mp3'], t('voice.colorUpNextBreak')));
 }
 
 /** Timer paused */
 export function announceTimerPaused(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('timer-paused')) return;
   enqueue(audioOrSpeech(['fixed/paused.mp3'], t('voice.paused')));
 }
 
 /** Timer resumed */
 export function announceTimerResumed(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('timer-resumed')) return;
   enqueue(audioOrSpeech(['fixed/resumed.mp3'], t('voice.resumed')));
 }
 
 /** Hand-for-Hand mode activated */
 export function announceHandForHand(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('hand-for-hand')) return;
   enqueue(audioOrSpeech(['fixed/hand-for-hand.mp3'], t('voice.handForHand')));
 }
 
 /** Rebuy taken — a player took a rebuy */
 export function announceRebuyTaken(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('rebuy-taken')) return;
   enqueue(audioOrSpeech(['fixed/rebuy-taken.mp3'], t('voice.rebuyTaken')));
 }
 
 /** Table move — player moves to a different table (with seat info) */
 export function announceTableMove(playerName: string, tableName: string, toSeat: number, t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('table-move')) return;
   enqueue(audioOrSpeech(['fixed/table-move.mp3'], t('voice.tableMoveIntro')));
   enqueue({ mode: 'speech', text: t('voice.tableMove', { player: playerName, table: tableName, seat: toSeat }) });
@@ -522,6 +551,7 @@ export function announceTableMove(playerName: string, tableName: string, toSeat:
 
 /** Table dissolution — a table is being broken */
 export function announceTableDissolution(tableName: string, t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('table-dissolved')) return;
   enqueue(audioOrSpeech(['fixed/table-dissolved.mp3'], t('voice.tableDissolutionIntro')));
   enqueue({ mode: 'speech', text: t('voice.tableDissolution', { table: tableName }) });
@@ -529,12 +559,14 @@ export function announceTableDissolution(tableName: string, t: TranslateFn): voi
 
 /** Final Table — all players at one table */
 export function announceFinalTable(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('final-table')) return;
   enqueue(audioOrSpeech(['fixed/final-table.mp3'], t('voice.finalTable')));
 }
 
 /** Mystery Bounty revealed — MP3 intro + speech with dynamic amount */
 export function announceMysteryBounty(amount: number, t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('mystery-bounty')) return;
   enqueue(audioOrSpeech(['fixed/mystery-bounty.mp3'], t('voice.mysteryBounty', { amount })));
   enqueue({ mode: 'speech', text: `${amount}` });
@@ -542,6 +574,7 @@ export function announceMysteryBounty(amount: number, t: TranslateFn): void {
 
 /** Call the Clock — MP3 intro + seconds duration MP3 */
 export function announceCallTheClock(seconds: number, t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('call-the-clock')) return;
   enqueue(audioOrSpeech(['fixed/call-the-clock.mp3'], t('voice.callTheClock', { seconds })));
   // Use dedicated seconds MP3 (e.g. "60 Sekunden" / "60 seconds")
@@ -561,6 +594,7 @@ export function announceCallTheClock(seconds: number, t: TranslateFn): void {
  * Uses immediate mode to cut through any queued announcements.
  */
 export function announceCallTheClockCountdown(second: number): void {
+  if (!isCategoryEnabled('countdown')) return;
   if (second >= 1 && second <= MAX_COUNTDOWN) {
     const file = `countdown/countdown-${String(second).padStart(2, '0')}.mp3`;
     enqueueImmediate(audioOrSpeech([file], String(second), { rate: 0.85 }));
@@ -569,22 +603,26 @@ export function announceCallTheClockCountdown(second: number): void {
 
 /** Call the Clock expired — time's up */
 export function announceCallTheClockExpired(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('call-the-clock-expired')) return;
   enqueue(audioOrSpeech(['fixed/time-expired.mp3'], t('voice.callTheClockExpired')));
 }
 
 /** Late registration closed — window ended */
 export function announceLateRegistrationClosed(t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   if (enqueueCustomAudioIfAvailable('late-reg-closed')) return;
   enqueue(audioOrSpeech(['fixed/late-registration-closed.mp3'], t('voice.lateRegistrationClosed')));
 }
 
 /** Tournament winner — personalized with player name */
 export function announceTournamentWinner(playerName: string, t: TranslateFn): void {
+  if (!isCategoryEnabled('voice')) return;
   enqueue(audioOrSpeech(['fixed/tournament-winner.mp3'], t('voice.tournamentWinner', { name: playerName })));
 }
 
 /** Speak arbitrary text via Web Speech API (used for custom user alerts). */
 export function speakCustomText(text: string): void {
+  if (!isCategoryEnabled('alerts')) return;
   enqueue({ mode: 'speech', text });
 }

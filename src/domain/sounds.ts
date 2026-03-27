@@ -1,6 +1,7 @@
 // Sound effects using Web Audio API (no external files needed)
 
 import { getSharedAudioContext, initSharedAudioContext } from './audioContext';
+import { isCategoryEnabled } from './audioCategories';
 
 let masterVolume = 1.0;
 
@@ -63,6 +64,7 @@ export function playBeep(frequency: number, durationMs: number): void {
 
 /** Victory melody for tournament winner. Resolves after melody finishes (~1700ms). */
 export function playVictorySound(): Promise<void> {
+  if (!isCategoryEnabled('effects')) return Promise.resolve();
   try {
     const ctx = getAudioContext();
     const t = ctx.currentTime;
@@ -83,6 +85,7 @@ export function playVictorySound(): Promise<void> {
 
 /** Tension sound for reaching the bubble. Resolves after sound finishes (~1450ms). */
 export function playBubbleSound(): Promise<void> {
+  if (!isCategoryEnabled('effects')) return Promise.resolve();
   try {
     const ctx = getAudioContext();
     const t = ctx.currentTime;
@@ -99,6 +102,7 @@ export function playBubbleSound(): Promise<void> {
 
 /** Two-note chime for custom alerts. Resolves after sound finishes (~500ms). */
 export function playChimeSound(): Promise<void> {
+  if (!isCategoryEnabled('alerts')) return Promise.resolve();
   try {
     const ctx = getAudioContext();
     const t = ctx.currentTime;
@@ -113,6 +117,7 @@ export function playChimeSound(): Promise<void> {
 
 /** Short celebratory fanfare for reaching In The Money. Resolves after sound finishes (~700ms). */
 export function playInTheMoneySound(): Promise<void> {
+  if (!isCategoryEnabled('effects')) return Promise.resolve();
   try {
     const ctx = getAudioContext();
     const t = ctx.currentTime;

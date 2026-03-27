@@ -390,3 +390,46 @@ describe('AudioBuffer cache', () => {
     expect(getAudioBufferCacheSize()).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Audio Categories
+// ---------------------------------------------------------------------------
+
+import { setAudioCategories, isCategoryEnabled } from '../src/domain/audioService';
+
+describe('Audio categories', () => {
+  afterEach(() => {
+    setAudioCategories(undefined); // reset to defaults
+  });
+
+  it('isCategoryEnabled defaults to true for all categories', () => {
+    setAudioCategories(undefined);
+    expect(isCategoryEnabled('voice')).toBe(true);
+    expect(isCategoryEnabled('effects')).toBe(true);
+    expect(isCategoryEnabled('countdown')).toBe(true);
+    expect(isCategoryEnabled('alerts')).toBe(true);
+  });
+
+  it('respects disabled categories', () => {
+    setAudioCategories({ countdown: false, voice: true, effects: true, alerts: true });
+    expect(isCategoryEnabled('countdown')).toBe(false);
+    expect(isCategoryEnabled('voice')).toBe(true);
+  });
+
+  it('partial update fills missing categories with defaults', () => {
+    setAudioCategories({ effects: false });
+    expect(isCategoryEnabled('effects')).toBe(false);
+    expect(isCategoryEnabled('voice')).toBe(true);
+    expect(isCategoryEnabled('countdown')).toBe(true);
+    expect(isCategoryEnabled('alerts')).toBe(true);
+  });
+
+  it('resets to defaults on undefined', () => {
+    setAudioCategories({ voice: false, effects: false, countdown: false, alerts: false });
+    setAudioCategories(undefined);
+    expect(isCategoryEnabled('voice')).toBe(true);
+    expect(isCategoryEnabled('effects')).toBe(true);
+    expect(isCategoryEnabled('countdown')).toBe(true);
+    expect(isCategoryEnabled('alerts')).toBe(true);
+  });
+});
