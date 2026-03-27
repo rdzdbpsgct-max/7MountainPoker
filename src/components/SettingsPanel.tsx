@@ -216,54 +216,13 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
             </div>
           </div>
 
-          {/* TV Display Screen Configuration */}
-          <CollapsibleSubSection title={t('display.screenConfig' as Parameters<typeof t>[0])} defaultOpen={false}>
-            <div className="space-y-2">
-              {(DEFAULT_DISPLAY_SCREENS).map((screen) => {
-                const userScreens = settings.displayScreens ?? DEFAULT_DISPLAY_SCREENS;
-                const screenCfg = userScreens.find((s) => s.id === screen.id);
-                const isEnabled = screenCfg ? screenCfg.enabled : true;
-                return (
-                  <label key={screen.id} className="flex items-center justify-between cursor-pointer">
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      {t(`display.screen.${screen.id}` as Parameters<typeof t>[0])}
-                    </span>
-                    <CheckBox
-                      checked={isEnabled}
-                      onChange={() => {
-                        const current = settings.displayScreens ?? DEFAULT_DISPLAY_SCREENS.map((s) => ({ ...s }));
-                        const updated = current.map((s) =>
-                          s.id === screen.id ? { ...s, enabled: !s.enabled } : s,
-                        );
-                        // Ensure at least one screen stays enabled
-                        const anyEnabled = updated.some((s) => s.enabled);
-                        if (!anyEnabled) return;
-                        onChange({ ...settings, displayScreens: updated });
-                      }}
-                    />
-                  </label>
-                );
-              })}
-              <div className="space-y-1 pt-1">
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  {t('display.rotationInterval' as Parameters<typeof t>[0])}
-                </span>
-                <div className="flex items-center gap-1">
-                  <NumberStepper
-                    value={settings.displayRotationInterval ?? DEFAULT_ROTATION_INTERVAL}
-                    onChange={(v) => onChange({ ...settings, displayRotationInterval: Math.max(5, Math.min(60, v)) })}
-                    min={5}
-                    max={60}
-                    step={5}
-                    inputClassName="w-16"
-                    label={t('display.rotationInterval' as Parameters<typeof t>[0])}
-                  />
-                  <span className="text-xs text-gray-400 dark:text-gray-500">s</span>
-                </div>
-              </div>
-            </div>
-          </CollapsibleSubSection>
+          {/* Dealer badges toggle */}
+        </div>
+      </CollapsibleSubSection>
 
+      {/* Section 4: TV / Display (top-level, not nested inside Appearance) */}
+      <CollapsibleSubSection title={t('settings.sectionTVDisplay' as Parameters<typeof t>[0])} defaultOpen={false}>
+        <div className="space-y-4">
           {/* Display Layout */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -290,7 +249,53 @@ export const SettingsPanel = memo(function SettingsPanel({ settings, onChange, o
             </div>
           </div>
 
-          {/* Dealer badges toggle */}
+          {/* Screen toggles */}
+          <div className="space-y-2">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('display.screenConfig' as Parameters<typeof t>[0])}</span>
+            {(DEFAULT_DISPLAY_SCREENS).map((screen) => {
+              const userScreens = settings.displayScreens ?? DEFAULT_DISPLAY_SCREENS;
+              const screenCfg = userScreens.find((s) => s.id === screen.id);
+              const isEnabled = screenCfg ? screenCfg.enabled : true;
+              return (
+                <label key={screen.id} className="flex items-center justify-between cursor-pointer">
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {t(`display.screen.${screen.id}` as Parameters<typeof t>[0])}
+                  </span>
+                  <CheckBox
+                    checked={isEnabled}
+                    onChange={() => {
+                      const current = settings.displayScreens ?? DEFAULT_DISPLAY_SCREENS.map((s) => ({ ...s }));
+                      const updated = current.map((s) =>
+                        s.id === screen.id ? { ...s, enabled: !s.enabled } : s,
+                      );
+                      const anyEnabled = updated.some((s) => s.enabled);
+                      if (!anyEnabled) return;
+                      onChange({ ...settings, displayScreens: updated });
+                    }}
+                  />
+                </label>
+              );
+            })}
+          </div>
+
+          {/* Rotation interval */}
+          <div className="space-y-1">
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              {t('display.rotationInterval' as Parameters<typeof t>[0])}
+            </span>
+            <div className="flex items-center gap-1">
+              <NumberStepper
+                value={settings.displayRotationInterval ?? DEFAULT_ROTATION_INTERVAL}
+                onChange={(v) => onChange({ ...settings, displayRotationInterval: Math.max(5, Math.min(60, v)) })}
+                min={5}
+                max={60}
+                step={5}
+                inputClassName="w-16"
+                label={t('display.rotationInterval' as Parameters<typeof t>[0])}
+              />
+              <span className="text-xs text-gray-400 dark:text-gray-500">s</span>
+            </div>
+          </div>
         </div>
       </CollapsibleSubSection>
 
