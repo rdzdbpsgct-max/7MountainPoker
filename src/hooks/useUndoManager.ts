@@ -9,6 +9,8 @@ interface UseUndoManagerParams {
   dealerIndex: number;
   setConfig: React.Dispatch<React.SetStateAction<TournamentConfig>>;
   setTournamentEvents: React.Dispatch<React.SetStateAction<TournamentEvent[]>>;
+  showToast: (msg: string) => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 export interface UndoManagerResult {
@@ -30,6 +32,8 @@ export function useUndoManager({
   dealerIndex,
   setConfig,
   setTournamentEvents,
+  showToast,
+  t,
 }: UseUndoManagerParams): UndoManagerResult {
   const [undoStack, setUndoStack] = useState(() => new UndoStack());
 
@@ -52,7 +56,9 @@ export function useUndoManager({
       dealerIndex: entry.dealerIndex,
     }));
     setTournamentEvents(entry.events);
-  }, [undoStack, players, tables, tournamentEvents, dealerIndex, setConfig, setTournamentEvents]);
+    const label = entry.actionKey ? t(entry.actionKey) : '';
+    showToast(t('toast.undone', { action: label }));
+  }, [undoStack, players, tables, tournamentEvents, dealerIndex, setConfig, setTournamentEvents, showToast, t]);
 
   const handleRedo = useCallback(() => {
     const currentSnapshot = createUndoSnapshot('current', players, tables, tournamentEvents, dealerIndex);
@@ -67,7 +73,9 @@ export function useUndoManager({
       dealerIndex: entry.dealerIndex,
     }));
     setTournamentEvents(entry.events);
-  }, [undoStack, players, tables, tournamentEvents, dealerIndex, setConfig, setTournamentEvents]);
+    const label = entry.actionKey ? t(entry.actionKey) : '';
+    showToast(t('toast.redone', { action: label }));
+  }, [undoStack, players, tables, tournamentEvents, dealerIndex, setConfig, setTournamentEvents, showToast, t]);
 
   return { undoStack, setUndoStack, pushUndoSnapshot, handleUndo, handleRedo };
 }

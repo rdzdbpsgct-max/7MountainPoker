@@ -208,6 +208,8 @@ function App() {
     dealerIndex: config.dealerIndex,
     setConfig,
     setTournamentEvents,
+    showToast,
+    t,
   });
 
   // Clear undo stack when entering game mode (fresh start)

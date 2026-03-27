@@ -1489,6 +1489,8 @@ const de = {
   'toast.leagueDeleted': 'Liga gelöscht',
   'toast.seriesDeleted': 'Serie gelöscht',
   'toast.backupRestored': 'Backup wiederhergestellt',
+  'toast.undone': 'Rückgängig: {action}',
+  'toast.redone': 'Wiederholt: {action}',
 } as const;
 
 export type TranslationKey = keyof typeof de;
@@ -2979,6 +2981,8 @@ const en: Record<TranslationKey, string> = {
   'toast.leagueDeleted': 'League deleted',
   'toast.seriesDeleted': 'Series deleted',
   'toast.backupRestored': 'Backup restored',
+  'toast.undone': 'Undone: {action}',
+  'toast.redone': 'Redone: {action}',
 };
 
 export const translations: Record<Language, Record<TranslationKey, string>> = { de, en };

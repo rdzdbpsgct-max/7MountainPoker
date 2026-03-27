@@ -7764,6 +7764,13 @@ describe('UndoStack', () => {
     expect(snapshot.tables![0]!.status).toBe('active');
     expect(snapshot.tables![0]!.seats[0]!.playerId).toBe('1');
   });
+
+  it('should provide action label from undoLabel', () => {
+    const stack = new UndoStack();
+    const snapshot = createUndoSnapshot('game.undo.elimination', [], undefined, [], 0);
+    const pushed = stack.push(snapshot);
+    expect(pushed.undoLabel).toBe('game.undo.elimination');
+  });
 });
 
 // ---------------------------------------------------------------------------
