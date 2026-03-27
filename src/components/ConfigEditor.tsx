@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Level, TournamentConfig } from '../domain/types';
 import { generateId, validateConfig, formatTime } from '../domain/logic';
 import { useTranslation } from '../i18n';
@@ -99,6 +99,46 @@ export function ConfigEditor({ config, onChange, anteEnabled }: Props) {
     onChange({ ...config, levels: newLevels });
   };
 
+  // --- Drag & Drop reordering ---
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropTarget, setDropTarget] = useState<number | null>(null);
+  const dragStartY = useRef(0);
+  const rowHeight = useRef(0);
+
+  function reorderLevel(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex) return;
+    const newLevels = [...config.levels];
+    const [moved] = newLevels.splice(fromIndex, 1);
+    newLevels.splice(toIndex, 0, moved!);
+    onChange({ ...config, levels: newLevels });
+  }
+
+  function handleDragStart(e: React.PointerEvent, index: number) {
+    e.preventDefault();
+    const el = e.currentTarget as HTMLElement;
+    el.setPointerCapture(e.pointerId);
+    setDragIndex(index);
+    dragStartY.current = e.clientY;
+    const row = el.closest('[data-level-row]');
+    rowHeight.current = row?.getBoundingClientRect().height || 48;
+  }
+
+  function handleDragMove(e: React.PointerEvent) {
+    if (dragIndex === null) return;
+    const delta = e.clientY - dragStartY.current;
+    const offset = Math.round(delta / (rowHeight.current || 48));
+    const target = Math.max(0, Math.min(config.levels.length - 1, dragIndex + offset));
+    setDropTarget(target);
+  }
+
+  function handleDragEnd() {
+    if (dragIndex !== null && dropTarget !== null && dragIndex !== dropTarget) {
+      reorderLevel(dragIndex, dropTarget);
+    }
+    setDragIndex(null);
+    setDropTarget(null);
+  }
+
   return (
     <div className="w-full max-w-2xl space-y-4">
       {/* Validation errors */}
@@ -156,16 +196,39 @@ export function ConfigEditor({ config, onChange, anteEnabled }: Props) {
           </div>
         )}
         {config.levels.map((level, i) => (
-          <div
-            key={level.id}
-            className={`flex flex-wrap items-center gap-2 p-3 rounded-lg border hover:bg-gray-200/30 dark:hover:bg-gray-800/30 transition-colors ${
-              level.type === 'break'
-                ? 'bg-amber-50 dark:bg-amber-900/15 border-amber-300 dark:border-amber-800/60'
-                : 'bg-gray-100/80 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700/40'
-            }`}
-          >
-            {/* Index */}
-            <span className="text-gray-400 dark:text-gray-500 text-xs w-6 text-center">{i + 1}</span>
+          <div key={level.id}>
+            {/* Drop indicator line */}
+            {dropTarget === i && dragIndex !== null && dragIndex !== i && (
+              <div className="h-0.5 -my-0.5 rounded-full" style={{ background: 'var(--accent-500)' }} />
+            )}
+            <div
+              data-level-row
+              className={`flex flex-wrap items-center gap-2 p-3 rounded-lg border hover:bg-gray-200/30 dark:hover:bg-gray-800/30 transition-colors ${
+                level.type === 'break'
+                  ? 'bg-amber-50 dark:bg-amber-900/15 border-amber-300 dark:border-amber-800/60'
+                  : 'bg-gray-100/80 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700/40'
+              }${dragIndex === i ? ' opacity-50' : ''}`}
+            >
+              {/* Drag grip handle */}
+              <span
+                className="cursor-grab active:cursor-grabbing touch-none text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 select-none px-1 flex items-center"
+                onPointerDown={(e) => handleDragStart(e, i)}
+                onPointerMove={handleDragMove}
+                onPointerUp={handleDragEnd}
+                onPointerCancel={handleDragEnd}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                  <circle cx="5" cy="3" r="1.5"/>
+                  <circle cx="11" cy="3" r="1.5"/>
+                  <circle cx="5" cy="8" r="1.5"/>
+                  <circle cx="11" cy="8" r="1.5"/>
+                  <circle cx="5" cy="13" r="1.5"/>
+                  <circle cx="11" cy="13" r="1.5"/>
+                </svg>
+              </span>
+
+              {/* Index */}
+              <span className="text-gray-400 dark:text-gray-500 text-xs w-6 text-center">{i + 1}</span>
 
             {/* Type badge */}
             <span
@@ -283,6 +346,7 @@ export function ConfigEditor({ config, onChange, anteEnabled }: Props) {
                 ✕
               </button>
             </div>
+          </div>
           </div>
         ))}
       </div>
