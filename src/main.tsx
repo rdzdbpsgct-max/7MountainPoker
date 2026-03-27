@@ -8,6 +8,20 @@ import App from './App.tsx'
 import { initStorage } from './domain/storage'
 import { trackSessionStarted } from './domain/monetizationTelemetry'
 import { parseDisplayHash } from './domain/remote'
+// @ts-expect-error — virtual module provided by vite-plugin-pwa at build time
+import { registerSW } from 'virtual:pwa-register';
+
+const updateSW = registerSW({
+  onNeedRefresh() {
+    window.dispatchEvent(new CustomEvent('sw-update-available'));
+  },
+  onOfflineReady() {
+    // Silently ready
+  },
+});
+
+// Expose for App.tsx
+(window as unknown as Record<string, unknown>).__updateSW = updateSW;
 
 const hash = window.location.hash;
 const isLocalDisplayWindow = hash === '#display';

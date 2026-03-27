@@ -116,6 +116,14 @@ function App() {
   }, [language]);
 
   const [mode, setMode] = useState<Mode>('setup');
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setUpdateAvailable(true);
+    window.addEventListener('sw-update-available', handler);
+    return () => window.removeEventListener('sw-update-available', handler);
+  }, []);
+
   const [config, setConfig] = useState<TournamentConfig>(
     () => {
       const persisted = loadConfig();
@@ -822,6 +830,28 @@ function App() {
       </Suspense></SectionErrorBoundary>
     )}
     <div className="min-h-full flex flex-col">
+      {updateAvailable && (
+        <div className="bg-amber-100 dark:bg-amber-900/30 border-b border-amber-300 dark:border-amber-700/50 px-4 py-2 flex items-center justify-center gap-3 text-sm">
+          <span className="text-amber-800 dark:text-amber-200">{t('app.updateAvailable')}</span>
+          <button
+            onClick={() => {
+              const updateFn = (window as unknown as Record<string, unknown>).__updateSW as (() => Promise<void>) | undefined;
+              if (updateFn) void updateFn();
+              else window.location.reload();
+            }}
+            className="px-3 py-1 rounded-lg text-white font-medium text-xs"
+            style={{ background: 'var(--accent-600)' }}
+          >
+            {t('app.updateNow')}
+          </button>
+          <button
+            onClick={() => setUpdateAvailable(false)}
+            className="text-amber-600 dark:text-amber-400 text-xs hover:underline"
+          >
+            {t('app.updateDismiss')}
+          </button>
+        </div>
+      )}
       <AppHeader
         mode={mode}
         tournamentName={config.name}
