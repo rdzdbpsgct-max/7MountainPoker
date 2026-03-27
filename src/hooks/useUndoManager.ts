@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { Player, Table, TournamentConfig, TournamentEvent } from '../domain/types';
+import type { TranslationKey } from '../i18n/translations';
 import { UndoStack, createUndoSnapshot } from '../domain/undoStack';
 
 interface UseUndoManagerParams {
@@ -10,7 +11,7 @@ interface UseUndoManagerParams {
   setConfig: React.Dispatch<React.SetStateAction<TournamentConfig>>;
   setTournamentEvents: React.Dispatch<React.SetStateAction<TournamentEvent[]>>;
   showToast: (msg: string) => void;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }
 
 export interface UndoManagerResult {
@@ -56,7 +57,7 @@ export function useUndoManager({
       dealerIndex: entry.dealerIndex,
     }));
     setTournamentEvents(entry.events);
-    const label = entry.actionKey ? t(entry.actionKey) : '';
+    const label = entry.actionKey ? t(entry.actionKey as TranslationKey) : '';
     showToast(t('toast.undone', { action: label }));
   }, [undoStack, players, tables, tournamentEvents, dealerIndex, setConfig, setTournamentEvents, showToast, t]);
 
@@ -73,7 +74,7 @@ export function useUndoManager({
       dealerIndex: entry.dealerIndex,
     }));
     setTournamentEvents(entry.events);
-    const label = entry.actionKey ? t(entry.actionKey) : '';
+    const label = entry.actionKey ? t(entry.actionKey as TranslationKey) : '';
     showToast(t('toast.redone', { action: label }));
   }, [undoStack, players, tables, tournamentEvents, dealerIndex, setConfig, setTournamentEvents, showToast, t]);
 
