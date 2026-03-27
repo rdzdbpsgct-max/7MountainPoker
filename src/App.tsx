@@ -58,6 +58,8 @@ import { ToastContainer } from './components/Toast';
 import { useRemoteHostBridge } from './hooks/useRemoteHostBridge';
 import { collectStartErrors } from './domain/startValidation';
 import { generatePlayerId } from './domain/helpers';
+import { shouldShowWhatsNew, markVersionSeen, getUnseenReleases } from './domain/whatsNew';
+import type { WhatsNewRelease } from './domain/whatsNew';
 import { SectionErrorBoundary } from './components/ErrorBoundary';
 import { LoadingFallback } from './components/LoadingFallback';
 import { SetupModeContainer } from './components/modes/SetupModeContainer';
@@ -117,11 +119,25 @@ function App() {
 
   const [mode, setMode] = useState<Mode>('setup');
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [whatsNewReleases, setWhatsNewReleases] = useState<WhatsNewRelease[]>([]);
 
   useEffect(() => {
     const handler = () => setUpdateAvailable(true);
     window.addEventListener('sw-update-available', handler);
     return () => window.removeEventListener('sw-update-available', handler);
+  }, []);
+
+  useEffect(() => {
+    if (shouldShowWhatsNew()) {
+      const releases = getUnseenReleases();
+      if (releases.length > 0) {
+        setWhatsNewReleases(releases);
+        setShowWhatsNew(true);
+      } else {
+        markVersionSeen();
+      }
+    }
   }, []);
 
   const [config, setConfig] = useState<TournamentConfig>(
@@ -1253,6 +1269,36 @@ function App() {
             }}
           />
         </Suspense></SectionErrorBoundary>
+      )}
+      {/* What's New Modal */}
+      {showWhatsNew && whatsNewReleases.length > 0 && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { markVersionSeen(); setShowWhatsNew(false); }} />
+          <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t('whatsNew.title')}</h2>
+            <div className="space-y-4 max-h-80 overflow-y-auto">
+              {whatsNewReleases.map(release => (
+                <div key={release.version}>
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">v{release.version}</h3>
+                  <ul className="space-y-2">
+                    {release.features.map(f => (
+                      <li key={f.key} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <span className="text-base shrink-0">{f.icon}</span>
+                        <span>{t(f.key as Parameters<typeof t>[0])}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => { markVersionSeen(); setShowWhatsNew(false); }}
+              className="mt-5 w-full py-2.5 rounded-xl text-white font-medium text-sm btn-accent-gradient"
+            >
+              {t('whatsNew.dismiss')}
+            </button>
+          </div>
+        </div>
       )}
       <ToastContainer />
     </div>

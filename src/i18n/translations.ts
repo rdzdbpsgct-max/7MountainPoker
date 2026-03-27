@@ -1495,6 +1495,16 @@ const de = {
   'toast.backupRestored': 'Backup wiederhergestellt',
   'toast.undone': 'Rückgängig: {action}',
   'toast.redone': 'Wiederholt: {action}',
+
+  // --- What's New ---
+  'whatsNew.title': 'Was ist neu?',
+  'whatsNew.dismiss': 'Verstanden',
+  'whatsNew.undoToast': 'Rückgängig-Feedback als Toast-Benachrichtigung',
+  'whatsNew.updateBanner': 'Update-Banner bei neuer App-Version',
+  'whatsNew.remoteSync': 'Automatische Synchronisierung nach Verbindungsabbruch',
+  'whatsNew.gameInfoBar': 'Kompakte Info-Leiste über dem Timer',
+  'whatsNew.controlsRedesign': 'Überarbeitete Steuerungs-Buttons',
+  'whatsNew.settingsModal': 'Einstellungen als eigenes Modal',
 } as const;
 
 export type TranslationKey = keyof typeof de;
@@ -2991,6 +3001,16 @@ const en: Record<TranslationKey, string> = {
   'toast.backupRestored': 'Backup restored',
   'toast.undone': 'Undone: {action}',
   'toast.redone': 'Redone: {action}',
+
+  // --- What's New ---
+  'whatsNew.title': "What's New",
+  'whatsNew.dismiss': 'Got it',
+  'whatsNew.undoToast': 'Undo/redo toast notification feedback',
+  'whatsNew.updateBanner': 'Update banner for new app versions',
+  'whatsNew.remoteSync': 'Automatic state sync after reconnect',
+  'whatsNew.gameInfoBar': 'Compact info bar above timer',
+  'whatsNew.controlsRedesign': 'Redesigned control buttons',
+  'whatsNew.settingsModal': 'Settings as standalone modal',
 };
 
 export const translations: Record<Language, Record<TranslationKey, string>> = { de, en };
