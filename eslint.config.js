@@ -2,6 +2,7 @@ import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
+import reactCompiler from 'eslint-plugin-react-compiler'
 import security from 'eslint-plugin-security'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
@@ -18,6 +19,7 @@ export default defineConfig([
     ],
     plugins: {
       security: security,
+      'react-compiler': reactCompiler,
     },
     rules: {
       // Code quality
@@ -31,6 +33,7 @@ export default defineConfig([
       'security/detect-eval-with-expression': 'error',
       'security/detect-no-csrf-before-method-override': 'warn',
       'security/detect-possible-timing-attacks': 'warn',
+      'react-compiler/react-compiler': 'warn',
     },
     languageOptions: {
       ecmaVersion: 2020,
