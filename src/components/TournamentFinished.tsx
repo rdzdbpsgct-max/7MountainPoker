@@ -38,7 +38,8 @@ export function TournamentFinished({
   const { t, language } = useTranslation();
   const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
   const { resolved: theme } = useTheme();
-  const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const allExpanded = expandedIds.size > 0;
   const [activeTab, setActiveTab] = useState<'standings' | 'log'>('standings');
   const [capturing, setCapturing] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -292,12 +293,18 @@ export function TournamentFinished({
               {t('finished.results')}
             </h3>
             <button
-              onClick={() => setDetailsExpanded((prev) => !prev)}
+              onClick={() => {
+                if (allExpanded) {
+                  setExpandedIds(new Set());
+                } else {
+                  setExpandedIds(new Set(standings.map(p => p.id)));
+                }
+              }}
               className="text-xs px-3 py-1 rounded-lg transition-colors text-amber-400 border border-amber-500/40 hover:bg-amber-500/10"
             >
               <span className="flex items-center gap-1">
-                <ChevronIcon open={detailsExpanded} className="w-3 h-3" />
-                {detailsExpanded ? t('finished.collapse') : t('finished.expand')}
+                <ChevronIcon open={allExpanded} className="w-3 h-3" />
+                {allExpanded ? t('finished.collapse') : t('finished.expand')}
               </span>
             </button>
           </div>
@@ -322,13 +329,18 @@ export function TournamentFinished({
                     <div className="border-t border-gray-300 dark:border-gray-700 mx-3" />
                   )}
                   <div
-                    className={`px-4 py-2.5 border-b border-gray-200 dark:border-gray-800/30 hover:bg-gray-200/60 dark:hover:bg-gray-800/40 transition-colors ${
+                    className={`px-4 py-2.5 border-b border-gray-200 dark:border-gray-800/30 hover:bg-gray-200/60 dark:hover:bg-gray-800/40 transition-colors cursor-pointer ${
                       player.finalPlace === 1
                         ? 'bg-amber-900/25 border-l-2 border-l-amber-400'
                         : idx % 2 === 0
                         ? 'bg-gray-100/50 dark:bg-gray-800/30'
                         : ''
                     }`}
+                    onClick={() => setExpandedIds(prev => {
+                      const next = new Set(prev);
+                      if (next.has(player.id)) next.delete(player.id); else next.add(player.id);
+                      return next;
+                    })}
                   >
                     {/* Row 1: Place, Name, Winnings */}
                     <div className="flex items-center justify-between">
@@ -354,8 +366,8 @@ export function TournamentFinished({
                         </span>
                       )}
                     </div>
-                    {/* Detail rows (collapsible) */}
-                    {detailsExpanded && (
+                    {/* Detail rows (collapsible per player) */}
+                    {expandedIds.has(player.id) && (
                       <div className="ml-9 mt-1 space-y-0.5">
                         {/* Buy-In */}
                         <div className="flex justify-between text-xs">

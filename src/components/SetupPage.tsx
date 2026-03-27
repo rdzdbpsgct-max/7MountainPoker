@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { TournamentConfig, TournamentCheckpoint, Settings } from '../domain/types';
 import type { AppFeature } from '../domain/entitlements';
 import { useTranslation } from '../i18n';
+import { ChevronIcon } from './ChevronIcon';
 import { SetupTabs } from './SetupTabs';
 import { SetupTabBasis } from './SetupTabBasis';
 import { SetupTabPlayers } from './SetupTabPlayers';
@@ -99,6 +100,9 @@ export function SetupPage({
     pointerStartRef.current = null;
   }, [goToTab]);
 
+  // --- Inline validation error panel (collapsible, visible on non-review tabs) ---
+  const [errorsExpanded, setErrorsExpanded] = useState(false);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <h1 className="sr-only">{t('setup.pageTitle')}</h1>
@@ -161,6 +165,41 @@ export function SetupPage({
             />
           )}
         </div>
+
+        {/* Inline validation errors (shown on tabs 0-2, not on Review which has its own display) */}
+        {activeTab < 3 && startErrors.length > 0 && (
+          <div className="max-w-2xl mx-auto px-3 sm:px-6 pb-2">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 rounded-xl text-sm overflow-hidden">
+              <button
+                onClick={() => setErrorsExpanded((prev) => !prev)}
+                className="w-full flex items-center justify-between px-3 py-2 text-red-700 dark:text-red-400 font-medium hover:bg-red-100/50 dark:hover:bg-red-900/30 transition-colors"
+              >
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {t('setup.validationTitle' as Parameters<typeof t>[0])}
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="text-xs bg-red-200 dark:bg-red-800/50 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full font-semibold">
+                    {startErrors.length}
+                  </span>
+                  <ChevronIcon open={errorsExpanded} className="w-4 h-4 text-red-400 dark:text-red-500" />
+                </span>
+              </button>
+              {errorsExpanded && (
+                <ul className="px-3 pb-3 pt-0 space-y-1 text-red-600 dark:text-red-400 animate-fade-in">
+                  {startErrors.map((err, i) => (
+                    <li key={i} className="flex items-start gap-1.5">
+                      <span className="shrink-0 mt-0.5">{'\u2022'}</span>
+                      <span>{err}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Back/Next navigation */}
         {activeTab < 3 && (

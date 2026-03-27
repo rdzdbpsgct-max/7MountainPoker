@@ -100,21 +100,21 @@ export function StatsScreen({
       <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 text-center">
         {t('display.stats')}
       </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1 content-center">
+      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1 content-center">
         {stats.map((s) => (
           <div
             key={s.label}
             className="flex flex-col items-center px-4 py-3 rounded-xl bg-gray-800/60 border border-gray-700/40"
           >
-            <span className="text-2xl sm:text-3xl font-bold font-mono text-white tabular-nums">
+            <dd className="text-2xl sm:text-3xl font-bold font-mono text-white tabular-nums">
               {s.value}
-            </span>
-            <span className="text-xs text-gray-500 uppercase tracking-wider mt-1">
+            </dd>
+            <dt className="text-xs text-gray-500 uppercase tracking-wider mt-1">
               {s.label}
-            </span>
+            </dt>
           </div>
         ))}
-      </div>
+      </dl>
     </div>
   );
 }

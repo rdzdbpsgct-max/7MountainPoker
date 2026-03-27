@@ -126,21 +126,23 @@ function ScrubSlider({
             }}
           />
         </div>
-        {/* Thumb */}
+        {/* Thumb — visible dot + invisible ≥44px touch target */}
         <div
-          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full border-2 border-white/30 pointer-events-none ${
-            isBreak
-              ? 'bg-gradient-to-b from-amber-400 to-amber-600 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
-              : ''
-          }`}
-          style={{
-            left: `${pct}%`,
-            ...(isBreak ? {} : {
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-11 h-11 flex items-center justify-center pointer-events-none"
+          style={{ left: `${pct}%` }}
+        >
+          <div
+            className={`w-5 h-5 rounded-full border-2 border-white/30 ${
+              isBreak
+                ? 'bg-gradient-to-b from-amber-400 to-amber-600 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                : ''
+            }`}
+            style={isBreak ? undefined : {
               background: 'linear-gradient(to bottom, var(--accent-400), var(--accent-600))',
               boxShadow: `0 0 8px var(--accent-glow)`,
-            }),
-          }}
-        />
+            }}
+          />
+        </div>
       </div>
       <span className="text-xs text-gray-400 dark:text-gray-500 w-12">
         {formatTime(duration)}

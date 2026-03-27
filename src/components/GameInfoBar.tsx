@@ -39,7 +39,7 @@ export const GameInfoBar = memo(function GameInfoBar({
   );
 
   return (
-    <div className="flex items-center justify-center gap-3 sm:gap-4 text-xs text-gray-500 dark:text-gray-400 max-w-xl mx-auto px-2 py-1 flex-wrap">
+    <div className="flex items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-xl mx-auto px-2 py-1 flex-wrap">
       <span className="flex items-center gap-1" title={t('info.players')}>
         <span aria-hidden="true">{String.fromCodePoint(0x1F465)}</span>
         <span className="font-mono tabular-nums">{activePlayers}/{totalPlayers}</span>

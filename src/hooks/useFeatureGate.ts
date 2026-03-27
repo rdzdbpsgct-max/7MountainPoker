@@ -14,12 +14,15 @@ interface UseFeatureGateArgs {
   currentTier: AppTier;
   mode: Mode;
   t: LanguageContextValue['t'];
+  /** Optional callback to store the feature for auto-open after license activation */
+  setPendingFeature?: (feature: AppFeature) => void;
 }
 
 export function useFeatureGate({
   currentTier,
   mode,
   t,
+  setPendingFeature,
 }: UseFeatureGateArgs) {
   const [lockedFeature, setLockedFeature] = useState<AppFeature | null>(null);
 
@@ -59,13 +62,15 @@ export function useFeatureGate({
   const openFeatureGate = useCallback((feature: AppFeature) => {
     const requiredTier = getRequiredTier(feature);
     setLockedFeature(feature);
+    // Store as pending so it can be auto-opened after license activation
+    setPendingFeature?.(feature);
     trackMonetizationEvent('feature_gate_seen', {
       feature,
       requiredTier,
       currentTier,
       mode,
     });
-  }, [currentTier, mode]);
+  }, [currentTier, mode, setPendingFeature]);
 
   const closeFeatureGate = useCallback(() => {
     if (lockedFeature) {

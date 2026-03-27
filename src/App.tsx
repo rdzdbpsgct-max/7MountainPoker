@@ -104,6 +104,7 @@ function App() {
   const { t, language } = useTranslation();
   const {
     entitlements, refreshEntitlements, showLicenseActivation, setShowLicenseActivation,
+    setPendingFeature, consumePendingFeature,
     canUseTVDisplay, canUseRemoteControl, canUseLeagueMode, canUseMultiTable,
     canUseSidePot, canUseCustomAccent, canUseCustomBackground, canUseCustomLayout,
     canUseCustomAudio, canUseSeries, canUseIcm,
@@ -554,6 +555,7 @@ function App() {
     currentTier: entitlements.tier,
     mode,
     t,
+    setPendingFeature,
   });
   const handleUpgradeIntent = useCallback(() => {
     _handleUpgradeIntentBase();
@@ -1202,6 +1204,20 @@ function App() {
             onActivated={() => {
               refreshEntitlements();
               setShowLicenseActivation(false);
+              // Auto-open the feature that triggered the upgrade flow
+              const pending = consumePendingFeature();
+              if (pending) {
+                const featureToModal: Record<string, (() => void) | undefined> = {
+                  tvDisplay: handleToggleTVWindow,
+                  series: () => modals.setShowSeries(true),
+                  customAudio: () => modals.setShowCustomAudio(true),
+                  icmCalculator: () => modals.setShowIcm(true),
+                  customAccent: () => modals.setShowGameSettings(true),
+                  customBackground: () => modals.setShowGameSettings(true),
+                  customLayout: () => modals.setShowGameSettings(true),
+                };
+                featureToModal[pending]?.();
+              }
             }}
           />
         </Suspense></SectionErrorBoundary>

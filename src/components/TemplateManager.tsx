@@ -184,7 +184,18 @@ export function TemplateManager({ config, onLoad, onClose }: Props) {
   return (
     <BottomSheet onClose={onClose} ariaLabelledBy="template-title" maxWidth="max-w-md">
       <div className="p-6 space-y-4 overflow-y-auto flex-1">
-        <h3 id="template-title" className="text-lg font-bold text-gray-900 dark:text-white">{t('templates.title')}</h3>
+        <div className="flex items-center justify-between">
+          <h3 id="template-title" className="text-lg font-bold text-gray-900 dark:text-white">{t('templates.title')}</h3>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-colors"
+            aria-label={t('templates.close')}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
         {/* Save current config as template */}
         <div className="space-y-2">

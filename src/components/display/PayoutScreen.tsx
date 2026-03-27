@@ -46,40 +46,56 @@ export function PayoutScreen({
           </span>
         )}
       </h2>
-      <div className="space-y-1 flex-1 overflow-hidden">
-        {payoutAmounts.map((p) => {
-          const isBubblePos = isBubble && p.place === paidPlaces;
-          return (
-            <div
-              key={p.place}
-              className={`flex items-center justify-between px-4 py-2 rounded-lg text-base transition-all ${
-                p.place === 1
-                  ? 'bg-amber-900/40 border border-amber-500/50 text-amber-200'
-                  : p.place <= 3
-                  ? 'bg-gray-800/60 border border-gray-700/40 text-gray-200'
-                  : 'bg-gray-900/40 border border-gray-800/40 text-gray-400'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <span className="font-mono font-bold text-sm w-8">
-                  {p.place === 1 ? '🏆' : p.place === 2 ? '🥈' : p.place === 3 ? '🥉' : `${p.place}.`}
-                </span>
-                <span className="font-medium">
-                  {t('display.payoutPlace', { n: p.place })}
-                </span>
-                {isBubblePos && (
-                  <span className="text-red-400 text-xs font-bold animate-bubble-pulse">
-                    ← Bubble
+      <table className="w-full flex-1 overflow-hidden" role="table">
+        <thead className="sr-only">
+          <tr>
+            <th scope="col">{t('display.payoutPlace', { n: '' }).trim()}</th>
+            <th scope="col">{t('display.payout')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {payoutAmounts.map((p) => {
+            const isBubblePos = isBubble && p.place === paidPlaces;
+            return (
+              <tr
+                key={p.place}
+                className={`text-base transition-all ${
+                  p.place === 1
+                    ? 'bg-amber-900/40 text-amber-200'
+                    : p.place <= 3
+                    ? 'bg-gray-800/60 text-gray-200'
+                    : 'bg-gray-900/40 text-gray-400'
+                }`}
+              >
+                <td className={`flex items-center justify-between px-4 py-2 rounded-lg border ${
+                  p.place === 1
+                    ? 'border-amber-500/50'
+                    : p.place <= 3
+                    ? 'border-gray-700/40'
+                    : 'border-gray-800/40'
+                }`}>
+                  <span className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-sm w-8">
+                      {p.place === 1 ? '🏆' : p.place === 2 ? '🥈' : p.place === 3 ? '🥉' : `${p.place}.`}
+                    </span>
+                    <span className="font-medium">
+                      {t('display.payoutPlace', { n: p.place })}
+                    </span>
+                    {isBubblePos && (
+                      <span className="text-red-400 text-xs font-bold animate-bubble-pulse">
+                        ← Bubble
+                      </span>
+                    )}
                   </span>
-                )}
-              </span>
-              <span className="font-mono font-bold tabular-nums">
-                {p.amount.toLocaleString()} {sym}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+                  <span className="font-mono font-bold tabular-nums">
+                    {p.amount.toLocaleString()} {sym}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

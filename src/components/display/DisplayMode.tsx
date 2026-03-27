@@ -339,19 +339,31 @@ export function DisplayMode({
           {/* Secondary screen indicator dots */}
           {secondaryScreens.length > 1 && (
             <div className="flex items-center gap-1.5">
-              {secondaryScreens.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setActiveSecondary(s)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    s === activeSecondary
-                      ? ''
-                      : 'bg-gray-600 hover:bg-gray-500'
-                  }`}
-                  style={s === activeSecondary ? { backgroundColor: 'var(--accent-400)', boxShadow: `0 0 6px var(--accent-glow)` } : undefined}
-                  aria-label={s}
-                />
-              ))}
+              {secondaryScreens.map((s) => {
+                const screenLabels: Record<SecondaryScreen, string> = {
+                  players: 'Player Overview',
+                  stats: 'Statistics',
+                  payout: 'Payouts',
+                  schedule: 'Blind Schedule',
+                  chips: 'Chip Values',
+                  seating: 'Seating',
+                  league: 'League',
+                  sidepot: 'Side Pots',
+                };
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setActiveSecondary(s)}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      s === activeSecondary
+                        ? ''
+                        : 'bg-gray-600 hover:bg-gray-500'
+                    }`}
+                    style={s === activeSecondary ? { backgroundColor: 'var(--accent-400)', boxShadow: `0 0 6px var(--accent-glow)` } : undefined}
+                    aria-label={screenLabels[s]}
+                  />
+                );
+              })}
             </div>
           )}
           <span className="text-gray-400 text-sm font-medium tabular-nums">
@@ -464,7 +476,7 @@ export function DisplayMode({
       {layoutConfig.showSecondary && (
         <>
           <div className="border-t border-gray-800/60" />
-          <div className="overflow-hidden px-6 py-3 animate-fade-in" style={{ flex: layoutConfig.secondaryFlex }} key={activeSecondary}>
+          <div className="overflow-hidden px-6 py-3 animate-fade-in" aria-live="polite" style={{ flex: layoutConfig.secondaryFlex }} key={activeSecondary}>
             {activeSecondary === 'players' && (
               <PlayersScreen players={players} />
             )}

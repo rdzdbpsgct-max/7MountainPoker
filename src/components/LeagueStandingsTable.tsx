@@ -277,7 +277,7 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
             {t('league.standings.noData')}
           </div>
         ) : (
-          <div className="overflow-x-auto relative">
+          <div className="overflow-x-auto relative" style={{ maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)', WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent)' }}>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700/40">

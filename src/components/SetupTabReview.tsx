@@ -97,6 +97,11 @@ export function SetupTabReview({ config, settings, startErrors, onSwitchToGame, 
         } : undefined}
       >
         {t('app.startTournament')}
+        {!canStart && (
+          <span className="block text-sm font-normal mt-0.5 opacity-70">
+            ({t('setup.validationIssues' as Parameters<typeof t>[0], { n: startErrors.length })})
+          </span>
+        )}
       </button>
 
       {/* Print + QR */}

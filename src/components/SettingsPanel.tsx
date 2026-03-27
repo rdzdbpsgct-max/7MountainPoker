@@ -25,7 +25,7 @@ function CheckBox({ checked, onChange }: { checked: boolean; onChange: () => voi
       role="switch"
       aria-checked={checked}
       onClick={onChange}
-      className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 transition-all duration-200 ${
+      className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--accent-ring)] focus-visible:outline-none ${
         checked
           ? 'shadow-sm'
           : 'bg-gray-200 dark:bg-gray-700/80 border border-gray-300 dark:border-gray-600/60'

@@ -288,6 +288,7 @@ const de = {
   'settings.sectionAudio': 'Audio & Ansagen',
   'settings.sectionTimer': 'Timer & Spielfluss',
   'settings.sectionAppearance': 'Darstellung',
+  'settings.sectionTVDisplay': 'TV / Display',
 
   // --- Call the Clock ---
   'callTheClock.title': 'Call the Clock',
@@ -645,6 +646,8 @@ const de = {
   'setup.reviewSound': 'Sound',
   'setup.reviewReady': 'Alles bereit — Turnier kann starten!',
   'setup.reviewErrors': 'Bitte beheben:',
+  'setup.validationIssues': '{n} Problem(e)',
+  'setup.validationTitle': 'Konfigurationsprobleme',
 
   // --- Setup UX ---
   'app.tournamentBasics': 'Turnier-Grundlagen',
@@ -1778,6 +1781,7 @@ const en: Record<TranslationKey, string> = {
   'settings.sectionAudio': 'Audio & Announcements',
   'settings.sectionTimer': 'Timer & Game Flow',
   'settings.sectionAppearance': 'Appearance',
+  'settings.sectionTVDisplay': 'TV / Display',
 
   // --- Call the Clock ---
   'callTheClock.title': 'Call the Clock',
@@ -2135,6 +2139,8 @@ const en: Record<TranslationKey, string> = {
   'setup.reviewSound': 'Sound',
   'setup.reviewReady': 'All set — tournament ready to start!',
   'setup.reviewErrors': 'Please fix:',
+  'setup.validationIssues': '{n} issue(s)',
+  'setup.validationTitle': 'Configuration Issues',
 
   // --- Setup UX ---
   'app.tournamentBasics': 'Tournament Basics',

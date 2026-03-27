@@ -1,46 +1,56 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { isWizardCompleted } from '../domain/configPersistence';
+
+/** All mutually exclusive modal keys */
+type ModalKey =
+  | 'templates'
+  | 'history'
+  | 'series'
+  | 'customAudio'
+  | 'callTheClock'
+  | 'help'
+  | 'tournamentLog'
+  | 'payoutOverlay'
+  | 'icm'
+  | 'tour'
+  | 'gameSettings'
+  | 'wizard'
+  | 'installGuide'
+  | 'shareHub';
+
+/** Setter type compatible with React's Dispatch<SetStateAction<boolean>> */
+type ModalSetter = (value: boolean | ((prev: boolean) => boolean)) => void;
+
+/**
+ * Compute initial modal from wizard state and URL hash.
+ * Clears hash if consumed.
+ */
+function computeInitialModal(): ModalKey | null {
+  if (!isWizardCompleted()) return 'wizard';
+  const hash = window.location.hash;
+  if (hash === '#install') {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    return 'installGuide';
+  }
+  if (hash === '#share') {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    return 'shareHub';
+  }
+  return null;
+}
 
 /**
  * Centralized modal state management hook.
- * Extracts all modal boolean states + cleanView from App.tsx into a single hook.
+ * Uses a single activeModal state to ensure only one modal is open at a time.
+ * Panel visibility (showPlayerPanel, showSidebar) and cleanView are NOT modals.
  */
 export function useModalManager() {
-  // Panel visibility (default: visible)
+  // Single mutex state for all modals
+  const [activeModal, setActiveModal] = useState<ModalKey | null>(computeInitialModal);
+
+  // Panel visibility (default: visible) — NOT modals, kept as separate state
   const [showPlayerPanel, setShowPlayerPanel] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
-
-  // Modal visibility (default: false)
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showSeries, setShowSeries] = useState(false);
-  const [showCustomAudio, setShowCustomAudio] = useState(false);
-  const [showCallTheClock, setShowCallTheClock] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [showTournamentLog, setShowTournamentLog] = useState(false);
-  const [showPayoutOverlay, setShowPayoutOverlay] = useState(false);
-  const [showIcm, setShowIcm] = useState(false);
-  const [showTour, setShowTour] = useState(false);
-  const [showGameSettings, setShowGameSettings] = useState(false);
-
-  // Modals with initialization logic
-  const [showWizard, setShowWizard] = useState(() => !isWizardCompleted());
-
-  const [showInstallGuide, setShowInstallGuide] = useState(() => {
-    if (window.location.hash === '#install') {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-      return true;
-    }
-    return false;
-  });
-
-  const [showShareHub, setShowShareHub] = useState(() => {
-    if (window.location.hash === '#share') {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-      return true;
-    }
-    return false;
-  });
 
   // Clean view state
   const [cleanView, setCleanView] = useState(false);
@@ -61,6 +71,65 @@ export function useModalManager() {
     });
   }, []);
 
+  // Close any open modal
+  const closeAllModals = useCallback(() => {
+    setActiveModal(null);
+  }, []);
+
+  // Factory for creating a setter that's compatible with React's Dispatch<SetStateAction<boolean>>
+  // Supports: setter(true), setter(false), setter(prev => !prev)
+  const makeModalSetter = useCallback((key: ModalKey): ModalSetter => {
+    return (value: boolean | ((prev: boolean) => boolean)) => {
+      if (typeof value === 'function') {
+        // Updater function pattern: e.g. setShowCallTheClock((v) => !v)
+        setActiveModal((current) => {
+          const currentlyOpen = current === key;
+          const next = value(currentlyOpen);
+          return next ? key : (currentlyOpen ? null : current);
+        });
+      } else {
+        // Direct value pattern: e.g. setShowTemplates(true) or setShowTemplates(false)
+        setActiveModal((current) => {
+          if (value) return key;
+          // Only close if this modal is currently active
+          return current === key ? null : current;
+        });
+      }
+    };
+  }, []);
+
+  // Computed booleans
+  const showTemplates = activeModal === 'templates';
+  const showHistory = activeModal === 'history';
+  const showSeries = activeModal === 'series';
+  const showCustomAudio = activeModal === 'customAudio';
+  const showCallTheClock = activeModal === 'callTheClock';
+  const showHelp = activeModal === 'help';
+  const showTournamentLog = activeModal === 'tournamentLog';
+  const showPayoutOverlay = activeModal === 'payoutOverlay';
+  const showIcm = activeModal === 'icm';
+  const showTour = activeModal === 'tour';
+  const showGameSettings = activeModal === 'gameSettings';
+  const showWizard = activeModal === 'wizard';
+  const showInstallGuide = activeModal === 'installGuide';
+  const showShareHub = activeModal === 'shareHub';
+
+  // Stable setter references (memoized so consumers get the same function reference)
+  const setShowTemplates = useMemo(() => makeModalSetter('templates'), [makeModalSetter]);
+  const setShowHistory = useMemo(() => makeModalSetter('history'), [makeModalSetter]);
+  const setShowSeries = useMemo(() => makeModalSetter('series'), [makeModalSetter]);
+  const setShowCustomAudio = useMemo(() => makeModalSetter('customAudio'), [makeModalSetter]);
+  const setShowCallTheClock = useMemo(() => makeModalSetter('callTheClock'), [makeModalSetter]);
+  const setShowHelp = useMemo(() => makeModalSetter('help'), [makeModalSetter]);
+  const setShowTournamentLog = useMemo(() => makeModalSetter('tournamentLog'), [makeModalSetter]);
+  const setShowPayoutOverlay = useMemo(() => makeModalSetter('payoutOverlay'), [makeModalSetter]);
+  const setShowIcm = useMemo(() => makeModalSetter('icm'), [makeModalSetter]);
+  const setShowTour = useMemo(() => makeModalSetter('tour'), [makeModalSetter]);
+  const setShowGameSettings = useMemo(() => makeModalSetter('gameSettings'), [makeModalSetter]);
+  const setShowWizard = useMemo(() => makeModalSetter('wizard'), [makeModalSetter]);
+  const setShowInstallGuide = useMemo(() => makeModalSetter('installGuide'), [makeModalSetter]);
+  const setShowShareHub = useMemo(() => makeModalSetter('shareHub'), [makeModalSetter]);
+
   return {
     // Panel visibility
     showPlayerPanel,
@@ -68,7 +137,7 @@ export function useModalManager() {
     showSidebar,
     setShowSidebar,
 
-    // Modal visibility
+    // Modal visibility (computed from activeModal)
     showTemplates,
     setShowTemplates,
     showHistory,
@@ -102,6 +171,10 @@ export function useModalManager() {
     cleanView,
     setCleanView,
     toggleCleanView,
+
+    // Modal mutex controls
+    closeAllModals,
+    activeModal,
   };
 }
 

@@ -26,10 +26,11 @@ export function PlayersScreen({ players }: Props) {
       <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1.5 text-center">
         {t('display.players')} ({activePlayers.length}/{players.length})
       </h2>
-      <div className={`grid ${gridCols} gap-1 flex-1 overflow-hidden content-start`}>
+      <ul role="list" className={`grid ${gridCols} gap-1 flex-1 overflow-hidden content-start`}>
         {activePlayers.map((p, i) => (
-          <div
+          <li
             key={p.id}
+            role="listitem"
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-gray-800/60 border border-gray-700/40 text-sm"
           >
             <span className="text-gray-500 font-mono w-5 shrink-0">{i + 1}</span>
@@ -40,9 +41,9 @@ export function PlayersScreen({ players }: Props) {
             {p.rebuys > 0 && (
               <span className="shrink-0 opacity-70" style={{ color: 'var(--accent-400)' }}>R{p.rebuys}</span>
             )}
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
       {eliminatedPlayers.length > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-x-2.5 gap-y-0.5 justify-center">
           {eliminatedPlayers.map((p) => (
