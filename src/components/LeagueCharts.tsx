@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import type { GameDay, ExtendedLeagueStanding } from '../domain/types';
 import { computeLeaguePlayerStats, normalizePlayerName } from '../domain/logic';
 import { useTranslation } from '../i18n';
@@ -59,25 +59,19 @@ export function LeagueCharts({ standings, gameDays, currencySymbol }: Props) {
     return new Set(standings.slice(0, 5).map((s) => s.name));
   });
 
-  const sortedGameDays = useMemo(
-    () => [...gameDays].sort((a, b) => a.date.localeCompare(b.date)),
-    [gameDays],
-  );
+  const sortedGameDays = [...gameDays].sort((a, b) => a.date.localeCompare(b.date));
 
-  const dateLabels = useMemo(
-    () => sortedGameDays.map((gd) => shortDate(gd.date)),
-    [sortedGameDays],
-  );
+  const dateLabels = sortedGameDays.map((gd) => shortDate(gd.date));
 
   // Player color mapping (stable by standings order)
-  const playerColors = useMemo(() => {
+  const playerColors = (() => {
     const map = new Map<string, string>();
     standings.forEach((s, i) => map.set(s.name, LINE_COLORS[i % LINE_COLORS.length]!));
     return map;
-  }, [standings]);
+  })();
 
   // Per-player data series
-  const playerSeries = useMemo(() => {
+  const playerSeries = (() => {
     const result = new Map<string, { points: number[]; cumPoints: number[]; places: number[]; cumBalance: number[] }>();
 
     for (const name of selectedPlayers) {
@@ -111,10 +105,10 @@ export function LeagueCharts({ standings, gameDays, currencySymbol }: Props) {
       result.set(name, { points, cumPoints, places, cumBalance });
     }
     return result;
-  }, [selectedPlayers, gameDays, sortedGameDays]);
+  })();
 
   // Compute Y-axis range based on chart type
-  const { yMin, yMax, yLabel, formatY } = useMemo(() => {
+  const { yMin, yMax, yLabel, formatY } = (() => {
     let min = 0;
     let max = 1;
     let label = '';
@@ -151,10 +145,10 @@ export function LeagueCharts({ standings, gameDays, currencySymbol }: Props) {
     // Add padding
     const range = max - min || 1;
     return { yMin: min - range * 0.05, yMax: max + range * 0.05, yLabel: label, formatY: fmt };
-  }, [chartType, playerSeries, t, currencySymbol]);
+  })();
 
   // Build SVG lines
-  const lines = useMemo(() => {
+  const lines = (() => {
     const result: { name: string; color: string; points: { x: number; y: number }[] }[] = [];
     const count = sortedGameDays.length;
 
@@ -180,10 +174,10 @@ export function LeagueCharts({ standings, gameDays, currencySymbol }: Props) {
       result.push({ name, color, points: pts });
     }
     return result;
-  }, [playerSeries, sortedGameDays.length, chartType, yMin, yMax, playerColors]);
+  })();
 
   // Y-axis grid lines (5 ticks)
-  const yTicks = useMemo(() => {
+  const yTicks = (() => {
     const ticks: { value: number; y: number }[] = [];
     const step = (yMax - yMin) / 4;
     for (let i = 0; i <= 4; i++) {
@@ -192,7 +186,7 @@ export function LeagueCharts({ standings, gameDays, currencySymbol }: Props) {
       ticks.push({ value: rounded, y: scaleY(value, yMin, yMax) });
     }
     return ticks;
-  }, [yMin, yMax, chartType]);
+  })();
 
   const togglePlayer = (name: string) => {
     setSelectedPlayers((prev) => {

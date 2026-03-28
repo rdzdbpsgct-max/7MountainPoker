@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { isWizardCompleted } from '../domain/configPersistence';
 
 /** All mutually exclusive modal keys */
@@ -116,22 +116,22 @@ export function useModalManager() {
   const showShareHub = activeModal === 'shareHub';
   const showStats = activeModal === 'stats';
 
-  // Stable setter references (memoized so consumers get the same function reference)
-  const setShowTemplates = useMemo(() => makeModalSetter('templates'), [makeModalSetter]);
-  const setShowHistory = useMemo(() => makeModalSetter('history'), [makeModalSetter]);
-  const setShowSeries = useMemo(() => makeModalSetter('series'), [makeModalSetter]);
-  const setShowCustomAudio = useMemo(() => makeModalSetter('customAudio'), [makeModalSetter]);
-  const setShowCallTheClock = useMemo(() => makeModalSetter('callTheClock'), [makeModalSetter]);
-  const setShowHelp = useMemo(() => makeModalSetter('help'), [makeModalSetter]);
-  const setShowTournamentLog = useMemo(() => makeModalSetter('tournamentLog'), [makeModalSetter]);
-  const setShowPayoutOverlay = useMemo(() => makeModalSetter('payoutOverlay'), [makeModalSetter]);
-  const setShowIcm = useMemo(() => makeModalSetter('icm'), [makeModalSetter]);
-  const setShowTour = useMemo(() => makeModalSetter('tour'), [makeModalSetter]);
-  const setShowGameSettings = useMemo(() => makeModalSetter('gameSettings'), [makeModalSetter]);
-  const setShowWizard = useMemo(() => makeModalSetter('wizard'), [makeModalSetter]);
-  const setShowInstallGuide = useMemo(() => makeModalSetter('installGuide'), [makeModalSetter]);
-  const setShowShareHub = useMemo(() => makeModalSetter('shareHub'), [makeModalSetter]);
-  const setShowStats = useMemo(() => makeModalSetter('stats'), [makeModalSetter]);
+  // Setter references
+  const setShowTemplates = makeModalSetter('templates');
+  const setShowHistory = makeModalSetter('history');
+  const setShowSeries = makeModalSetter('series');
+  const setShowCustomAudio = makeModalSetter('customAudio');
+  const setShowCallTheClock = makeModalSetter('callTheClock');
+  const setShowHelp = makeModalSetter('help');
+  const setShowTournamentLog = makeModalSetter('tournamentLog');
+  const setShowPayoutOverlay = makeModalSetter('payoutOverlay');
+  const setShowIcm = makeModalSetter('icm');
+  const setShowTour = makeModalSetter('tour');
+  const setShowGameSettings = makeModalSetter('gameSettings');
+  const setShowWizard = makeModalSetter('wizard');
+  const setShowInstallGuide = makeModalSetter('installGuide');
+  const setShowShareHub = makeModalSetter('shareHub');
+  const setShowStats = makeModalSetter('stats');
 
   return {
     // Panel visibility

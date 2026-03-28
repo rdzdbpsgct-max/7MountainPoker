@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   loadEntitlements,
   isFeatureAvailable,
@@ -41,17 +41,17 @@ export function useEntitlements(): UseEntitlementsResult {
   const [showLicenseActivation, setShowLicenseActivation] = useState(false);
   const pendingFeatureRef = useRef<AppFeature | null>(null);
 
-  const canUseTVDisplay = useMemo(() => isFeatureAvailable('tvDisplay', entitlements), [entitlements]);
-  const canUseRemoteControl = useMemo(() => isFeatureAvailable('remoteControl', entitlements), [entitlements]);
-  const canUseLeagueMode = useMemo(() => isFeatureAvailable('league', entitlements), [entitlements]);
-  const canUseMultiTable = useMemo(() => isFeatureAvailable('multiTable', entitlements), [entitlements]);
-  const canUseSidePot = useMemo(() => isFeatureAvailable('sidePot', entitlements), [entitlements]);
-  const canUseCustomAccent = useMemo(() => isFeatureAvailable('customAccent', entitlements), [entitlements]);
-  const canUseCustomBackground = useMemo(() => isFeatureAvailable('customBackground', entitlements), [entitlements]);
-  const canUseCustomLayout = useMemo(() => isFeatureAvailable('customLayout', entitlements), [entitlements]);
-  const canUseCustomAudio = useMemo(() => isFeatureAvailable('customAudio', entitlements), [entitlements]);
-  const canUseSeries = useMemo(() => isFeatureAvailable('series', entitlements), [entitlements]);
-  const canUseIcm = useMemo(() => isFeatureAvailable('icmCalculator', entitlements), [entitlements]);
+  const canUseTVDisplay = isFeatureAvailable('tvDisplay', entitlements);
+  const canUseRemoteControl = isFeatureAvailable('remoteControl', entitlements);
+  const canUseLeagueMode = isFeatureAvailable('league', entitlements);
+  const canUseMultiTable = isFeatureAvailable('multiTable', entitlements);
+  const canUseSidePot = isFeatureAvailable('sidePot', entitlements);
+  const canUseCustomAccent = isFeatureAvailable('customAccent', entitlements);
+  const canUseCustomBackground = isFeatureAvailable('customBackground', entitlements);
+  const canUseCustomLayout = isFeatureAvailable('customLayout', entitlements);
+  const canUseCustomAudio = isFeatureAvailable('customAudio', entitlements);
+  const canUseSeries = isFeatureAvailable('series', entitlements);
+  const canUseIcm = isFeatureAvailable('icmCalculator', entitlements);
 
   const refreshEntitlements = useCallback(() => {
     setEntitlements(loadEntitlements());

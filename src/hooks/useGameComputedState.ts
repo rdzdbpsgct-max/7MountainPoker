@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { TournamentConfig, TournamentEvent, ChipDenomination } from '../domain/types';
 import type { TournamentResult } from '../domain/types';
 import {
@@ -66,33 +66,22 @@ export function useGameComputedState({
   addOnEndLevelIndex,
   displaySeconds,
 }: UseGameComputedStateParams): GameComputedState {
-  const tournamentElapsed = useMemo(
-    () =>
-      computeTournamentElapsedSeconds(
-        config.levels,
-        timerState.currentLevelIndex,
-        displaySeconds,
-      ),
-    [config.levels, timerState.currentLevelIndex, displaySeconds],
+  const tournamentElapsed = computeTournamentElapsedSeconds(
+    config.levels,
+    timerState.currentLevelIndex,
+    displaySeconds,
   );
 
-  const rebuyActive = useMemo(
-    () =>
-      isRebuyActive(
-        config.rebuy,
-        timerState.currentLevelIndex,
-        config.levels,
-        tournamentElapsed,
-      ),
-    [config.rebuy, timerState.currentLevelIndex, config.levels, tournamentElapsed],
+  const rebuyActive = isRebuyActive(
+    config.rebuy,
+    timerState.currentLevelIndex,
+    config.levels,
+    tournamentElapsed,
   );
 
-  const lateRegOpen = useMemo(
-    () => isLateRegistrationOpen(config, timerState.currentLevelIndex, config.levels),
-    [config, timerState.currentLevelIndex],
-  );
+  const lateRegOpen = isLateRegistrationOpen(config, timerState.currentLevelIndex, config.levels);
 
-  const addOnWindowOpen = useMemo(() => {
+  const addOnWindowOpen = (() => {
     if (!config.addOn.enabled || !config.rebuy.enabled) return false;
     const idx = timerState.currentLevelIndex;
 
@@ -114,68 +103,49 @@ export function useGameComputedState({
     return !rebuyActive
       && addOnEndLevelIndex !== null
       && idx === addOnEndLevelIndex;
-  }, [config.addOn.enabled, config.rebuy, config.levels, lastRebuyLevelIndex, timerState.currentLevelIndex, displaySeconds, rebuyActive, addOnEndLevelIndex]);
+  })();
 
-  const currentPlayLevel = useMemo(() => {
-    return config.levels
-      .slice(0, timerState.currentLevelIndex + 1)
-      .filter((l) => l.type === 'level').length;
-  }, [config.levels, timerState.currentLevelIndex]);
+  const currentPlayLevel = config.levels
+    .slice(0, timerState.currentLevelIndex + 1)
+    .filter((l) => l.type === 'level').length;
 
-  const averageStack = useMemo(
-    () =>
-      computeAverageStack(
-        config.players,
-        config.startingChips,
-        config.rebuy.enabled ? config.rebuy.rebuyChips : 0,
-        config.addOn.enabled ? config.addOn.chips : 0,
-      ),
-    [config.players, config.startingChips, config.rebuy.enabled, config.rebuy.rebuyChips, config.addOn.enabled, config.addOn.chips],
+  const averageStack = computeAverageStack(
+    config.players,
+    config.startingChips,
+    config.rebuy.enabled ? config.rebuy.rebuyChips : 0,
+    config.addOn.enabled ? config.addOn.chips : 0,
   );
 
-  const colorUpMap = useMemo(
-    () =>
-      config.chips.enabled && config.chips.colorUpEnabled && config.chips.colorUpSchedule.length > 0
-        ? scheduleToColorUpMap(config.chips.colorUpSchedule, config.chips.denominations)
-        : new Map(),
-    [config.chips.enabled, config.chips.colorUpEnabled, config.chips.colorUpSchedule, config.chips.denominations],
-  );
+  const colorUpMap = config.chips.enabled && config.chips.colorUpEnabled && config.chips.colorUpSchedule.length > 0
+    ? scheduleToColorUpMap(config.chips.colorUpSchedule, config.chips.denominations)
+    : new Map();
 
-  const activePlayerCount = useMemo(
-    () => config.players.filter((p) => p.status === 'active').length,
-    [config.players],
-  );
+  const activePlayerCount = config.players.filter((p) => p.status === 'active').length;
 
-  const paidPlaces = useMemo(() => config.payout.entries.length, [config.payout.entries]);
+  const paidPlaces = config.payout.entries.length;
 
-  const bubbleActive = useMemo(
-    () => isBubble(activePlayerCount, paidPlaces),
-    [activePlayerCount, paidPlaces],
-  );
+  const bubbleActive = isBubble(activePlayerCount, paidPlaces);
 
-  const inTheMoney = useMemo(
-    () => isInTheMoney(activePlayerCount, paidPlaces),
-    [activePlayerCount, paidPlaces],
-  );
+  const inTheMoney = isInTheMoney(activePlayerCount, paidPlaces);
 
   const isBreak = config.levels[timerState.currentLevelIndex]?.type === 'break';
 
-  const tournamentFinished = useMemo(() => {
+  const tournamentFinished = (() => {
     if (config.players.length < 2) return false;
     const active = config.players.filter((p) => p.status === 'active').length;
     if (active === 1) return true; // Normal win
     if (active === 0 && config.players.some((p) => p.dealPayout !== undefined)) return true; // Deal
     return false;
-  }, [config.players]);
+  })();
 
-  const winner = useMemo(() => {
+  const winner = (() => {
     if (!tournamentFinished) return null;
     // Normal win: single active player
     const active = config.players.find((p) => p.status === 'active');
     if (active) return active;
     // Deal case: player with best placement (1)
     return config.players.find((p) => p.placement === 1) ?? null;
-  }, [tournamentFinished, config.players]);
+  })();
 
   // Capture snapshot values at the moment the tournament finishes so that the
   // finishedResult memo doesn't recompute on every timer tick.
@@ -194,9 +164,9 @@ export function useGameComputedState({
     }
   }, [tournamentFinished, finishedResult, tournamentElapsed, currentPlayLevel, tournamentEvents]);
 
-  const startErrors = useMemo(() => collectStartErrors(config, t), [config, t]);
+  const startErrors = collectStartErrors(config, t);
 
-  const leagueDisplayData = useMemo(() => {
+  const leagueDisplayData = (() => {
     if (!config.leagueId) return undefined;
     const leagues = loadLeagues();
     const league = leagues.find((l) => l.id === config.leagueId);
@@ -204,7 +174,7 @@ export function useGameComputedState({
     const gameDays = loadGameDaysForLeague(league.id);
     if (gameDays.length === 0) return undefined;
     return { name: league.name, standings: computeExtendedStandings(league, gameDays) };
-  }, [config.leagueId]);
+  })();
 
   return {
     displaySeconds,

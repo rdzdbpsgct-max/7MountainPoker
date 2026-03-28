@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense, memo } from 'react';
+import { useState, lazy, Suspense, memo } from 'react';
 import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, Table, PotResult, PlayerPayout, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
 import type { AppFeature } from '../domain/entitlements';
@@ -84,24 +84,24 @@ export const PlayerPanel = memo(function PlayerPanel({
   const [showDealMaker, setShowDealMaker] = useState(false);
   const [showMoreActions, setShowMoreActions] = useState(false);
 
-  const totalAddOns = useMemo(() => computeTotalAddOns(players), [players]);
-  const prizePool = useMemo(() => computePrizePool(players, buyIn, rebuyConfig.rebuyCost, addOnConfig.enabled ? addOnConfig.cost : 0, rebuyConfig.separatePot), [players, buyIn, rebuyConfig.rebuyCost, addOnConfig.enabled, addOnConfig.cost, rebuyConfig.separatePot]);
+  const totalAddOns = computeTotalAddOns(players);
+  const prizePool = computePrizePool(players, buyIn, rebuyConfig.rebuyCost, addOnConfig.enabled ? addOnConfig.cost : 0, rebuyConfig.separatePot);
 
-  const nameSizeClass = useMemo(() => {
+  const nameSizeClass = (() => {
     const maxLen = players.reduce((max, p) => Math.max(max, p.name.length), 0);
     if (maxLen <= 8) return 'text-sm';
     if (maxLen <= 12) return 'text-xs';
     return 'text-xs';
-  }, [players]);
+  })();
 
-  const chipLeaderId = useMemo(() => findChipLeader(players), [players]);
-  const hasAnyStacks = useMemo(() => players.some((p) => p.chips !== undefined), [players]);
+  const chipLeaderId = findChipLeader(players);
+  const hasAnyStacks = players.some((p) => p.chips !== undefined);
   const multiTableActive = tables && tables.filter(tbl => tbl.status === 'active').length > 0;
 
-  const allActivePlayers = useMemo(() => players.filter((p) => p.status === 'active'), [players]);
-  const allEliminatedPlayers = useMemo(() => [...players]
+  const allActivePlayers = players.filter((p) => p.status === 'active');
+  const allEliminatedPlayers = [...players]
     .filter((p) => p.status === 'eliminated')
-    .sort((a, b) => (a.placement ?? 0) - (b.placement ?? 0)), [players]);
+    .sort((a, b) => (a.placement ?? 0) - (b.placement ?? 0));
 
   // Player search filter (shown when 10+ total players)
   const [playerFilter, setPlayerFilter] = useState('');

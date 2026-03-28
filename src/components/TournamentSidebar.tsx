@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import type { Player, PayoutConfig, RebuyConfig, AddOnConfig, BountyConfig, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
 import { computePrizePool, computeTotalRebuys, computeTotalAddOns, computePayouts, computeRebuyPot } from '../domain/logic';
@@ -26,29 +26,27 @@ export const TournamentSidebar = memo(function TournamentSidebar({
   const { t } = useTranslation();
   const sym = CURRENCY_SYMBOLS[currency ?? 'EUR'];
 
-  const activePlayers = useMemo(() => players.filter(p => p.status === 'active').length, [players]);
-  const totalRebuys = useMemo(() => computeTotalRebuys(players), [players]);
-  const totalAddOns = useMemo(() => computeTotalAddOns(players), [players]);
+  const activePlayers = players.filter(p => p.status === 'active').length;
+  const totalRebuys = computeTotalRebuys(players);
+  const totalAddOns = computeTotalAddOns(players);
 
-  const prizePool = useMemo(() => computePrizePool(
+  const prizePool = computePrizePool(
     players, buyIn, rebuyConfig.rebuyCost,
     addOnConfig.enabled ? addOnConfig.cost : 0,
     rebuyConfig.separatePot,
-  ), [players, buyIn, rebuyConfig.rebuyCost, addOnConfig.enabled, addOnConfig.cost, rebuyConfig.separatePot]);
+  );
 
-  const rebuyPot = useMemo(() =>
-    rebuyConfig.separatePot ? computeRebuyPot(players, rebuyConfig.rebuyCost ?? buyIn) : 0,
-  [players, rebuyConfig.separatePot, rebuyConfig.rebuyCost, buyIn]);
+  const rebuyPot = rebuyConfig.separatePot ? computeRebuyPot(players, rebuyConfig.rebuyCost ?? buyIn) : 0;
 
-  const payouts = useMemo(() => computePayouts(payout, prizePool), [payout, prizePool]);
+  const payouts = computePayouts(payout, prizePool);
 
-  const bountyPool = useMemo(() => {
+  const bountyPool = (() => {
     if (!bountyConfig.enabled) return 0;
     if (bountyConfig.type === 'mystery') {
       return (bountyConfig.mysteryPool ?? []).reduce((s, v) => s + v, 0);
     }
     return players.length * (bountyConfig.amount ?? 0);
-  }, [bountyConfig, players.length]);
+  })();
 
   return (
     <div className="w-full">
