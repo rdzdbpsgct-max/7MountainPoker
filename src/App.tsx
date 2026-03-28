@@ -52,8 +52,9 @@ import {
 } from './domain/speech';
 import { setAudioMasterVolume, setAudioLanguage, setAudioCategories } from './domain/audioService';
 // Setup-mode components (static imports — used immediately on load)
-import { isTourCompleted, resetTourCompleted, resetWizardCompleted } from './domain/configPersistence';
+import { isTourCompleted } from './domain/configPersistence';
 import { useModalManager } from './hooks/useModalManager';
+import { useAppHeaderCallbacks } from './hooks/useAppHeaderCallbacks';
 import { ToastContainer } from './components/Toast';
 import { useRemoteHostBridge } from './hooks/useRemoteHostBridge';
 import { collectStartErrors } from './domain/startValidation';
@@ -832,6 +833,14 @@ function App() {
     onUndo: handleUndo, onRedo: handleRedo,
   }), [undoStack.canUndo, undoStack.canRedo, undoStack.undoLabel, undoStack.redoLabel, handleUndo, handleRedo]);
 
+  const headerCallbacks = useAppHeaderCallbacks(
+    {
+      mode, setMode, modals, canUseSeries, openFeatureGate,
+      remoteHostRef, startRemoteHost, tournamentFinished,
+    },
+    { setSettings, handleExitToSetup },
+  );
+
   // Remote Controller Mode — render ONLY the controller view, skip all other UI
   if (isControllerMode && controllerPeerId) {
     return (
@@ -881,7 +890,6 @@ function App() {
         tournamentName={config.name}
         clockTime={clockTime}
         settings={settings}
-        onSettingsChange={setSettings}
         tournamentFinished={tournamentFinished}
         canUseRemoteControl={canUseRemoteControl}
         canUseTVDisplay={canUseTVDisplay}
@@ -889,37 +897,10 @@ function App() {
         remoteHostConnected={remoteHostStatus === 'connected'}
         tvWindowActive={tvWindowActive}
         isOnline={isOnline}
-        onStartRemoteHost={() => { trackFeatureUsed('remoteControl', 'game'); startRemoteHost(); }}
         onToggleTVWindow={handleToggleTVWindow}
-        onToggleSetupGame={() => {
-          if (mode === 'league') setMode('setup');
-          else setMode('game');
-        }}
-        onExitToSetup={handleExitToSetup}
-        onShowTemplates={() => modals.setShowTemplates(true)}
-        onToggleLeagueMode={() => { if (mode !== 'league') trackFeatureUsed('league', 'league'); setMode(mode === 'league' ? 'setup' : 'league'); }}
-        onShowHistory={() => modals.setShowHistory(true)}
-        onShowInstallGuide={() => modals.setShowInstallGuide(true)}
-        onShowHelp={() => modals.setShowHelp(true)}
-        onShowStats={() => modals.setShowStats(true)}
-        onShowLog={() => modals.setShowTournamentLog(true)}
         showLogButton={mode === 'game' && !tournamentFinished}
-        onOpenFeatureGate={openFeatureGate}
-        onShowSeries={() => canUseSeries ? modals.setShowSeries(true) : openFeatureGate('series')}
-        onShowShareHub={() => {
-          if (!remoteHostRef.current) startRemoteHost();
-          modals.setShowShareHub(true);
-        }}
-        onShowTour={() => {
-          resetTourCompleted();
-          modals.setShowTour(true);
-        }}
-        onShowWizard={() => {
-          resetWizardCompleted();
-          modals.setShowWizard(true);
-        }}
-        onShowSettings={mode === 'game' && !tournamentFinished ? () => modals.setShowGameSettings(true) : undefined}
         displayCount={displayCount}
+        {...headerCallbacks}
       />
 
       {/* Main content */}
