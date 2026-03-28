@@ -178,6 +178,7 @@ import {
   getLeaguePlayerNames,
   formatResultAsHendonMobCSV,
   formatBlindStructureAsCSV,
+  computePlayerTrends,
 } from '../src/domain/logic';
 import { sanitizeFilename, formatDuration } from '../src/domain/format';
 import { exportTournamentResult, exportConfigBackup, createFullBackup, exportFullBackup, parseFullBackup, restoreFullBackup } from '../src/domain/cloudExport';
@@ -3184,6 +3185,93 @@ describe('computePlayerStats', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Player Trends
+// ---------------------------------------------------------------------------
+describe('computePlayerTrends', () => {
+  const makeResult = (id: string, date: string, buyIn: number, players: { name: string; place: number; payout: number; rebuys: number; addOn: boolean; knockouts: number; bountyEarned: number; netBalance: number }[]) => ({
+    id, name: 'T', date, playerCount: players.length, buyIn, prizePool: buyIn * players.length,
+    players, bountyEnabled: false, bountyAmount: 0, rebuyEnabled: false, totalRebuys: 0,
+    addOnEnabled: false, totalAddOns: 0, elapsedSeconds: 600, levelsPlayed: 1,
+  });
+
+  it('computes cumulative profit across tournaments', () => {
+    const history = [
+      makeResult('1', '2026-01-01', 10, [
+        { name: 'Alice', place: 1, payout: 20, rebuys: 0, addOn: false, knockouts: 1, bountyEarned: 0, netBalance: 10 },
+        { name: 'Bob', place: 2, payout: 0, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: -10 },
+      ]),
+      makeResult('2', '2026-01-08', 10, [
+        { name: 'Bob', place: 1, payout: 20, rebuys: 0, addOn: false, knockouts: 1, bountyEarned: 0, netBalance: 10 },
+        { name: 'Alice', place: 2, payout: 0, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: -10 },
+      ]),
+    ];
+    const trends = computePlayerTrends(history, 'Alice');
+    expect(trends).toHaveLength(2);
+    // T1: payout 20, cost 10 → profit 10
+    expect(trends[0].profit).toBe(10);
+    expect(trends[0].cumulativeProfit).toBe(10);
+    expect(trends[0].cashed).toBe(true);
+    // T2: payout 0, cost 10 → profit -10
+    expect(trends[1].profit).toBe(-10);
+    expect(trends[1].cumulativeProfit).toBe(0);
+    expect(trends[1].cashed).toBe(false);
+  });
+
+  it('returns empty array for unknown player', () => {
+    const trends = computePlayerTrends([], 'Nobody');
+    expect(trends).toEqual([]);
+  });
+
+  it('calculates ROI correctly', () => {
+    const history = [
+      makeResult('1', '2026-01-01', 50, [
+        { name: 'Alice', place: 1, payout: 100, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: 50 },
+      ]),
+    ];
+    const trends = computePlayerTrends(history, 'Alice');
+    expect(trends).toHaveLength(1);
+    // cost = 50, profit = 50, ROI = 100%
+    expect(trends[0].roi).toBe(100);
+  });
+
+  it('handles rebuys in cost calculation', () => {
+    const history = [
+      makeResult('1', '2026-01-01', 10, [
+        { name: 'Alice', place: 1, payout: 40, rebuys: 2, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: 10 },
+      ]),
+    ];
+    const trends = computePlayerTrends(history, 'Alice');
+    // cost = 10 (buy-in) + 2*10 (rebuys) = 30, profit = 40 - 30 = 10
+    expect(trends[0].profit).toBe(10);
+    expect(trends[0].roi).toBe(33); // Math.round(10/30 * 100) = 33
+  });
+
+  it('is case-insensitive on player name', () => {
+    const history = [
+      makeResult('1', '2026-01-01', 10, [
+        { name: 'ALICE', place: 1, payout: 20, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: 10 },
+      ]),
+    ];
+    const trends = computePlayerTrends(history, 'alice');
+    expect(trends).toHaveLength(1);
+  });
+
+  it('sorts by date ascending', () => {
+    const history = [
+      makeResult('2', '2026-03-01', 10, [
+        { name: 'Alice', place: 1, payout: 20, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: 10 },
+      ]),
+      makeResult('1', '2026-01-01', 10, [
+        { name: 'Alice', place: 1, payout: 20, rebuys: 0, addOn: false, knockouts: 0, bountyEarned: 0, netBalance: 10 },
+      ]),
+    ];
+    const trends = computePlayerTrends(history, 'Alice');
+    expect(trends[0].date).toBe('2026-01-01');
+    expect(trends[1].date).toBe('2026-03-01');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // QR Code Decoding
 // ---------------------------------------------------------------------------
 describe('QR code decoding', () => {
@@ -5044,13 +5132,13 @@ describe('buildRemoteUrl', () => {
 
 describe('parseRemoteHash', () => {
   it('extracts peer ID from valid hash', () => {
-    expect(parseRemoteHash('#remote=PKR-ABC23DEF')).toEqual({ peerId: 'PKR-ABC23DEF', secret: null });
-    expect(parseRemoteHash('#remote=PKR-ZZZZZ999')).toEqual({ peerId: 'PKR-ZZZZZ999', secret: null });
+    expect(parseRemoteHash('#remote=PKR-ABC23DEF')).toEqual({ peerId: 'PKR-ABC23DEF', secret: null, role: 'admin' });
+    expect(parseRemoteHash('#remote=PKR-ZZZZZ999')).toEqual({ peerId: 'PKR-ZZZZZ999', secret: null, role: 'admin' });
   });
 
   it('extracts peer ID and secret from hash with &s= parameter', () => {
     const result = parseRemoteHash('#remote=PKR-ABC23DEF&s=dGVzdHNlY3JldA');
-    expect(result).toEqual({ peerId: 'PKR-ABC23DEF', secret: 'dGVzdHNlY3JldA' });
+    expect(result).toEqual({ peerId: 'PKR-ABC23DEF', secret: 'dGVzdHNlY3JldA', role: 'admin' });
   });
 
   it('returns null for invalid or empty hashes', () => {
@@ -5065,7 +5153,17 @@ describe('parseRemoteHash', () => {
 
   it('returns null secret when &s= is empty', () => {
     const result = parseRemoteHash('#remote=PKR-ABC23DEF&s=');
-    expect(result).toEqual({ peerId: 'PKR-ABC23DEF', secret: null });
+    expect(result).toEqual({ peerId: 'PKR-ABC23DEF', secret: null, role: 'admin' });
+  });
+
+  it('extracts viewer role from hash', () => {
+    const result = parseRemoteHash('#remote=PKR-ABC23DEF&s=secret123&role=viewer');
+    expect(result).toEqual({ peerId: 'PKR-ABC23DEF', secret: 'secret123', role: 'viewer' });
+  });
+
+  it('defaults to admin role when role param is missing', () => {
+    const result = parseRemoteHash('#remote=PKR-ABC23DEF&s=secret123');
+    expect(result!.role).toBe('admin');
   });
 });
 
@@ -6340,12 +6438,12 @@ describe('League Module', () => {
     });
 
     it('parseRemoteHash extracts valid peer ID', () => {
-      expect(parseRemoteHash('#remote=PKR-AB3D5XYZ')).toEqual({ peerId: 'PKR-AB3D5XYZ', secret: null });
+      expect(parseRemoteHash('#remote=PKR-AB3D5XYZ')).toEqual({ peerId: 'PKR-AB3D5XYZ', secret: null, role: 'admin' });
     });
 
     it('parseRemoteHash extracts peer ID and secret', () => {
       const result = parseRemoteHash('#remote=PKR-AB3D5XYZ&s=testSecret');
-      expect(result).toEqual({ peerId: 'PKR-AB3D5XYZ', secret: 'testSecret' });
+      expect(result).toEqual({ peerId: 'PKR-AB3D5XYZ', secret: 'testSecret', role: 'admin' });
     });
 
     it('parseRemoteHash returns null for invalid format', () => {

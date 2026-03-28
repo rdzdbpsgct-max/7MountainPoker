@@ -650,6 +650,8 @@ export interface TournamentEvent {
 
 export type SeriesRankingMode = 'points' | 'netBalance' | 'avgPlace';
 
+export type RemoteRole = 'admin' | 'viewer';
+
 export interface TournamentSeries {
   id: string;
   name: string;

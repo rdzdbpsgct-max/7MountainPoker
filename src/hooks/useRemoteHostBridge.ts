@@ -205,6 +205,7 @@ export function useRemoteHostBridge({
     isControllerMode,
     controllerPeerId,
     controllerSecret,
+    controllerRole,
     startHost: startRemoteHost,
     hostResumed: remoteHostResumed,
   } = useRemoteControl({
@@ -306,6 +307,7 @@ export function useRemoteHostBridge({
     isControllerMode,
     controllerPeerId,
     controllerSecret,
+    controllerRole,
     startRemoteHost,
     remoteHostResumed,
   };

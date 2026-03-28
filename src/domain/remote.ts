@@ -19,6 +19,7 @@
 
 import type PeerType from 'peerjs';
 import type { DataConnection } from 'peerjs';
+import type { RemoteRole } from './types';
 
 /** Instance type alias for the dynamically-loaded Peer class. */
 type Peer = InstanceType<typeof PeerType>;
@@ -202,31 +203,41 @@ export function buildRemoteUrl(peerId: string, secret?: string): string {
 export interface RemoteHashResult {
   peerId: string;
   secret: string | null;
+  role: RemoteRole;
 }
 
-/** Extract peer ID and optional secret from URL hash */
+/** Extract peer ID, optional secret, and optional role from URL hash */
 export function parseRemoteHash(hash: string): RemoteHashResult | null {
   if (!hash.startsWith('#remote=')) return null;
   const rest = hash.slice('#remote='.length).trim();
 
-  // Check for secret parameter: PKR-XXXXXXXX&s=SECRET
-  const ampIdx = rest.indexOf('&s=');
+  // Parse using URLSearchParams for robust multi-param support
+  // The first segment before any & is the peer ID
+  const firstAmp = rest.indexOf('&');
   let idPart: string;
-  let secret: string | null = null;
+  let params: URLSearchParams;
 
-  if (ampIdx !== -1) {
-    idPart = rest.slice(0, ampIdx);
-    secret = rest.slice(ampIdx + 3); // after "&s="
-    if (!secret) secret = null;
+  if (firstAmp !== -1) {
+    idPart = rest.slice(0, firstAmp);
+    params = new URLSearchParams(rest.slice(firstAmp + 1));
   } else {
     idPart = rest;
+    params = new URLSearchParams();
   }
 
   // Validate format: PKR- followed by 8 alphanumeric chars
-  if (/^PKR-[A-Z2-9]{8}$/.test(idPart)) {
-    return { peerId: idPart, secret };
+  if (!/^PKR-[A-Z2-9]{8}$/.test(idPart)) {
+    return null;
   }
-  return null;
+
+  // Extract secret (param key: s)
+  const secret = params.get('s') || null;
+
+  // Extract role (param key: role) — default to 'admin'
+  const roleParam = params.get('role');
+  const role: RemoteRole = roleParam === 'viewer' ? 'viewer' : 'admin';
+
+  return { peerId: idPart, secret, role };
 }
 
 /* ── Display URL helpers ──────────────────────────────────── */
@@ -257,6 +268,8 @@ export interface HelloMessage {
   type: 'hello';
   role: SessionRole;
   version: number;
+  /** Remote role for controller connections — admin (full control) or viewer (read-only) */
+  remoteRole?: RemoteRole | undefined;
 }
 
 export function isHelloMessage(msg: unknown): msg is HelloMessage {
@@ -399,8 +412,8 @@ export interface RemoteHostOptions {
 
 export class RemoteHost {
   private peer: Peer | null = null;
-  /** Connected controller peers (smartphones) */
-  private controllerConns: Map<string, DataConnection> = new Map();
+  /** Connected controller peers (smartphones) with their role */
+  private controllerConns: Map<string, { conn: DataConnection; role: RemoteRole }> = new Map();
   /** Timestamp of last received pong per peer (for stale connection detection) */
   private lastPongTime: Map<string, number> = new Map();
   /** Maximum time without a pong before closing a connection (10 min = 60 missed pings).
@@ -557,7 +570,8 @@ export class RemoteHost {
               }
               identified = true;
               conn.off('data', onFirstData);
-              this.controllerConns.set(conn.peer, conn);
+              const remoteRole: RemoteRole = msg.remoteRole === 'viewer' ? 'viewer' : 'admin';
+              this.controllerConns.set(conn.peer, { conn, role: remoteRole });
               this.lastPongTime.set(conn.peer, Date.now());
               this.setupControllerConnection(conn);
               // Connection is already open at hello time — PeerJS won't re-fire 'open'.
@@ -576,7 +590,7 @@ export class RemoteHost {
             }
           } catch { /* not a hello — fall through to remote */ }
 
-          // No hello at all → treat as legacy remote controller
+          // No hello at all → treat as legacy remote controller (admin by default)
           if (this.controllerConns.size >= MAX_CONTROLLERS) {
             console.warn(`[RemoteHost] Controller connection rejected — limit reached`);
             identified = true;  // prevent timeout from re-registering as controller
@@ -585,7 +599,7 @@ export class RemoteHost {
           }
           identified = true;
           conn.off('data', onFirstData);
-          this.controllerConns.set(conn.peer, conn);
+          this.controllerConns.set(conn.peer, { conn, role: 'admin' });
           this.lastPongTime.set(conn.peer, Date.now());
           this.setupControllerConnection(conn);
           // Connection is already open (data was received) — manually activate
@@ -612,7 +626,7 @@ export class RemoteHost {
             }
             identified = true;
             conn.off('data', onFirstData);
-            this.controllerConns.set(conn.peer, conn);
+            this.controllerConns.set(conn.peer, { conn, role: 'admin' });
             this.lastPongTime.set(conn.peer, Date.now());
             this.setupControllerConnection(conn);
             // Connection may already be open — manually activate
@@ -659,7 +673,9 @@ export class RemoteHost {
 
   private setupControllerConnection(conn: DataConnection): void {
     conn.on('open', () => {
-      this.controllerConns.set(conn.peer, conn);
+      // Preserve existing role if already registered (from hello handshake)
+      const existing = this.controllerConns.get(conn.peer);
+      this.controllerConns.set(conn.peer, { conn, role: existing?.role ?? 'admin' });
       this.lastPongTime.set(conn.peer, Date.now());
       this.setStatus('connected');
       this.startKeepalive();
@@ -787,6 +803,15 @@ export class RemoteHost {
       return;
     }
 
+    // Role-based access control: viewers can only request state (handled above)
+    if (conn) {
+      const entry = this.controllerConns.get(conn.peer);
+      if (entry?.role === 'viewer') {
+        console.warn(`[remote] Viewer ${conn.peer} attempted ${msg.action} — denied`);
+        return;
+      }
+    }
+
     this.callbacks.onCommand(msg);
   }
 
@@ -797,18 +822,18 @@ export class RemoteHost {
       const pingMsg = JSON.stringify({ type: 'ping' });
 
       // Ping all connected controllers + evict stale connections
-      for (const [peerId, conn] of this.controllerConns) {
+      for (const [peerId, entry] of this.controllerConns) {
         const lastPong = this.lastPongTime.get(peerId) ?? now;
         if (now - lastPong > RemoteHost.STALE_CONNECTION_MS) {
           console.warn(`[RemoteHost] Evicting stale controller: ${peerId}`);
           this.controllerConns.delete(peerId);
           this.lastPongTime.delete(peerId);
           this.callbacks.onControllerCountChange?.(this.controllerConns.size);
-          try { conn.close(); } catch { /* ignore */ }
+          try { entry.conn.close(); } catch { /* ignore */ }
           continue;
         }
-        if (conn.open) {
-          try { void conn.send(pingMsg); } catch {
+        if (entry.conn.open) {
+          try { void entry.conn.send(pingMsg); } catch {
             this.controllerConns.delete(peerId);
             this.lastPongTime.delete(peerId);
             this.callbacks.onControllerCountChange?.(this.controllerConns.size);
@@ -856,9 +881,9 @@ export class RemoteHost {
     this.lastBuiltState = msg;
     if (this.controllerConns.size === 0) return;
     const json = JSON.stringify(msg);
-    for (const [peerId, conn] of this.controllerConns) {
-      if (conn.open) {
-        try { void conn.send(json); } catch {
+    for (const [peerId, entry] of this.controllerConns) {
+      if (entry.conn.open) {
+        try { void entry.conn.send(json); } catch {
           // Connection lost — clean up
           this.controllerConns.delete(peerId);
           this.callbacks.onControllerCountChange?.(this.controllerConns.size);
@@ -894,8 +919,8 @@ export class RemoteHost {
     }
     this.displayConnections.clear();
     // Close all controller connections
-    for (const [, conn] of this.controllerConns) {
-      try { conn.close(); } catch { /* ignore */ }
+    for (const [, entry] of this.controllerConns) {
+      try { entry.conn.close(); } catch { /* ignore */ }
     }
     this.controllerConns.clear();
     this.lastPongTime.clear();
@@ -931,13 +956,19 @@ export class RemoteController {
   private secret: string | null;
   private hmacKey: CryptoKey | null = null;
   private hmacKeyReady: Promise<void>;
+  private _role: RemoteRole;
 
-  constructor(hostPeerId: string, callbacks: RemoteControllerCallbacks, secret?: string | null) {
+  constructor(hostPeerId: string, callbacks: RemoteControllerCallbacks, secret?: string | null, role?: RemoteRole) {
     this.callbacks = callbacks;
     this.hostPeerId = hostPeerId;
     this.secret = secret ?? null;
+    this._role = role ?? 'admin';
     this.hmacKeyReady = this.initHmacKey();
     void this.connect();
+  }
+
+  get role(): RemoteRole {
+    return this._role;
   }
 
   get status(): ControllerStatus {
@@ -1018,6 +1049,9 @@ export class RemoteController {
 
   private setupConnection(conn: DataConnection): void {
     conn.on('open', () => {
+      // Send hello handshake with role
+      const hello: HelloMessage = { type: 'hello', role: 'remote', version: 2, remoteRole: this._role };
+      try { void conn.send(JSON.stringify(hello)); } catch { /* ignore */ }
       this.setStatus('connected');
       this.reconnectAttempts = 0;
       // Request full state snapshot on (re)connect

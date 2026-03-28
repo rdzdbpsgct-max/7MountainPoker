@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { RemoteHost, parseRemoteHash, loadHostSession } from '../domain/remote';
 import type { RemoteCommand, HostStatus } from '../domain/remote';
+import type { RemoteRole } from '../domain/types';
 
 interface UseRemoteControlOptions {
   onCommand: (cmd: RemoteCommand) => void;
@@ -23,6 +24,8 @@ interface UseRemoteControlReturn {
   controllerPeerId: string | null;
   /** The HMAC secret for controller mode (only set when present in URL) */
   controllerSecret: string | null;
+  /** The remote role for controller mode (admin or viewer) */
+  controllerRole: RemoteRole;
   /** Start hosting (create RemoteHost if not already running) */
   startHost: () => void;
   /** True if the host was resumed from a persisted session (page refresh) */
@@ -59,7 +62,7 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
   const controllerCount = useMemo(() => enabled ? controllerCountRaw : 0, [enabled, controllerCountRaw]);
 
   // Detect controller mode from URL hash (only once on mount)
-  const [controllerInfo] = useState<{ peerId: string; secret: string | null } | null>(() => {
+  const [controllerInfo] = useState<{ peerId: string; secret: string | null; role: RemoteRole } | null>(() => {
     const hash = window.location.hash;
     const result = parseRemoteHash(hash);
     if (result) {
@@ -72,6 +75,7 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
 
   const controllerPeerId = controllerInfo?.peerId ?? null;
   const controllerSecret = controllerInfo?.secret ?? null;
+  const controllerRole: RemoteRole = controllerInfo?.role ?? 'admin';
   const isControllerMode = controllerPeerId !== null;
 
   // Start hosting — creates RemoteHost if not already active
@@ -115,6 +119,7 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
     isControllerMode,
     controllerPeerId,
     controllerSecret,
+    controllerRole,
     startHost,
     hostResumed,
   };

@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { RemoteController, buildRemoteUrl } from '../domain/remote';
 import type { RemoteCommand, RemoteState, RemotePlayerInfo, HostStatus, ControllerStatus } from '../domain/remote';
+import type { RemoteRole } from '../domain/types';
 import { useTranslation } from '../i18n';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { useTheme } from '../theme';
@@ -119,10 +120,12 @@ interface ControllerProps {
   hostPeerId: string;
   /** HMAC secret for command authentication */
   secret?: string | null;
+  /** Remote role — admin (full control) or viewer (read-only) */
+  role?: RemoteRole | undefined;
   onClose: () => void;
 }
 
-export function RemoteControllerView({ hostPeerId, secret, onClose }: ControllerProps) {
+export function RemoteControllerView({ hostPeerId, secret, role = 'admin', onClose }: ControllerProps) {
   const { t } = useTranslation();
   const [status, setStatus] = useState<ControllerStatus>('connecting');
   const [state, setState] = useState<RemoteState['data'] | null>(null);
@@ -166,7 +169,7 @@ export function RemoteControllerView({ hostPeerId, secret, onClose }: Controller
       },
       onStatusChange: (s) => setStatus(s),
       onVersionMismatch: () => setVersionMismatch(true),
-    }, secret);
+    }, secret, role);
     controllerRef.current = ctrl;
 
     // Permanent 100ms interval — SOLE writer of displaySeconds
@@ -407,115 +410,126 @@ export function RemoteControllerView({ hostPeerId, secret, onClose }: Controller
             </div>
           )}
 
-          {/* Main control buttons */}
-          <div className="grid grid-cols-3 gap-3 mb-3">
-            <button
-              onClick={() => sendCmd('prev')}
-              className="aspect-square flex items-center justify-center bg-gray-800 border border-gray-700/60 rounded-xl text-2xl active:scale-95 transition-transform"
-              title={t('remote.prev')}
-              aria-label={t('remote.prev')}
-            >
-              {String.fromCodePoint(0x23EE)}
-            </button>
-            <button
-              onClick={() => sendCmd('toggle')}
-              className="aspect-square flex items-center justify-center text-white rounded-xl text-3xl active:scale-95 transition-transform shadow-lg"
-              style={{ backgroundColor: 'var(--accent-600)', boxShadow: '0 10px 15px -3px var(--accent-900)' }}
-              title={state?.timerStatus === 'running' ? t('remote.pause') : t('remote.play')}
-              aria-label={state?.timerStatus === 'running' ? t('remote.pause') : t('remote.play')}
-            >
-              {state?.timerStatus === 'running' ? String.fromCodePoint(0x23F8) : String.fromCodePoint(0x25B6, 0xFE0F)}
-            </button>
-            <button
-              onClick={() => sendCmd('next')}
-              className="aspect-square flex items-center justify-center bg-gray-800 border border-gray-700/60 rounded-xl text-2xl active:scale-95 transition-transform"
-              title={t('remote.next')}
-              aria-label={t('remote.next')}
-            >
-              {String.fromCodePoint(0x23ED)}
-            </button>
-          </div>
-
-          {/* Break controls: skip / extend */}
-          {state?.isBreak && (
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              <button
-                onClick={() => sendCmd('skipBreak')}
-                className="px-4 py-3 bg-amber-900/30 text-amber-400 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-amber-700/40"
-                title={t('controls.skipBreak')}
-              >
-                {String.fromCodePoint(0x23ED)} {t('controls.skipBreak')}
-              </button>
-              <button
-                onClick={() => sendCmd('extendBreak', { seconds: 120 })}
-                className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
-                title={t('controls.extendBreak2')}
-              >
-                {t('controls.extendBreak2')}
-              </button>
-              <button
-                onClick={() => sendCmd('extendBreak', { seconds: 300 })}
-                className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
-                title={t('controls.extendBreak5')}
-              >
-                {t('controls.extendBreak5')}
-              </button>
+          {/* Viewer mode badge */}
+          {role === 'viewer' && (
+            <div className="bg-blue-500/20 border border-blue-500/30 rounded-xl px-4 py-2 text-center text-sm text-blue-400 mb-3">
+              {String.fromCodePoint(0x1F441)} {t('remote.viewerMode')}
             </div>
           )}
 
-          {/* Secondary actions */}
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            <button
-              onClick={() => sendCmd('advanceDealer')}
-              className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
-            >
-              {String.fromCodePoint(0x1F3B2)} {t('remote.dealer')}
-            </button>
-            <button
-              onClick={() => sendCmd('toggleSound')}
-              className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
-            >
-              {state?.soundEnabled ? String.fromCodePoint(0x1F50A) : String.fromCodePoint(0x1F507)} {t('remote.sound')}
-            </button>
-          </div>
+          {/* Main control buttons — admin only */}
+          {role === 'admin' && (
+            <>
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                <button
+                  onClick={() => sendCmd('prev')}
+                  className="aspect-square flex items-center justify-center bg-gray-800 border border-gray-700/60 rounded-xl text-2xl active:scale-95 transition-transform"
+                  title={t('remote.prev')}
+                  aria-label={t('remote.prev')}
+                >
+                  {String.fromCodePoint(0x23EE)}
+                </button>
+                <button
+                  onClick={() => sendCmd('toggle')}
+                  className="aspect-square flex items-center justify-center text-white rounded-xl text-3xl active:scale-95 transition-transform shadow-lg"
+                  style={{ backgroundColor: 'var(--accent-600)', boxShadow: '0 10px 15px -3px var(--accent-900)' }}
+                  title={state?.timerStatus === 'running' ? t('remote.pause') : t('remote.play')}
+                  aria-label={state?.timerStatus === 'running' ? t('remote.pause') : t('remote.play')}
+                >
+                  {state?.timerStatus === 'running' ? String.fromCodePoint(0x23F8) : String.fromCodePoint(0x25B6, 0xFE0F)}
+                </button>
+                <button
+                  onClick={() => sendCmd('next')}
+                  className="aspect-square flex items-center justify-center bg-gray-800 border border-gray-700/60 rounded-xl text-2xl active:scale-95 transition-transform"
+                  title={t('remote.next')}
+                  aria-label={t('remote.next')}
+                >
+                  {String.fromCodePoint(0x23ED)}
+                </button>
+              </div>
 
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            <button
-              onClick={() => sendCmd('call-the-clock')}
-              className="px-4 py-3 bg-amber-900/30 text-amber-400 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-amber-700/40"
-            >
-              {String.fromCodePoint(0x23F1)} {t('remote.callClock')}
-            </button>
-            <button
-              onClick={() => sendCmd('reset')}
-              className="px-4 py-3 bg-red-900/30 text-red-400 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-red-700/40"
-            >
-              {String.fromCodePoint(0x1F504)} {t('remote.reset')}
-            </button>
-          </div>
+              {/* Break controls: skip / extend */}
+              {state?.isBreak && (
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <button
+                    onClick={() => sendCmd('skipBreak')}
+                    className="px-4 py-3 bg-amber-900/30 text-amber-400 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-amber-700/40"
+                    title={t('controls.skipBreak')}
+                  >
+                    {String.fromCodePoint(0x23ED)} {t('controls.skipBreak')}
+                  </button>
+                  <button
+                    onClick={() => sendCmd('extendBreak', { seconds: 120 })}
+                    className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
+                    title={t('controls.extendBreak2')}
+                  >
+                    {t('controls.extendBreak2')}
+                  </button>
+                  <button
+                    onClick={() => sendCmd('extendBreak', { seconds: 300 })}
+                    className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
+                    title={t('controls.extendBreak5')}
+                  >
+                    {t('controls.extendBreak5')}
+                  </button>
+                </div>
+              )}
 
-          {/* Player management section */}
-          {state?.players && state.players.length > 0 && (
-            <PlayerSection
-              players={state.players}
-              expanded={playersExpanded}
-              onToggle={() => setPlayersExpanded((v) => !v)}
-              eliminatingId={eliminatingId}
-              onStartEliminate={(id) => setEliminatingId(id)}
-              onCancelEliminate={() => setEliminatingId(null)}
-              onConfirmEliminate={(playerId, eliminatedBy) => {
-                sendCmd('eliminatePlayer', { playerId, eliminatedBy });
-                setEliminatingId(null);
-              }}
-              onRebuy={(playerId) => sendCmd('rebuyPlayer', { playerId })}
-              onAddOn={(playerId, hasAddOn) => sendCmd('addOnPlayer', { playerId, hasAddOn })}
-              bountyEnabled={state.bountyEnabled ?? false}
-              rebuyActive={state.rebuyActive ?? false}
-              addOnWindowOpen={state.addOnWindowOpen ?? false}
-              activeCount={state.activePlayerCount}
-              totalCount={state.totalPlayerCount}
-              t={t as TFn}
-            />
+              {/* Secondary actions */}
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <button
+                  onClick={() => sendCmd('advanceDealer')}
+                  className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
+                >
+                  {String.fromCodePoint(0x1F3B2)} {t('remote.dealer')}
+                </button>
+                <button
+                  onClick={() => sendCmd('toggleSound')}
+                  className="px-4 py-3 bg-gray-800 text-gray-300 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-gray-700/40"
+                >
+                  {state?.soundEnabled ? String.fromCodePoint(0x1F50A) : String.fromCodePoint(0x1F507)} {t('remote.sound')}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <button
+                  onClick={() => sendCmd('call-the-clock')}
+                  className="px-4 py-3 bg-amber-900/30 text-amber-400 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-amber-700/40"
+                >
+                  {String.fromCodePoint(0x23F1)} {t('remote.callClock')}
+                </button>
+                <button
+                  onClick={() => sendCmd('reset')}
+                  className="px-4 py-3 bg-red-900/30 text-red-400 rounded-xl text-sm font-medium active:scale-95 transition-transform border border-red-700/40"
+                >
+                  {String.fromCodePoint(0x1F504)} {t('remote.reset')}
+                </button>
+              </div>
+
+              {/* Player management section */}
+              {state?.players && state.players.length > 0 && (
+                <PlayerSection
+                  players={state.players}
+                  expanded={playersExpanded}
+                  onToggle={() => setPlayersExpanded((v) => !v)}
+                  eliminatingId={eliminatingId}
+                  onStartEliminate={(id) => setEliminatingId(id)}
+                  onCancelEliminate={() => setEliminatingId(null)}
+                  onConfirmEliminate={(playerId, eliminatedBy) => {
+                    sendCmd('eliminatePlayer', { playerId, eliminatedBy });
+                    setEliminatingId(null);
+                  }}
+                  onRebuy={(playerId) => sendCmd('rebuyPlayer', { playerId })}
+                  onAddOn={(playerId, hasAddOn) => sendCmd('addOnPlayer', { playerId, hasAddOn })}
+                  bountyEnabled={state.bountyEnabled ?? false}
+                  rebuyActive={state.rebuyActive ?? false}
+                  addOnWindowOpen={state.addOnWindowOpen ?? false}
+                  activeCount={state.activePlayerCount}
+                  totalCount={state.totalPlayerCount}
+                  t={t as TFn}
+                />
+              )}
+            </>
           )}
 
           {/* Footer with disconnect */}

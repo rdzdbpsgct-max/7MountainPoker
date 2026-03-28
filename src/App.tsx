@@ -89,6 +89,7 @@ const RemoteControllerView = lazy(() => import('./components/RemoteControl').the
 const OnboardingTour = lazy(() => import('./components/OnboardingTour').then(m => ({ default: m.OnboardingTour })));
 const PWAInstallGuide = lazy(() => import('./components/PWAInstallGuide').then(m => ({ default: m.PWAInstallGuide })));
 const HelpCenter = lazy(() => import('./components/HelpCenter').then(m => ({ default: m.HelpCenter })));
+const StatsDashboard = lazy(() => import('./components/StatsDashboard').then(m => ({ default: m.StatsDashboard })));
 const TemplateManager = lazy(() => import('./components/TemplateManager').then(m => ({ default: m.TemplateManager })));
 const TournamentHistory = lazy(() => import('./components/TournamentHistory').then(m => ({ default: m.TournamentHistory })));
 const TournamentLog = lazy(() => import('./components/TournamentLog').then(m => ({ default: m.TournamentLog })));
@@ -514,6 +515,7 @@ function App() {
     isControllerMode,
     controllerPeerId,
     controllerSecret,
+    controllerRole,
     startRemoteHost,
     remoteHostResumed,
   } = useRemoteHostBridge({
@@ -837,6 +839,7 @@ function App() {
         <RemoteControllerView
           hostPeerId={controllerPeerId}
           secret={controllerSecret}
+          role={controllerRole}
           onClose={() => window.close()}
         />
       </Suspense></SectionErrorBoundary>
@@ -898,6 +901,7 @@ function App() {
         onShowHistory={() => modals.setShowHistory(true)}
         onShowInstallGuide={() => modals.setShowInstallGuide(true)}
         onShowHelp={() => modals.setShowHelp(true)}
+        onShowStats={() => modals.setShowStats(true)}
         onShowLog={() => modals.setShowTournamentLog(true)}
         showLogButton={mode === 'game' && !tournamentFinished}
         onOpenFeatureGate={openFeatureGate}
@@ -1128,6 +1132,13 @@ function App() {
       {modals.showHelp && (
         <SectionErrorBoundary><Suspense fallback={null}>
           <HelpCenter onClose={() => modals.setShowHelp(false)} />
+        </Suspense></SectionErrorBoundary>
+      )}
+
+      {/* Statistics Dashboard */}
+      {modals.showStats && (
+        <SectionErrorBoundary><Suspense fallback={null}>
+          <StatsDashboard onClose={() => modals.setShowStats(false)} />
         </Suspense></SectionErrorBoundary>
       )}
 

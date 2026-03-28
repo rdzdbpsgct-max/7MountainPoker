@@ -60,6 +60,10 @@ function ShareHubInner({
     () => (sessionId ? buildShareUrl(sessionId, 'remote', secret) : ''),
     [sessionId, secret],
   );
+  const viewerUrl = useMemo(
+    () => (remoteUrl ? remoteUrl + '&role=viewer' : ''),
+    [remoteUrl],
+  );
 
   const copyToClipboard = useCallback(async (url: string, type: 'display' | 'remote') => {
     try {
@@ -239,6 +243,17 @@ function ShareHubInner({
                       : t('shareHub.remoteNotConnected' as TKey)
                 }
               />
+
+              {/* Viewer link */}
+              <div className="pt-2 border-t border-gray-200 dark:border-gray-700/40">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1.5">{t('remote.viewerLink' as TKey)}</p>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(viewerUrl).catch(() => {}); }}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700/60 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700/60 text-gray-700 dark:text-gray-300 transition-colors"
+                >
+                  {t('shareHub.copyLink' as TKey)} ({t('remote.roleViewer' as TKey)})
+                </button>
+              </div>
             </div>
           ) : (
             <p className="text-xs text-gray-400 dark:text-gray-500">

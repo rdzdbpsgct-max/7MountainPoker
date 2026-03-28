@@ -631,6 +631,46 @@ export function computePlayerStats(history: TournamentResult[]): import('./types
 }
 
 // ---------------------------------------------------------------------------
+// Player Trends (per-tournament profit/ROI for trend charts)
+// ---------------------------------------------------------------------------
+
+export interface PlayerTrendPoint {
+  date: string;
+  profit: number;
+  cumulativeProfit: number;
+  roi: number;
+  cashed: boolean;
+}
+
+export function computePlayerTrends(
+  history: TournamentResult[],
+  playerName: string
+): PlayerTrendPoint[] {
+  const normalized = playerName.trim().toLowerCase();
+  let cumulative = 0;
+
+  return history
+    .filter(t => t.players.some(s => s.name.trim().toLowerCase() === normalized))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map(t => {
+      const player = t.players.find(s => s.name.trim().toLowerCase() === normalized)!;
+      const rebuyCost = t.rebuyCost ?? t.buyIn;
+      const addOnCost = t.addOnCost ?? t.buyIn;
+      const cost = (t.buyIn || 0) + (player.rebuys || 0) * (rebuyCost || 0) + (player.addOn ? (addOnCost || 0) : 0);
+      const profit = (player.payout || 0) + (player.bountyEarned || 0) - cost;
+      cumulative += profit;
+      const roi = cost > 0 ? Math.round((profit / cost) * 100) : 0;
+      return {
+        date: t.date,
+        profit,
+        cumulativeProfit: cumulative,
+        roi,
+        cashed: (player.payout || 0) > 0,
+      };
+    });
+}
+
+// ---------------------------------------------------------------------------
 // League Standings
 // ---------------------------------------------------------------------------
 

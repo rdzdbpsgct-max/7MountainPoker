@@ -238,6 +238,12 @@ const de = {
   'remote.reload': 'App neu laden',
   'remote.syncing': 'Synchronisiere...',
   'remote.sessionRestored': 'Remote-Sitzung wiederhergestellt',
+  'remote.roleAdmin': 'Admin',
+  'remote.roleViewer': 'Zuschauer',
+  'remote.viewerLink': 'Zuschauer-Link',
+  'remote.actionDenied': 'Aktion im Zuschauer-Modus nicht verfügbar',
+  'remote.commandFrom': 'Aktion via Fernbedienung',
+  'remote.viewerMode': 'Zuschauer-Modus',
 
   // --- Share Hub ---
   'shareHub.title': 'Teilen / Anzeigen',
@@ -502,6 +508,23 @@ const de = {
   'stats.confidenceHigh': 'Hohe Konfidenz',
   'stats.confidenceMedium': 'Mittlere Konfidenz',
   'stats.confidenceLow': 'Niedrige Konfidenz',
+
+  // --- Statistics Dashboard ---
+  'dashboard.title': 'Statistiken',
+  'dashboard.tournaments': 'Turniere',
+  'dashboard.profit': 'Gewinn',
+  'dashboard.roi': 'ROI',
+  'dashboard.cashRate': 'Cash-Rate',
+  'dashboard.tableTab': 'Tabelle',
+  'dashboard.trendsTab': 'Trends',
+  'dashboard.filterAll': 'Alle',
+  'dashboard.filterLast10': 'Letzte 10',
+  'dashboard.filterLast20': 'Letzte 20',
+  'dashboard.filterThisYear': 'Dieses Jahr',
+  'dashboard.noData': 'Keine Turnierdaten vorhanden',
+  'dashboard.cumulativeProfit': 'Kumulativer Gewinn',
+  'dashboard.roiTrend': 'ROI pro Turnier',
+  'dashboard.cashTrend': 'Cash-Rate',
 
   // --- Bubble ---
   'bubble.bubble': 'BUBBLE!',
@@ -1753,6 +1776,12 @@ const en: Record<TranslationKey, string> = {
   'remote.reload': 'Reload App',
   'remote.syncing': 'Syncing...',
   'remote.sessionRestored': 'Remote session restored',
+  'remote.roleAdmin': 'Admin',
+  'remote.roleViewer': 'Viewer',
+  'remote.viewerLink': 'Viewer link',
+  'remote.actionDenied': 'Action not available in viewer mode',
+  'remote.commandFrom': 'Action via remote',
+  'remote.viewerMode': 'Viewer mode',
 
   // --- Share Hub ---
   'shareHub.title': 'Share / Display',
@@ -2017,6 +2046,23 @@ const en: Record<TranslationKey, string> = {
   'stats.confidenceHigh': 'High confidence',
   'stats.confidenceMedium': 'Medium confidence',
   'stats.confidenceLow': 'Low confidence',
+
+  // --- Statistics Dashboard ---
+  'dashboard.title': 'Statistics',
+  'dashboard.tournaments': 'Tournaments',
+  'dashboard.profit': 'Profit',
+  'dashboard.roi': 'ROI',
+  'dashboard.cashRate': 'Cash Rate',
+  'dashboard.tableTab': 'Table',
+  'dashboard.trendsTab': 'Trends',
+  'dashboard.filterAll': 'All',
+  'dashboard.filterLast10': 'Last 10',
+  'dashboard.filterLast20': 'Last 20',
+  'dashboard.filterThisYear': 'This Year',
+  'dashboard.noData': 'No tournament data available',
+  'dashboard.cumulativeProfit': 'Cumulative Profit',
+  'dashboard.roiTrend': 'ROI per Tournament',
+  'dashboard.cashTrend': 'Cash Rate',
 
   // --- Bubble ---
   'bubble.bubble': 'BUBBLE!',

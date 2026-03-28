@@ -16,7 +16,8 @@ type ModalKey =
   | 'gameSettings'
   | 'wizard'
   | 'installGuide'
-  | 'shareHub';
+  | 'shareHub'
+  | 'stats';
 
 /** Setter type compatible with React's Dispatch<SetStateAction<boolean>> */
 type ModalSetter = (value: boolean | ((prev: boolean) => boolean)) => void;
@@ -113,6 +114,7 @@ export function useModalManager() {
   const showWizard = activeModal === 'wizard';
   const showInstallGuide = activeModal === 'installGuide';
   const showShareHub = activeModal === 'shareHub';
+  const showStats = activeModal === 'stats';
 
   // Stable setter references (memoized so consumers get the same function reference)
   const setShowTemplates = useMemo(() => makeModalSetter('templates'), [makeModalSetter]);
@@ -129,6 +131,7 @@ export function useModalManager() {
   const setShowWizard = useMemo(() => makeModalSetter('wizard'), [makeModalSetter]);
   const setShowInstallGuide = useMemo(() => makeModalSetter('installGuide'), [makeModalSetter]);
   const setShowShareHub = useMemo(() => makeModalSetter('shareHub'), [makeModalSetter]);
+  const setShowStats = useMemo(() => makeModalSetter('stats'), [makeModalSetter]);
 
   return {
     // Panel visibility
@@ -166,6 +169,8 @@ export function useModalManager() {
     setShowInstallGuide,
     showShareHub,
     setShowShareHub,
+    showStats,
+    setShowStats,
 
     // Clean view
     cleanView,
