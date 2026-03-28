@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 6.12.1
+**Version**: 7.0.0
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -23,7 +23,7 @@ Poker tournament timer — a fully client-side React/TypeScript SPA for managing
 npm run dev          # Start dev server (http://localhost:5173/)
 npm run build        # TypeScript compile + Vite bundle → dist/
 npm run lint         # ESLint check
-npm run test         # Vitest run (1380 tests, single run)
+npm run test         # Vitest run (1399 tests, single run)
 npm run test:watch   # Vitest in watch mode
 npm run preview      # Preview production build locally
 ```
@@ -400,7 +400,7 @@ public/
 
 ## Testing
 
-- **1380 tests** across 21 test files + 1 setup file
+- **1399 tests** across 21 test files + 1 setup file
 - Core files: `logic.test.ts` (711), `components.test.tsx` (129), `edge-cases.test.ts` (101), `events.test.ts` (52), `integration.test.ts` (51), `tournamentActions.test.tsx` (41), `sound-speech.test.ts` (41), `league-advanced.test.ts` (31), `controls.test.tsx` (26), `hooks.test.tsx` (25), `persistence.test.ts` (25), `i18n.test.ts` (24), `display-channel.test.ts` (19), `hooks-phase1.test.tsx` (19), `alertEngine.test.ts` (18), `entitlements.test.ts` (12), `startValidation.test.ts` (11), `a11y.test.tsx` (6), `toast.test.ts` (6), `monetizationTelemetry.test.ts` (3), `recovery.test.ts` (3)
 - Use Vitest with globals mode (`describe`, `it`, `expect` available without imports)
 - Run `npm run test` before committing — CI will fail on test failures

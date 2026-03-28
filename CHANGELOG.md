@@ -5,6 +5,32 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [7.0.0] – 2026-03-28
+
+### UX, Tech & Product — 10 Improvements in 3 Phases
+
+**Phase 1 — Quick Wins (v6.13.0):**
+- **Undo-Toast Feedback**: Sichtbare Toast-Bestätigung bei Undo/Redo mit Aktionsname
+- **Service Worker Update Banner**: Amber-Banner bei neuer App-Version, manuelles Update statt Auto-Reload
+- **Remote Reconnect State-Sync**: Neuer `requestState`-Command — Controller synchronisiert sofort bei Reconnect
+
+**Phase 2 — Medium (v6.14.0):**
+- **Feature Discovery / What's New**: Modal zeigt neue Features beim ersten Start nach Update, Version-basiert
+- **Drag & Drop Blind Levels**: Pointer-Events-basiertes Drag & Drop für Blind-Level-Reihenfolge im ConfigEditor
+- **Audio Category Toggles**: 4 unabhängige Kategorien (Stimme, Effekte, Countdown, Hinweise) einzeln schaltbar
+- **Export Formats**: Hendon Mob CSV, Blind-Struktur CSV, lokalisierter Text-Export
+
+**Phase 3 — Large (v7.0.0):**
+- **React Compiler**: `babel-plugin-react-compiler` aktiviert — Auto-Memoization, bestehende Memos bleiben
+- **Multi-Device Roles**: Admin/Viewer-Rollensystem für Remote Control. Viewer sieht Timer + Spieler read-only, keine Aktions-Buttons. Viewer-Link im ShareHub
+- **Statistics Dashboard**: Lazy-loaded Modal mit 4 Metrik-Karten, sortierbarer Spielertabelle, SVG-Trend-Charts (kumulativer Gewinn, ROI, Cash-Rate). Zeitfilter (Alle, Letzte 10, Letzte 20, Dieses Jahr)
+
+**Neue Dateien**: `StatsDashboard.tsx`, `audioCategories.ts`, `whatsNew.ts`
+**Neue DevDeps**: `babel-plugin-react-compiler`, `eslint-plugin-react-compiler`
+**1399 Tests gesamt** (21 Testdateien)
+
+---
+
 ## [6.12.1] – 2026-03-26
 
 ### Controls Redesign: Icon Buttons & Details Toggle
