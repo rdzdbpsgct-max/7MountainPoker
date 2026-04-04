@@ -109,11 +109,21 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
     [mode, quickPlayers],
   );
 
-  // Advanced Mode state
-  const [players, setPlayers] = useState<PlayerPotInput[]>(() => [
-    createPlayer(t('sidePot.playerDefault', { n: 1 })),
-    createPlayer(t('sidePot.playerDefault', { n: 2 }), 500, 'all-in'),
-  ]);
+  // Advanced Mode state — pre-populate from active tournament players if available
+  const [players, setPlayers] = useState<PlayerPotInput[]>(() => {
+    if (activePlayers.length >= 2) {
+      return activePlayers.map((p) => ({
+        id: p.id,
+        name: p.name,
+        invested: typeof p.chips === 'number' && p.chips > 0 ? p.chips : DEFAULT_INVESTED,
+        status: 'active' as PlayerPotStatus,
+      }));
+    }
+    return [
+      createPlayer(t('sidePot.playerDefault', { n: 1 })),
+      createPlayer(t('sidePot.playerDefault', { n: 2 }), 500, 'all-in'),
+    ];
+  });
   const [showInfo, setShowInfo] = useState(false);
   const lastAddedRef = useRef<string | null>(null);
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -172,14 +182,23 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
   }, []);
 
   const handleReset = useCallback(() => {
-    setPlayers([
-      createPlayer(t('sidePot.playerDefault', { n: 1 })),
-      createPlayer(t('sidePot.playerDefault', { n: 2 }), 500, 'all-in'),
-    ]);
+    if (activePlayers.length >= 2) {
+      setPlayers(activePlayers.map((p) => ({
+        id: p.id,
+        name: p.name,
+        invested: typeof p.chips === 'number' && p.chips > 0 ? p.chips : DEFAULT_INVESTED,
+        status: 'active' as PlayerPotStatus,
+      })));
+    } else {
+      setPlayers([
+        createPlayer(t('sidePot.playerDefault', { n: 1 })),
+        createPlayer(t('sidePot.playerDefault', { n: 2 }), 500, 'all-in'),
+      ]);
+    }
 
     setWinnerSelections(new Map());
     setShowPayout(false);
-  }, [t]);
+  }, [activePlayers, t]);
 
   const handleLoadExample = useCallback(() => {
     setPlayers(EXAMPLE_DATA.map((p) => ({ ...p, id: generateId() })));
