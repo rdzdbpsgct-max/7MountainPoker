@@ -55,18 +55,35 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
 
   const [mode, setMode] = useState<SidePotMode>(hasQuickModeData ? 'quick' : 'advanced');
 
-  // Quick Mode state: set of player IDs that are all-in
+  // Quick Mode state: set of player IDs in the hand + set of player IDs that are all-in
+  const [inHandIds, setInHandIds] = useState<Set<string>>(() => new Set(playersWithStacks.map((p) => p.id)));
   const [allInIds, setAllInIds] = useState<Set<string>>(new Set());
 
   const quickPlayers = useMemo<PlayerPotInput[]>(() => {
     if (mode !== 'quick') return [];
-    return playersWithStacks.map((p) => ({
-      id: p.id,
-      name: p.name,
-      invested: p.chips ?? 0,
-      status: (allInIds.has(p.id) ? 'all-in' : 'active') as PlayerPotStatus,
-    }));
-  }, [mode, playersWithStacks, allInIds]);
+    return playersWithStacks
+      .filter((p) => inHandIds.has(p.id))
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        invested: p.chips ?? 0,
+        status: (allInIds.has(p.id) ? 'all-in' : 'active') as PlayerPotStatus,
+      }));
+  }, [mode, playersWithStacks, inHandIds, allInIds]);
+
+  const handleToggleInHand = useCallback((playerId: string) => {
+    setInHandIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(playerId)) {
+        next.delete(playerId);
+        // Also remove from all-in if deselected from hand
+        setAllInIds((ai) => { const n = new Set(ai); n.delete(playerId); return n; });
+      } else {
+        next.add(playerId);
+      }
+      return next;
+    });
+  }, []);
 
   const handleToggleAllIn = useCallback((playerId: string) => {
     setAllInIds((prev) => {
@@ -348,27 +365,45 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
         {/* Quick Mode UI */}
         {mode === 'quick' && (
           <div className="px-5 py-4 space-y-3 animate-fade-in">
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('sidePot.quickSelectPlayers')}</p>
             {playersWithStacks.map((player) => {
+              const isInHand = inHandIds.has(player.id);
               const isAllIn = allInIds.has(player.id);
               return (
-                <div key={player.id} className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                <div key={player.id} className={`flex items-center justify-between py-1.5 px-2 rounded-lg transition-colors ${
+                  isInHand ? 'hover:bg-gray-50 dark:hover:bg-gray-800/40' : 'opacity-40'
+                }`}>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleToggleInHand(player.id)}
+                      className={`w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-colors ${
+                        isInHand
+                          ? 'border-transparent text-white'
+                          : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
+                      }`}
+                      style={isInHand ? { backgroundColor: 'var(--accent-600)' } : undefined}
+                      aria-label={isInHand ? t('sidePot.quickDeselectPlayer') : t('sidePot.quickSelectPlayer')}
+                    >
+                      {isInHand && <span className="text-xs">✓</span>}
+                    </button>
                     <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{player.name}</span>
                     <span className="text-xs font-mono tabular-nums text-gray-500 dark:text-gray-400">
                       {(player.chips ?? 0).toLocaleString()}
                     </span>
                   </div>
-                  <button
-                    onClick={() => handleToggleAllIn(player.id)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${
-                      isAllIn
-                        ? 'bg-red-500 dark:bg-red-600 text-white border-red-500 dark:border-red-600 shadow-sm'
-                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600/60 hover:border-gray-400 dark:hover:border-gray-500'
-                    }`}
-                    title={t('sidePot.quickToggleAllIn')}
-                  >
-                    {isAllIn ? t('sidePot.quickAllIn') : t('sidePot.quickStillPlaying')}
-                  </button>
+                  {isInHand && (
+                    <button
+                      onClick={() => handleToggleAllIn(player.id)}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${
+                        isAllIn
+                          ? 'bg-red-500 dark:bg-red-600 text-white border-red-500 dark:border-red-600 shadow-sm'
+                          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600/60 hover:border-gray-400 dark:hover:border-gray-500'
+                      }`}
+                      title={t('sidePot.quickToggleAllIn')}
+                    >
+                      {isAllIn ? t('sidePot.quickAllIn') : t('sidePot.quickStillPlaying')}
+                    </button>
+                  )}
                 </div>
               );
             })}
