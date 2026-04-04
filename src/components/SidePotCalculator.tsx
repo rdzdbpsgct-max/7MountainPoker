@@ -46,30 +46,32 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
     trackFeatureUsed('sidePot', 'game');
   }, []);
 
-  // Quick Mode: active tournament players with tracked stacks
-  const playersWithStacks = useMemo(
-    () => (tournamentPlayers ?? []).filter((p) => p.status === 'active' && typeof p.chips === 'number' && p.chips > 0),
+  // Quick Mode: all active tournament players (regardless of stack tracking)
+  const activePlayers = useMemo(
+    () => (tournamentPlayers ?? []).filter((p) => p.status === 'active'),
     [tournamentPlayers],
   );
-  const hasQuickModeData = playersWithStacks.length >= 2;
+  const hasQuickModeData = activePlayers.length >= 2;
 
   const [mode, setMode] = useState<SidePotMode>(hasQuickModeData ? 'quick' : 'advanced');
 
   // Quick Mode state: set of player IDs in the hand + set of player IDs that are all-in
-  const [inHandIds, setInHandIds] = useState<Set<string>>(() => new Set(playersWithStacks.map((p) => p.id)));
+  const [inHandIds, setInHandIds] = useState<Set<string>>(() => new Set(activePlayers.map((p) => p.id)));
   const [allInIds, setAllInIds] = useState<Set<string>>(new Set());
+  // Quick Mode: manual invested amounts for players without tracked stacks
+  const [manualInvested, setManualInvested] = useState<Map<string, number>>(new Map());
 
   const quickPlayers = useMemo<PlayerPotInput[]>(() => {
     if (mode !== 'quick') return [];
-    return playersWithStacks
+    return activePlayers
       .filter((p) => inHandIds.has(p.id))
       .map((p) => ({
         id: p.id,
         name: p.name,
-        invested: p.chips ?? 0,
+        invested: typeof p.chips === 'number' && p.chips > 0 ? p.chips : (manualInvested.get(p.id) ?? DEFAULT_INVESTED),
         status: (allInIds.has(p.id) ? 'all-in' : 'active') as PlayerPotStatus,
       }));
-  }, [mode, playersWithStacks, inHandIds, allInIds]);
+  }, [mode, activePlayers, inHandIds, allInIds, manualInvested]);
 
   const handleToggleInHand = useCallback((playerId: string) => {
     setInHandIds((prev) => {
@@ -81,6 +83,14 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
       } else {
         next.add(playerId);
       }
+      return next;
+    });
+  }, []);
+
+  const handleChangeManualInvested = useCallback((playerId: string, value: number) => {
+    setManualInvested((prev) => {
+      const next = new Map(prev);
+      next.set(playerId, Math.max(0, value));
       return next;
     });
   }, []);
@@ -366,14 +376,15 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
         {mode === 'quick' && (
           <div className="px-5 py-4 space-y-3 animate-fade-in">
             <p className="text-xs text-gray-500 dark:text-gray-400">{t('sidePot.quickSelectPlayers')}</p>
-            {playersWithStacks.map((player) => {
+            {activePlayers.map((player) => {
               const isInHand = inHandIds.has(player.id);
               const isAllIn = allInIds.has(player.id);
+              const hasStack = typeof player.chips === 'number' && player.chips > 0;
               return (
                 <div key={player.id} className={`flex items-center justify-between py-1.5 px-2 rounded-lg transition-colors ${
                   isInHand ? 'hover:bg-gray-50 dark:hover:bg-gray-800/40' : 'opacity-40'
                 }`}>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <button
                       onClick={() => handleToggleInHand(player.id)}
                       className={`w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-colors ${
@@ -386,15 +397,29 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
                     >
                       {isInHand && <span className="text-xs">✓</span>}
                     </button>
-                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{player.name}</span>
-                    <span className="text-xs font-mono tabular-nums text-gray-500 dark:text-gray-400">
-                      {(player.chips ?? 0).toLocaleString()}
-                    </span>
+                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{player.name}</span>
+                    {hasStack && (
+                      <span className="text-xs font-mono tabular-nums text-gray-500 dark:text-gray-400 shrink-0">
+                        {(player.chips ?? 0).toLocaleString()}
+                      </span>
+                    )}
+                    {!hasStack && isInHand && (
+                      <div className="shrink-0">
+                        <NumberStepper
+                          value={manualInvested.get(player.id) ?? DEFAULT_INVESTED}
+                          onChange={(v) => handleChangeManualInvested(player.id, v)}
+                          min={0}
+                          step={100}
+                          inputClassName="w-16"
+                          aria-label={t('sidePot.headerInvested')}
+                        />
+                      </div>
+                    )}
                   </div>
                   {isInHand && (
                     <button
                       onClick={() => handleToggleAllIn(player.id)}
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${
+                      className={`shrink-0 ml-2 px-3 py-1 rounded-lg text-xs font-medium transition-all border ${
                         isAllIn
                           ? 'bg-red-500 dark:bg-red-600 text-white border-red-500 dark:border-red-600 shadow-sm'
                           : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600/60 hover:border-gray-400 dark:hover:border-gray-500'
