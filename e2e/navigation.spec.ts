@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { goToSetup, startTournamentFast } from './helpers';
+import { goToSetup, navigateToStartTab, startTournamentFast } from './helpers';
 
 test.describe('Navigation — Mode Switching', () => {
   test('Switch between setup and game mode', async ({ page }) => {
@@ -22,6 +22,8 @@ test.describe('Navigation — Mode Switching', () => {
 
   test('Language switching DE → EN', async ({ page }) => {
     await goToSetup(page);
+    // Start button is on tab 3 — navigate there to verify German UI text
+    await navigateToStartTab(page);
 
     // Default language is German — verify a German UI element
     // The start button should contain "Turnier starten" (German)

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { completeWizard, goToSetup } from './helpers';
+import { completeWizard, goToSetup, navigateToStartTab } from './helpers';
 
 test.describe('Setup to Game', () => {
   test('wizard appears on first visit', async ({ page }) => {
@@ -26,6 +26,8 @@ test.describe('Setup to Game', () => {
     await goToSetup(page);
     // Should be on setup page directly — no wizard
     await expect(page.locator('text=Willkommen!')).toBeHidden({ timeout: 3000 });
+    // Start button is on tab 3 (Start/Review)
+    await navigateToStartTab(page);
     await expect(page.locator('button:has-text("▶")').first()).toBeVisible();
   });
 });

@@ -44,20 +44,28 @@ export async function completeWizard(page: Page) {
   await page.waitForTimeout(400);
   await page.locator('button:has-text("Turnier starten!")').first().click();
 
-  // Now we should be on the setup page — wait for the start button with the ▶ prefix
-  // Use a more specific selector to avoid matching the wizard's "Turnier starten!" button
+  // After wizard, navigate to the Start/Review tab (tab 3) to find the ▶ start button.
+  // The setup page uses a 4-tab layout; the start button lives exclusively on tab 3.
+  await page.locator('[role="tab"]').nth(3).click();
   await expect(page.locator('button:has-text("▶")').first()).toBeVisible({ timeout: 15000 });
 }
 
 /**
  * Skip the wizard via localStorage and go directly to the setup page.
  * Faster and more reliable than completeWizard for tests that don't test the wizard itself.
+ * Lands on tab 0 (Basis) — call navigateToStartTab() if you need the ▶ start button.
  */
 export async function goToSetup(page: Page) {
   await skipWizard(page);
   await page.goto('/');
-  // Wait for setup page to be ready — the start button with ▶ prefix
-  await expect(page.locator('button:has-text("▶")').first()).toBeVisible({ timeout: 15000 });
+  // Wait for setup page — tab navigation is always visible (start button is on tab 3)
+  await expect(page.locator('[role="tablist"]').first()).toBeVisible({ timeout: 15000 });
+}
+
+/** Navigate to the Start/Review tab (tab 3) where the ▶ start button lives. */
+export async function navigateToStartTab(page: Page) {
+  await page.locator('[role="tab"]').nth(3).click();
+  await expect(page.locator('button:has-text("▶")').first()).toBeVisible({ timeout: 5000 });
 }
 
 /**
@@ -81,6 +89,8 @@ export async function startTournament(page: Page) {
  */
 export async function startTournamentFast(page: Page) {
   await goToSetup(page);
+  // Start button is on tab 3 (Start/Review) — navigate there first
+  await navigateToStartTab(page);
 
   const startBtn = page.locator('button:has-text("▶")').first();
   await expect(startBtn).toBeEnabled({ timeout: 5000 });
