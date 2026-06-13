@@ -1,0 +1,28 @@
+{
+  "fmt": "7mpx",
+  "v": 1,
+  "kind": "result",
+  "app": { "src": "web", "ver": "7.1.0" },
+  "payload": {
+    "id": "tr_1718305800_a1b2",
+    "name": "Freitagsrunde",
+    "date": "2026-06-13T20:00:00Z",
+    "currency": "EUR",
+    "buyIn": 20,
+    "prizePool": 240,
+    "playerCount": 12,
+    "bountyEnabled": false,
+    "bountyAmount": 0,
+    "rebuyEnabled": true,
+    "totalRebuys": 5,
+    "addOnEnabled": false,
+    "totalAddOns": 0,
+    "elapsedSeconds": 9300,
+    "levelsPlayed": 14,
+    "dealApplied": false,
+    "players": [
+      { "name": "Anna", "place": 1, "payout": 120, "rebuys": 1, "addOn": false, "knockouts": 3, "bountyEarned": 0, "netBalance": 80 },
+      { "name": "Ben", "place": 2, "payout": 72, "rebuys": 0, "addOn": false, "knockouts": 1, "bountyEarned": 0, "netBalance": 52 }
+    ]
+  }
+}

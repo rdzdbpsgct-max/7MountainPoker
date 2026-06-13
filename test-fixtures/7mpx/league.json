@@ -1,0 +1,14 @@
+{
+  "fmt": "7mpx",
+  "v": 1,
+  "kind": "league",
+  "app": { "src": "web", "ver": "7.1.0" },
+  "payload": {
+    "name": "Mittwochsliga 2026",
+    "pointSystem": { "entries": [ { "place": 1, "points": 10 }, { "place": 2, "points": 7 }, { "place": 3, "points": 5 } ] },
+    "standings": [
+      { "rank": 1, "name": "Anna", "points": 48, "tournaments": 6, "wins": 2, "netBalance": 140 },
+      { "rank": 2, "name": "Ben", "points": 41, "tournaments": 6, "wins": 1, "netBalance": -20 }
+    ]
+  }
+}

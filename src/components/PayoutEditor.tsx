@@ -127,6 +127,7 @@ export function PayoutEditor({ payout, onChange, maxPlaces = 20, prizePool, curr
         {/* Template dropdown */}
         <select
           data-testid="payout-template"
+          aria-label={t('payout.template')}
           value=""
           onChange={(e) => applyTemplate(e.target.value)}
           className="px-2 py-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/60 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--accent-500)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-all duration-200"
@@ -196,7 +197,7 @@ export function PayoutEditor({ payout, onChange, maxPlaces = 20, prizePool, curr
 
       {/* Validation */}
       {errors.length > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-2">
+        <div role="alert" aria-live="polite" className="bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-2">
           {errors.map((e, i) => (
             <p key={i} className="text-red-700 dark:text-red-400 text-xs">{e}</p>
           ))}

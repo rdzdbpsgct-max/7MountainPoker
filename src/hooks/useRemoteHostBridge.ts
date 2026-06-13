@@ -198,6 +198,8 @@ export function useRemoteHostBridge({
 
   const {
     hostRef: remoteHostRef,
+    hostPeerId: remoteHostPeerId,
+    hostSecret: remoteHostSecret,
     hostStatus: remoteHostStatus,
     controllerCount: remoteControllerCount,
     showRemoteModal: showRemoteControl,
@@ -300,6 +302,8 @@ export function useRemoteHostBridge({
 
   return {
     remoteHostRef,
+    remoteHostPeerId,
+    remoteHostSecret,
     remoteHostStatus,
     remoteControllerCount,
     showRemoteControl,

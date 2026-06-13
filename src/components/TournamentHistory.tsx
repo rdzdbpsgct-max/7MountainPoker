@@ -16,6 +16,7 @@ import {
 import { useTranslation } from '../i18n';
 import { ChevronIcon } from './ChevronIcon';
 import { BottomSheet } from './BottomSheet';
+import { showToast } from '../domain/toast';
 
 type Tab = 'history' | 'stats';
 
@@ -50,8 +51,10 @@ export function TournamentHistory({ onClose, onCloneConfig }: Props) {
       await navigator.clipboard.writeText(formatResultAsText(result, language === 'de' ? 'de-DE' : 'en-US'));
       setCopiedId(result.id);
       setTimeout(() => setCopiedId(null), 2000);
-    } catch { /* clipboard not available */ }
-  }, [language]);
+    } catch {
+      showToast(t('clipboard.copyFailed'));
+    }
+  }, [language, t]);
 
   const handleDownloadCSV = useCallback((result: TournamentResult) => {
     const csv = formatResultAsCSV(result);

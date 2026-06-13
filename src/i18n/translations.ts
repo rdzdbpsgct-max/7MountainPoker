@@ -551,6 +551,10 @@ const de = {
   'templates.jsonSection': 'JSON Import / Export',
   'templates.jsonCopy': 'Kopieren',
   'templates.jsonImport': 'Importieren',
+  'interchange.copyLink': '7MPX-Link',
+  'interchange.linkCopied': '7MPX-Link kopiert — auf jedem Gerät (Web oder iOS) öffnenbar.',
+  'interchange.linkHint': 'Teilbarer Link, der diese Vorlage in der Web- oder iOS-App öffnet',
+  'interchange.templateImported': 'Vorlage aus geteiltem Link geladen.',
   'templates.jsonInvalid': 'Ungültiges JSON-Format.',
   'templates.saveHint': 'Tipp: In Safari → Einstellungen → Allgemein → Download-Ort auf „Nachfragen" stellen, um den Speicherort zu wählen.',
 
@@ -603,6 +607,7 @@ const de = {
   'history.noEntries': 'Noch keine Turniere gespeichert.',
   'history.capacityWarning': 'Speicher fast voll: {n} von {max} Einträgen belegt. Älteste Einträge werden bei neuen Turnieren automatisch entfernt.',
   'history.trimmed': 'Historie voll — ältestes Turnier wurde entfernt.',
+  'app.fullscreenFailed': 'Vollbild ist in diesem Browser nicht verfügbar.',
   'history.clearAll': 'Alle löschen',
   'history.clearConfirm': 'Alle Turnier-Einträge unwiderruflich löschen?',
   'history.delete': 'Löschen',
@@ -638,6 +643,8 @@ const de = {
   'finished.downloadPDF': 'PDF herunterladen',
   'finished.downloadHendonMob': 'Hendon Mob CSV',
   'finished.qrApp': 'App installieren',
+  'finished.pdfFailed': 'PDF-Export fehlgeschlagen. Bitte erneut versuchen.',
+  'clipboard.copyFailed': 'Kopieren fehlgeschlagen — Zwischenablage nicht verfügbar.',
 
   // --- PDF Export ---
   'pdf.title': 'Turnierergebnis',
@@ -2092,6 +2099,10 @@ const en: Record<TranslationKey, string> = {
   'templates.jsonSection': 'JSON Import / Export',
   'templates.jsonCopy': 'Copy',
   'templates.jsonImport': 'Import',
+  'interchange.copyLink': '7MPX link',
+  'interchange.linkCopied': '7MPX link copied — opens on any device (web or iOS).',
+  'interchange.linkHint': 'Shareable link that opens this template in the web or iOS app',
+  'interchange.templateImported': 'Template loaded from shared link.',
   'templates.jsonInvalid': 'Invalid JSON format.',
   'templates.saveHint': 'Tip: In Safari → Settings → General, set download location to "Ask for each download" to choose where to save.',
 
@@ -2144,6 +2155,7 @@ const en: Record<TranslationKey, string> = {
   'history.noEntries': 'No tournaments recorded yet.',
   'history.capacityWarning': 'Storage nearly full: {n} of {max} entries used. Oldest entries will be automatically removed when new tournaments are saved.',
   'history.trimmed': 'History full — oldest tournament was removed.',
+  'app.fullscreenFailed': 'Fullscreen is not available in this browser.',
   'history.clearAll': 'Clear All',
   'history.clearConfirm': 'Delete all tournament records permanently?',
   'history.delete': 'Delete',
@@ -2179,6 +2191,8 @@ const en: Record<TranslationKey, string> = {
   'finished.downloadPDF': 'Download PDF',
   'finished.downloadHendonMob': 'Hendon Mob CSV',
   'finished.qrApp': 'Install App',
+  'finished.pdfFailed': 'PDF export failed. Please try again.',
+  'clipboard.copyFailed': 'Copy failed — clipboard not available.',
 
   // --- PDF Export ---
   'pdf.title': 'Tournament Result',

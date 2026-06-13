@@ -27,3 +27,4 @@ export * from './undoStack';
 export * from './cloudExport';
 export * from './license';
 export * from './dealMaking';
+export * from './interchange';

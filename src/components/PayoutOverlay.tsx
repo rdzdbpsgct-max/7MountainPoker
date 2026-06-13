@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { TournamentConfig, Player } from '../domain/types';
+import { CURRENCY_SYMBOLS } from '../domain/types';
 import { computePrizePool, computePayouts } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { BottomSheet } from './BottomSheet';
@@ -14,6 +15,7 @@ const MEDALS = ['', '', ''];
 
 export function PayoutOverlay({ config, players, onClose }: Props) {
   const { t } = useTranslation();
+  const currencySymbol = CURRENCY_SYMBOLS[config.currency ?? 'EUR'];
 
   const activePlayers = useMemo(
     () => players.filter((p) => p.status === 'active').length,
@@ -70,7 +72,7 @@ export function PayoutOverlay({ config, players, onClose }: Props) {
           className="text-3xl font-bold tabular-nums"
           style={{ color: 'var(--accent-500)' }}
         >
-          {prizePool.toLocaleString()} €
+          {prizePool.toLocaleString()} {currencySymbol}
         </div>
       </div>
 
@@ -123,7 +125,7 @@ export function PayoutOverlay({ config, players, onClose }: Props) {
                 {medal ? `${medal} ` : ''}{t('payout.overlay.place')} {place}
               </span>
               <span className="text-sm font-bold tabular-nums text-gray-900 dark:text-white">
-                {amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €
+                {amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} {currencySymbol}
               </span>
             </div>
           );

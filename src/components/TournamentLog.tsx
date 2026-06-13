@@ -3,6 +3,7 @@ import type { TournamentEvent, Player } from '../domain/types';
 import { formatEventAsText } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { BottomSheet } from './BottomSheet';
+import { showToast } from '../domain/toast';
 
 type FilterType = 'all' | 'eliminations' | 'rebuys' | 'levels';
 
@@ -53,7 +54,9 @@ export function TournamentLog({ events, players, onClose }: Props) {
       await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch { /* clipboard not available */ }
+    } catch {
+      showToast(t('clipboard.copyFailed'));
+    }
   }, [filteredEvents, playerNameMap, t]);
 
   return (

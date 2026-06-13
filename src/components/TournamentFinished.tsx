@@ -54,7 +54,9 @@ export function TournamentFinished({
     try {
       await navigator.clipboard.writeText(formatResultAsText(tournamentResult, language === 'de' ? 'de-DE' : 'en-US'));
       showToast(t('finished.textCopied'));
-    } catch { /* clipboard not available */ }
+    } catch {
+      showToast(t('clipboard.copyFailed'));
+    }
   }, [tournamentResult, language, t]);
 
   const handleDownloadCSV = useCallback(() => {
@@ -77,6 +79,7 @@ export function TournamentFinished({
       await exportTournamentResultAsPdf(tournamentResult, t);
     } catch (err) {
       console.warn('PDF export failed:', err);
+      showToast(t('finished.pdfFailed'));
     } finally {
       setGeneratingPdf(false);
     }

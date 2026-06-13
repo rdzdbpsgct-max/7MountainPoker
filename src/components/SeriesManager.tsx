@@ -77,8 +77,10 @@ export function SeriesManager({ onClose, currentConfig, onLinkSeries }: Props) {
       await navigator.clipboard.writeText(formatSeriesStandingsAsText(series, standings));
       setCopiedId(series.id);
       setTimeout(() => setCopiedId(null), 2000);
-    } catch { /* clipboard not available */ }
-  }, []);
+    } catch {
+      showToast(t('clipboard.copyFailed'));
+    }
+  }, [t]);
 
   const handleDownloadCSV = useCallback((series: TournamentSeries) => {
     const history = loadTournamentHistory();

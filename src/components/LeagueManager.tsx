@@ -15,6 +15,7 @@ import {
   extractLeagueConfig,
 } from '../domain/logic';
 import { useTranslation } from '../i18n';
+import { showToast } from '../domain/toast';
 import { ChevronIcon } from './ChevronIcon';
 import { BottomSheet } from './BottomSheet';
 import { NumberStepper } from './NumberStepper';
@@ -86,8 +87,10 @@ export function LeagueManager({ onClose, currentConfig }: Props) {
       await navigator.clipboard.writeText(formatLeagueAsText(league, standings));
       setCopiedId(league.id);
       setTimeout(() => setCopiedId(null), 2000);
-    } catch { /* clipboard not available */ }
-  }, []);
+    } catch {
+      showToast(t('clipboard.copyFailed'));
+    }
+  }, [t]);
 
   const handleDownloadCSV = useCallback((league: League) => {
     const history = loadTournamentHistory();

@@ -1,0 +1,23 @@
+{
+  "fmt": "7mpx",
+  "v": 1,
+  "kind": "template",
+  "app": { "src": "web", "ver": "7.1.0" },
+  "payload": {
+    "name": "Standard Home Game",
+    "currency": "EUR",
+    "buyIn": 20,
+    "startingChips": 10000,
+    "anteMode": "standard",
+    "levels": [
+      { "type": "level", "smallBlind": 25, "bigBlind": 50, "ante": 0, "durationSeconds": 1200 },
+      { "type": "level", "smallBlind": 50, "bigBlind": 100, "ante": 0, "durationSeconds": 1200 },
+      { "type": "break", "durationSeconds": 600, "label": "Pause" }
+    ],
+    "payout": { "mode": "percent", "entries": [ { "place": 1, "value": 50 }, { "place": 2, "value": 30 }, { "place": 3, "value": 20 } ] },
+    "rebuy": { "enabled": true, "rebuyCost": 20, "limitType": "levels", "limitValue": 6 },
+    "addOn": { "enabled": false },
+    "bounty": { "enabled": false, "type": "fixed", "amount": 0 },
+    "players": [ { "name": "Spieler 1" }, { "name": "Spieler 2" } ]
+  }
+}

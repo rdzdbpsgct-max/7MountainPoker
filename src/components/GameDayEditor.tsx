@@ -367,7 +367,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => handleMoveUp(idx)}
-                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xs px-1"
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xs px-1 min-w-8 min-h-8"
                               disabled={idx === 0}
                               aria-label={t('accessibility.moveUp')}
                             >
@@ -375,7 +375,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                             </button>
                             <button
                               onClick={() => handleMoveDown(idx)}
-                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xs px-1"
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xs px-1 min-w-8 min-h-8"
                               disabled={idx === participants.length - 1}
                               aria-label={t('accessibility.moveDown')}
                             >
@@ -383,7 +383,7 @@ export function GameDayEditor({ league, editingGameDay, onClose, onSaved, curren
                             </button>
                             <button
                               onClick={() => handleRemovePlayer(p.id)}
-                              className="text-red-400 hover:text-red-600 text-xs px-1"
+                              className="text-red-400 hover:text-red-600 text-xs px-1 min-w-8 min-h-8"
                               aria-label={t('accessibility.remove')}
                             >
                               ✕

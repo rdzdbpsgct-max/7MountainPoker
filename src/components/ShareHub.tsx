@@ -2,6 +2,7 @@ import { memo, useState, useCallback, useMemo } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTranslation } from '../i18n';
 import { useDialogA11y } from '../hooks/useDialogA11y';
+import { showToast } from '../domain/toast';
 import { useTheme } from '../theme';
 import { detectPlatform, detectDesktopOS } from '../domain/platform';
 import { isPresentationApiAvailable, startPresentation } from '../domain/presentationApi';
@@ -76,9 +77,9 @@ function ShareHubInner({
         setTimeout(() => setCopiedRemote(false), 2000);
       }
     } catch {
-      // Clipboard API not available
+      showToast(t('clipboard.copyFailed'));
     }
-  }, []);
+  }, [t]);
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
@@ -248,7 +249,7 @@ function ShareHubInner({
               <div className="pt-2 border-t border-gray-200 dark:border-gray-700/40">
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1.5">{t('remote.viewerLink' as TKey)}</p>
                 <button
-                  onClick={() => { navigator.clipboard.writeText(viewerUrl).catch(() => {}); }}
+                  onClick={() => { navigator.clipboard.writeText(viewerUrl).catch(() => { showToast(t('clipboard.copyFailed')); }); }}
                   className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700/60 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700/60 text-gray-700 dark:text-gray-300 transition-colors"
                 >
                   {t('shareHub.copyLink' as TKey)} ({t('remote.roleViewer' as TKey)})

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { computePlayerStats, computePlayerTrends } from '../domain/logic';
 import { getCached } from '../domain/storage';
 import type { TournamentResult, PlayerStat } from '../domain/types';
@@ -94,13 +94,13 @@ export function StatsDashboard({ onClose }: Props) {
     [...stats].sort((a, b) => compareStats(a, b, sortKey, sortAsc)),
   [stats, sortKey, sortAsc]);
 
-  // Initialize selected players (top 5) on first load
-  useEffect(() => {
-    if (selectedPlayers.size === 0 && stats.length > 0) {
-      setSelectedPlayers(new Set(stats.slice(0, 5).map(s => s.name)));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time init
-  }, [stats]);
+  // Initialize selected players (top 5) once, as soon as stats are available.
+  // Render-phase state adjustment per https://react.dev/learn/you-might-not-need-an-effect
+  const [playersInitialized, setPlayersInitialized] = useState(false);
+  if (!playersInitialized && stats.length > 0) {
+    setPlayersInitialized(true);
+    setSelectedPlayers(new Set(stats.slice(0, 5).map(s => s.name)));
+  }
 
   // Aggregate metrics
   const totalTournaments = filteredHistory.length;

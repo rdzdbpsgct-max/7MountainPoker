@@ -50,13 +50,21 @@ export function CrossDeviceDisplay({ hostPeerId }: Props) {
   const MAX_RECONNECT = 3;
   const BACKOFF_BASE = 2000;
 
+  // Breaks the connect <-> attemptReconnect callback cycle so both can declare
+  // complete dependency arrays (keeps React Compiler optimization enabled).
+  const attemptReconnectRef = useRef<() => void>(() => {});
+
   const connect = useCallback(async () => {
     if (destroyedRef.current) return;
 
     try {
       const { default: Peer } = await import('peerjs');
 
-      // Clean up existing peer
+      // Clean up existing connection + peer before reconnecting
+      if (connRef.current) {
+        try { connRef.current.close(); } catch { /* ignore */ }
+        connRef.current = null;
+      }
       if (peerRef.current) {
         try { peerRef.current.destroy(); } catch { /* ignore */ }
         peerRef.current = null;
@@ -121,30 +129,29 @@ export function CrossDeviceDisplay({ hostPeerId }: Props) {
 
         conn.on('close', () => {
           if (destroyedRef.current) return;
-          attemptReconnect();
+          attemptReconnectRef.current();
         });
 
         conn.on('error', () => {
           if (destroyedRef.current) return;
-          attemptReconnect();
+          attemptReconnectRef.current();
         });
       });
 
       peer.on('error', () => {
         if (destroyedRef.current) return;
-        attemptReconnect();
+        attemptReconnectRef.current();
       });
 
       peer.on('disconnected', () => {
         if (destroyedRef.current) return;
-        attemptReconnect();
+        attemptReconnectRef.current();
       });
     } catch {
       if (!destroyedRef.current) {
-        attemptReconnect();
+        attemptReconnectRef.current();
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hostPeerId]);
 
   const attemptReconnect = useCallback(() => {
@@ -164,7 +171,9 @@ export function CrossDeviceDisplay({ hostPeerId }: Props) {
     }, delay);
   }, [connect]);
 
-  // Connect on mount, clean up on unmount
+  useEffect(() => { attemptReconnectRef.current = attemptReconnect; });
+
+  // Connect on mount (and when the host changes), clean up on unmount
   useEffect(() => {
     destroyedRef.current = false;
     void connect();
@@ -203,8 +212,7 @@ export function CrossDeviceDisplay({ hostPeerId }: Props) {
         try { peerRef.current.destroy(); } catch { /* ignore */ }
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connect]);
 
   // Force dark mode
   useEffect(() => {

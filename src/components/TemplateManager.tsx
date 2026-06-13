@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { TournamentConfig } from '../domain/types';
 import type { TournamentTemplate } from '../domain/logic';
-import { loadTemplates, saveTemplate, deleteTemplate, exportTemplateToJSON, parseTemplateFile, exportConfigJSON, importConfigJSON, exportFullBackup, parseFullBackup, restoreFullBackup, downloadExport } from '../domain/logic';
+import { loadTemplates, saveTemplate, deleteTemplate, exportTemplateToJSON, parseTemplateFile, exportConfigJSON, importConfigJSON, exportFullBackup, parseFullBackup, restoreFullBackup, downloadExport, encodeTemplate7mpx, to7mpxHash } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { showToast } from '../domain/toast';
 import { ChevronIcon } from './ChevronIcon';
@@ -134,7 +134,17 @@ export function TemplateManager({ config, onLoad, onClose }: Props) {
     try {
       await navigator.clipboard.writeText(exportConfigJSON(config));
     } catch {
-      // Clipboard API not available (e.g. HTTP, older browser)
+      showToast(t('clipboard.copyFailed'));
+    }
+  };
+
+  const handleCopy7mpxLink = async () => {
+    const link = window.location.origin + window.location.pathname + to7mpxHash(encodeTemplate7mpx(config));
+    try {
+      await navigator.clipboard.writeText(link);
+      showToast(t('interchange.linkCopied'));
+    } catch {
+      showToast(t('clipboard.copyFailed'));
     }
   };
 
@@ -332,6 +342,13 @@ export function TemplateManager({ config, onLoad, onClose }: Props) {
                   className="px-3 py-1.5 bg-accent-700 text-white rounded text-xs font-medium transition-colors"
                 >
                   {t('templates.jsonImport')}
+                </button>
+                <button
+                  onClick={handleCopy7mpxLink}
+                  className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded text-xs font-medium transition-colors"
+                  title={t('interchange.linkHint')}
+                >
+                  {t('interchange.copyLink')}
                 </button>
               </div>
             </div>

@@ -98,7 +98,9 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
     try {
       await navigator.clipboard.writeText(text);
       showToast(t('league.standings.textCopied'));
-    } catch { /* ignore */ }
+    } catch {
+      showToast(t('clipboard.copyFailed'));
+    }
   }, [league, standings, t]);
 
   const handleDownloadCSV = useCallback(() => {

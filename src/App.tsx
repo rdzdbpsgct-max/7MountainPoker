@@ -10,12 +10,15 @@ import {
   loadCheckpoint,
   clearCheckpoint,
   saveTournamentResult,
+  deleteTournamentResult,
   loadLeagues,
   createGameDayFromResult,
+  deleteGameDay,
   loadGameDaysForLeague,
   loadPlayerDatabase,
   loadAllSeries,
   addTournamentToSeries,
+  removeTournamentFromSeries,
   saveSeries,
   createEvent,
   computePrizePool,
@@ -104,6 +107,8 @@ const GameSettingsModal = lazy(() => import('./components/GameSettingsModal').th
 
 type Mode = 'setup' | 'game' | 'league';
 
+const DEFAULT_NAME_PATTERN = /^(Spieler|Player) (\d+)$/;
+
 function App() {
   const { t, language } = useTranslation();
   const {
@@ -121,8 +126,10 @@ function App() {
 
   const [mode, setMode] = useState<Mode>('setup');
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [showWhatsNew, setShowWhatsNew] = useState(false);
-  const [whatsNewReleases, setWhatsNewReleases] = useState<WhatsNewRelease[]>([]);
+  const [whatsNewReleases] = useState<WhatsNewRelease[]>(
+    () => (shouldShowWhatsNew() ? getUnseenReleases() : []),
+  );
+  const [showWhatsNew, setShowWhatsNew] = useState(() => whatsNewReleases.length > 0);
 
   useEffect(() => {
     const handler = () => setUpdateAvailable(true);
@@ -130,20 +137,27 @@ function App() {
     return () => window.removeEventListener('sw-update-available', handler);
   }, []);
 
+  // New version but no unseen release notes — mark as seen without showing the modal.
+  // markVersionSeen is idempotent, so re-runs are harmless.
   useEffect(() => {
-    if (shouldShowWhatsNew()) {
-      const releases = getUnseenReleases();
-      if (releases.length > 0) {
-        setWhatsNewReleases(releases);
-        setShowWhatsNew(true);
-      } else {
-        markVersionSeen();
-      }
+    if (shouldShowWhatsNew() && whatsNewReleases.length === 0) {
+      markVersionSeen();
     }
-  }, []);
+  }, [whatsNewReleases.length]);
 
+  const {
+    sharedResult,
+    setSharedResult,
+    sharedLeague,
+    setSharedLeague,
+    importedTemplate,
+  } = useSharedPayloads();
+
+  // A template shared via a #7mpx= link seeds the initial config (consumed once
+  // here, so no effect / setState-in-effect is needed).
   const [config, setConfig] = useState<TournamentConfig>(
     () => {
+      if (importedTemplate) return importedTemplate;
       const persisted = loadConfig();
       return persisted && persisted.levels.length > 0 ? persisted : defaultConfig();
     },
@@ -154,25 +168,28 @@ function App() {
       return persisted ? { ...defaultSettings(), ...persisted } : defaultSettings();
     },
   );
-  useEffect(() => {
-    if (mode === 'league' && !canUseLeagueMode) {
-      setMode('setup');
-    }
-  }, [mode, canUseLeagueMode]);
+  // League mode gate — render-phase adjustment instead of an effect
+  // (https://react.dev/learn/you-might-not-need-an-effect)
+  if (mode === 'league' && !canUseLeagueMode) {
+    setMode('setup');
+  }
   const modals = useModalManager();
   const printViewReady = usePrintViewWarmup();
-  const {
-    sharedResult,
-    setSharedResult,
-    sharedLeague,
-    setSharedLeague,
-  } = useSharedPayloads();
   const {
     lastHandActive, setLastHandActive, handForHandActive, setHandForHandActive,
     showDealerBadges, setShowDealerBadges, sidePotData, setSidePotData,
     recentTableMoves, setRecentTableMoves, addOnEndLevelIndex, setAddOnEndLevelIndex,
   } = useGameUiState();
   const { confirmAction, dialogRef: confirmDialogRef, confirm: confirmBeforeAction, dismiss: dismissConfirm, execute: executeConfirm } = useConfirmDialog();
+
+  // Notify the user once when a tournament template arrived via a shared link.
+  const importedTemplateNotifiedRef = useRef(false);
+  useEffect(() => {
+    if (importedTemplate && !importedTemplateNotifiedRef.current) {
+      importedTemplateNotifiedRef.current = true;
+      showToast(t('interchange.templateImported'));
+    }
+  }, [importedTemplate, t]);
 
   const [pendingCheckpoint, setPendingCheckpoint] = useState<TournamentCheckpoint | null>(() => loadCheckpoint());
 
@@ -266,12 +283,14 @@ function App() {
     tournamentEvents,
   });
 
-  // Rename default player names when language changes
-  const defaultNamePattern = /^(Spieler|Player) (\d+)$/;
-  useEffect(() => {
+  // Rename default player names when the language changes — render-phase
+  // adjustment (https://react.dev/learn/you-might-not-need-an-effect)
+  const [prevLanguage, setPrevLanguage] = useState(language);
+  if (prevLanguage !== language) {
+    setPrevLanguage(language);
     setConfig((prev) => {
       const updated = prev.players.map((p) => {
-        const match = defaultNamePattern.exec(p.name);
+        const match = DEFAULT_NAME_PATTERN.exec(p.name);
         if (match) {
           return { ...p, name: t('playerManager.playerN', { n: Number(match[2]) }) };
         }
@@ -282,8 +301,7 @@ function App() {
       }
       return prev;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
+  }
 
   // Persist config & settings (debounced to avoid excessive writes during rapid changes)
   const saveConfigTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -347,7 +365,7 @@ function App() {
       if (settings.voiceEnabled) announceLastHand(nextIsBreak, t);
       return true;
     });
-  }, [config.levels, timer.timerState.currentLevelIndex, settings.voiceEnabled, t]);
+  }, [config.levels, timer.timerState.currentLevelIndex, settings.voiceEnabled, t, setLastHandActive]);
 
   // Hand-for-Hand toggle
   const handleHandForHand = useCallback(() => {
@@ -357,7 +375,7 @@ function App() {
       if (settings.voiceEnabled) announceHandForHand(t);
       return true;
     });
-  }, [timer, settings.voiceEnabled, t]);
+  }, [timer, settings.voiceEnabled, t, setHandForHandActive]);
 
   const handleNextHand = useCallback(() => {
     timer.start();
@@ -408,17 +426,20 @@ function App() {
         if (document.exitFullscreen) void document.exitFullscreen();
         else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
       } else {
-        if (el.requestFullscreen) void el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        if (el.requestFullscreen) {
+          el.requestFullscreen().catch(() => showToast(t('app.fullscreenFailed')));
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        }
       }
     } catch {
-      // Fullscreen not available
+      showToast(t('app.fullscreenFailed'));
     }
-  }, []);
+  }, [t]);
 
   const handleToggleDealerBadges = useCallback(() => {
     setShowDealerBadges((prev) => !prev);
-  }, []);
+  }, [setShowDealerBadges]);
 
   // --- Computed game state (extracted to useGameComputedState hook) ---
   const displaySeconds = Math.floor(timer.timerState.remainingSeconds);
@@ -472,7 +493,7 @@ function App() {
       setAddOnEndLevelIndex(timer.timerState.currentLevelIndex);
     }
     prevRebuyActive.current = rebuyActive;
-  }, [rebuyActive, config.addOn.enabled, config.rebuy.enabled, config.rebuy.limitType, timer.timerState.currentLevelIndex]);
+  }, [rebuyActive, config.addOn.enabled, config.rebuy.enabled, config.rebuy.limitType, timer.timerState.currentLevelIndex, setAddOnEndLevelIndex]);
 
   // Break detection for skip/extend buttons (also in computed, but needed for local callbacks)
 
@@ -501,7 +522,7 @@ function App() {
       setHandForHandActive(false);
     }
     prevBubbleForHfH.current = bubbleActive;
-  }, [bubbleActive]);
+  }, [bubbleActive, setHandForHandActive]);
 
   // ---------------------------------------------------------------------------
   // Remote host bridge (PeerJS) — must be before useDisplayBridge which reads the ref
@@ -509,6 +530,8 @@ function App() {
 
   const {
     remoteHostRef,
+    remoteHostPeerId,
+    remoteHostSecret,
     remoteHostStatus,
     remoteControllerCount,
     showRemoteControl,
@@ -620,15 +643,29 @@ function App() {
     onRedo: handleRedo,
   });
 
-  // Clear checkpoint and save result when tournament finishes
+  // Clear checkpoint and save result when tournament finishes.
+  // savedArtifactsRef remembers what this game session already persisted so that
+  // reinstate → re-eliminate replaces the stale result/game day instead of
+  // duplicating it in history, league and series.
   const resultSavedRef = useRef(false);
+  const savedArtifactsRef = useRef<{ resultId: string; gameDayId?: string | undefined; seriesId?: string | undefined } | null>(null);
   useEffect(() => {
     if (mode === 'game' && tournamentFinished && finishedResult) {
       clearCheckpoint();
       if (!resultSavedRef.current) {
         resultSavedRef.current = true;
+        const stale = savedArtifactsRef.current;
+        if (stale) {
+          deleteTournamentResult(stale.resultId);
+          if (stale.gameDayId) deleteGameDay(stale.gameDayId);
+          if (stale.seriesId) {
+            const staleSeries = loadAllSeries().find(s => s.id === stale.seriesId);
+            if (staleSeries) saveSeries(removeTournamentFromSeries(staleSeries, stale.resultId));
+          }
+        }
         const trimmed = saveTournamentResult(finishedResult);
         if (trimmed) showToast(t('history.trimmed'));
+        let gameDayId: string | undefined;
         // Auto-create GameDay when tournament is linked to a league
         if (config.leagueId) {
           const leagues = loadLeagues();
@@ -637,24 +674,33 @@ function App() {
             const registeredPlayers = loadPlayerDatabase();
             const existingCount = loadGameDaysForLeague(league.id).length;
             const label = t('league.editor.gameDayLabel', { n: existingCount + 1 });
-            createGameDayFromResult(finishedResult, league, registeredPlayers, label);
+            gameDayId = createGameDayFromResult(finishedResult, league, registeredPlayers, label).id;
           }
         }
         // Auto-link result to series when tournament is linked to a series
+        let linkedSeriesId: string | undefined;
         if (config.seriesId && finishedResult.id) {
           const allSeries = loadAllSeries();
           const series = allSeries.find(s => s.id === config.seriesId);
           if (series) {
             const updated = addTournamentToSeries(series, finishedResult.id);
             saveSeries(updated);
+            linkedSeriesId = series.id;
           }
         }
+        savedArtifactsRef.current = { resultId: finishedResult.id, gameDayId, seriesId: linkedSeriesId };
       }
     }
     if (!tournamentFinished) {
       resultSavedRef.current = false;
     }
   }, [mode, tournamentFinished, finishedResult, config.leagueId, config.seriesId, t]);
+
+  // A new tournament (restart or back to setup) starts a fresh save session —
+  // earlier results must no longer be replaced.
+  useEffect(() => {
+    if (mode !== 'game') savedArtifactsRef.current = null;
+  }, [mode]);
 
   // Warn before navigating away during active tournament
   useEffect(() => {
@@ -680,7 +726,7 @@ function App() {
   const handleLevelChange = useCallback(() => {
     setLastHandActive(false);
     setShowDealerBadges(false);
-  }, []);
+  }, [setLastHandActive, setShowDealerBadges]);
   const { reset: resetVoice } = useVoiceAnnouncements({
     mode,
     settings,
@@ -719,7 +765,7 @@ function App() {
     for (const move of moves) {
       announceTableMove(move.playerName, move.toTableName, move.toSeat, t);
     }
-  }, [settings.voiceEnabled, t]);
+  }, [settings.voiceEnabled, t, setRecentTableMoves]);
 
   const {
     showSeatingOverlay,
@@ -759,6 +805,13 @@ function App() {
     },
   });
 
+  // A restart begins a new save session — a result already saved before the
+  // restart stays in history and must not be replaced by the next finish.
+  const handleRestartTournament = useCallback(() => {
+    savedArtifactsRef.current = null;
+    handleRestart();
+  }, [handleRestart]);
+
   // Destructure stable modal setters for useMemo dep array (avoids react-hooks/exhaustive-deps warning on `modals` object)
   const {
     setShowPlayerPanel, setShowSidebar, toggleCleanView,
@@ -785,7 +838,7 @@ function App() {
     onSkipBreak: handleSkipBreak,
     onExtendBreak: handleExtendBreak,
     onResetLevel: handleResetLevel,
-    onRestartTournament: handleRestart,
+    onRestartTournament: handleRestartTournament,
     onToggleCleanView: toggleCleanView,
     onLastHand: handleLastHand,
     onHandForHand: handleHandForHand,
@@ -806,7 +859,7 @@ function App() {
     updatePlayerRebuys, updatePlayerAddOn, eliminatePlayer, reinstatePlayer,
     handleAdvanceDealer, handleToggleDealerBadges, updatePlayerStack, initStacks, clearStacks,
     addLatePlayer, handleReEntry, setSidePotData, handleSkipBreak, handleExtendBreak,
-    handleResetLevel, handleRestart, handleLastHand, handleHandForHand, handleNextHand,
+    handleResetLevel, handleRestartTournament, handleLastHand, handleHandForHand, handleNextHand,
     handleUpdateTables, handleTableMoves, setSettings, toggleFullscreen, handleExitToSetup,
     canUseIcm, openFeatureGate, acceptDeal,
   ]);
@@ -1006,8 +1059,8 @@ function App() {
       {showRemoteControl && mode === 'game' && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
           <RemoteHostModal
-            peerId={remoteHostRef.current?.peerId ?? ''}
-            secret={remoteHostRef.current?.secret}
+            peerId={remoteHostPeerId ?? ''}
+            secret={remoteHostSecret ?? undefined}
             status={remoteHostStatus}
             controllerCount={remoteControllerCount}
             onClose={() => setShowRemoteControl(false)}
@@ -1019,8 +1072,8 @@ function App() {
       {modals.showShareHub && (
         <SectionErrorBoundary><Suspense fallback={<LoadingFallback />}>
           <ShareHub
-            sessionId={remoteHostRef.current?.peerId ?? null}
-            secret={remoteHostRef.current?.secret}
+            sessionId={remoteHostPeerId}
+            secret={remoteHostSecret ?? undefined}
             displayCount={displayCount}
             controllerCount={remoteControllerCount}
             localTVActive={tvWindowActive}
@@ -1157,7 +1210,7 @@ function App() {
             onShowInstallGuide={() => modals.setShowInstallGuide(true)}
             onShowIcm={() => modals.setShowIcm(true)}
             onResetLevel={handleResetLevel}
-            onRestartTournament={handleRestart}
+            onRestartTournament={handleRestartTournament}
             onExitToSetup={handleExitToSetup}
             canUseCustomAccent={canUseCustomAccent}
             canUseCustomBackground={canUseCustomBackground}

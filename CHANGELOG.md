@@ -5,6 +5,37 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [7.1.0] – 2026-06-13
+
+### 7MPX — plattformübergreifendes Austauschformat mit der iOS-App
+
+- **7MPX Interchange-Format v1**: Versioniertes JSON-Format zum Teilen von Turnier-Vorlagen, -Ergebnissen und Liga-Ständen zwischen Web- und nativer iOS-App. Spec identisch in beiden Repos unter `docs/7mpx-v1.md`.
+- **Neues Domain-Modul `interchange.ts`**: `encodeTemplate7mpx`/`encodeResult7mpx`/`encodeLeague7mpx`, `decode7mpx` (+ typisierte Decoder), `to7mpxHash`/`parse7mpxHash`, UTF-8-sichere Base64URL-Helfer. Validierung mit Versions-Reject, Prototype-Pollution-Schutz und Größenlimit. Template-Decoder generiert fehlende geräte-lokale IDs beim Import.
+- **`#7mpx=`-Import**: Beim App-Start werden geteilte Links erkannt — `template` lädt in Setup, `result` öffnet die Ergebnis-Ansicht, `league` die Liga-Tabelle (`useSharedPayloads` erweitert).
+- **Export-Einstieg**: „7MPX-Link"-Button im TemplateManager kopiert einen geräteübergreifend öffenbaren Link.
+- **Gemeinsame Test-Vektoren**: `test-fixtures/7mpx/{template,result,league}.json` (identisch in beiden Repos), Round-Trip-Tests in beiden Apps.
+- **21 neue Tests** (`tests/interchange.test.ts`) — **1420 Tests gesamt** (22 Testdateien)
+- **5 neue Translation-Keys** (DE+EN): `interchange.copyLink`, `interchange.linkCopied`, `interchange.linkHint`, `interchange.templateImported`
+
+## [7.0.1] – 2026-06-12
+
+### Qualitäts-Audit: React-Compiler-Freischaltung, Duplikat-Fix & Fehler-Feedback
+
+- **React Compiler für App.tsx freigeschaltet**: Alle `eslint-disable`-Blocker entfernt — App.tsx, ConfigEditor, SidePotCalculator, StatsDashboard und CrossDeviceDisplay werden jetzt vom React Compiler auto-memoisiert. Effekt-basierte State-Syncs durch Render-Phase-Adjustments ersetzt (React-Best-Practice), zirkuläre Callback-Abhängigkeit in CrossDeviceDisplay per Ref aufgelöst.
+- **Rules-of-React-Fix**: `remoteHostRef.current` wurde während des Renders gelesen (RemoteHostModal/ShareHub-Props). PeerId/Secret werden jetzt als State im `useRemoteControl`-Hook gespiegelt (`hostPeerId`, `hostSecret`).
+- **Duplikat-Fix bei Re-Elimination**: Reinstate → erneute Elimination erzeugte doppelte History-Einträge, Liga-Spieltage und Serien-Verknüpfungen. Die Save-Session merkt sich jetzt gespeicherte Artefakte und ersetzt sie statt zu duplizieren. Turnier-Neustart beginnt eine frische Session.
+- **Clipboard-Fehler-Feedback**: 11 stille `catch`-Blöcke beim Kopieren (TournamentLog, TemplateManager, TournamentHistory, SeriesManager, TournamentFinished, LeagueStandingsTable, LeagueManager, SidePotCalculator, ShareHub) zeigen jetzt einen Fehler-Toast.
+- **PDF-Export-Fehler-Toast**: Fehlgeschlagener PDF-Export zeigt Toast statt stillem console.warn.
+- **Vollbild-Fehler-Toast**: Abgelehnte/nicht verfügbare Fullscreen-API zeigt Hinweis.
+- **Währungs-Fix PayoutOverlay**: Hartkodiertes `€` durch `CURRENCY_SYMBOLS`-Lookup ersetzt (2 Stellen).
+- **A11y**: RemoteControl-Close-Button `aria-label`, PayoutEditor Template-Select `aria-label`, Validierungsfehler mit `role="alert"` + `aria-live`, GameDayEditor Move/Remove-Buttons auf 32px-Touch-Targets vergrößert.
+- **PeerJS-Reconnect-Cleanup**: CrossDeviceDisplay schließt alte DataConnection explizit vor Reconnect (Listener-Leak).
+- **Lint**: 20 Warnungen → 4 (verbleibend: 2 Security-False-Positives, 1 bewusster Mount-only-Effekt in RemoteControl, 1 bewusster Modul-Sync in LanguageContext).
+- **6 neue Translation-Keys** (3 DE + 3 EN): `clipboard.copyFailed`, `finished.pdfFailed`, `app.fullscreenFailed`
+- **1399 Tests gesamt** (21 Testdateien)
+
+---
+
 ## [7.0.0] – 2026-03-28
 
 ### UX, Tech & Product — 10 Improvements in 3 Phases

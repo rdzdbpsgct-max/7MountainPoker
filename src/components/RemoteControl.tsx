@@ -40,7 +40,7 @@ export function RemoteHostModal({ peerId, secret, status, controllerCount = 0, o
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="remote-host-title" className="bg-white/95 dark:bg-gray-900/95 border border-gray-300 dark:border-gray-700/50 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-in">
         <div className="flex items-center justify-between">
           <h3 id="remote-host-title" className="text-lg font-bold text-gray-900 dark:text-white">{t('remote.hostTitle')}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl">&times;</button>
+          <button onClick={onClose} aria-label={t('shared.close')} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl">&times;</button>
         </div>
 
         {(status === 'initializing' || status === null) && (

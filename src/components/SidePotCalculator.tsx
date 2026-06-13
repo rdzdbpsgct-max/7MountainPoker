@@ -276,10 +276,11 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
     }
   }, [onResultChange, result.pots, result.total, payoutResult]);
 
-  // Clear TV display data on unmount
+  // Clear TV display data on unmount (latest callback via ref to keep this unmount-only)
+  const onResultChangeRef = useRef(onResultChange);
+  useEffect(() => { onResultChangeRef.current = onResultChange; });
   useEffect(() => {
-    return () => { onResultChange?.(null); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => { onResultChangeRef.current?.(null); };
   }, []);
 
   const handleCopyResult = useCallback(async () => {
@@ -310,7 +311,9 @@ export function SidePotCalculator({ onClose, onResultChange, tournamentPlayers }
     try {
       await navigator.clipboard.writeText(lines.join('\n'));
       showToast(t('sidePot.copied'));
-    } catch { /* clipboard unavailable */ }
+    } catch {
+      showToast(t('clipboard.copyFailed'));
+    }
   }, [result, players, validWinnerSelections, payoutResult, t]);
 
   // Player name lookup

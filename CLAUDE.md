@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 7.0.0
+**Version**: 7.1.0
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -418,6 +418,10 @@ public/
 5. `npm run test` to verify logic
 6. `npm run build` to verify production build succeeds
 
+## Companion iOS App & 7MPX Interchange
+
+A native SwiftUI companion app lives at `~/Claudeprojekte/7mountainpoker-ios-app` (iOS 18, @Observable, SwiftData; Live Activities, widgets, App Intents, Multipeer remote). The two apps share a versioned JSON exchange format, **7MPX**, specified identically in both repos at `docs/7mpx-v1.md`. It covers `template` / `result` / `league` payloads for sharing via file, clipboard or QR (`#7mpx=`). Web docking points for a future `interchange.ts`: `exportConfigJSON`/`importConfigJSON`, `decodeResultFromQR`, `encodeLeagueStandingsForQR`. Keep both spec copies in sync when changing the schema.
+
 ## Documentation Sync
 
 When making changes to the project, **always update all three documentation files**:
@@ -425,7 +429,7 @@ When making changes to the project, **always update all three documentation file
 - **README.md** — Public-facing GitHub project page (features, badges, structure)
 - **CHANGELOG.md** — Human-readable changelog with all version history
 
-Version numbers, test counts, feature lists, and project structure must stay in sync.
+Version numbers, test counts, feature lists, and project structure must stay in sync. When a change affects cross-app behaviour or the 7MPX format, update `docs/7mpx-v1.md` in **both** repos.
 
 ## Gotchas
 
@@ -438,6 +442,26 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v7.1.0 — 7MPX: plattformübergreifendes Austauschformat mit der iOS-App
+
+- **7MPX Interchange v1** (`docs/7mpx-v1.md`, identisch in Web + iOS-Repo): versioniertes JSON für `template`/`result`/`league`, Transport via Datei/Clipboard/QR (`#7mpx=` Base64URL).
+- **`interchange.ts`**: Encoder/Decoder/Validierung + Hash-Helfer. Template-Import generiert fehlende geräte-lokale IDs. Prototype-Pollution-Schutz, Versions-Reject, Größenlimit.
+- **Empfang**: `useSharedPayloads` erkennt `#7mpx=` (template→Setup, result→SharedResultView, league→SharedLeagueView). **Export**: 7MPX-Link-Button im TemplateManager.
+- **Fixtures** unter `test-fixtures/7mpx/` (geteilt mit iOS). **21 neue Tests** → **1420 gesamt**.
+- iOS-Gegenstück: `Services/InterchangeFormat.swift` (Codable + Adapter), `ContentView.onOpenURL`, `InterchangeTests`.
+
+### v7.0.1 — Qualitäts-Audit: React-Compiler-Freischaltung, Duplikat-Fix & Fehler-Feedback
+
+- **React Compiler freigeschaltet**: Alle `eslint-disable`-Blocker entfernt — App.tsx, ConfigEditor, SidePotCalculator, StatsDashboard, CrossDeviceDisplay werden jetzt auto-memoisiert. Effekt-basierte State-Syncs durch Render-Phase-Adjustments ersetzt, zirkuläre Callback-Abhängigkeit in CrossDeviceDisplay per Ref aufgelöst.
+- **Rules-of-React-Fix**: `remoteHostRef.current`-Reads im Render entfernt — `hostPeerId`/`hostSecret` als State in `useRemoteControl` gespiegelt.
+- **Duplikat-Fix**: Reinstate → Re-Elimination ersetzt jetzt das zuvor gespeicherte Ergebnis/Spieltag/Serien-Link statt zu duplizieren (`savedArtifactsRef` in App.tsx). Turnier-Neustart startet eine frische Save-Session.
+- **Fehler-Feedback**: Clipboard-Fehler-Toast in 9 Komponenten, PDF-Export-Fehler-Toast, Vollbild-Fehler-Toast.
+- **Währung**: PayoutOverlay nutzt `CURRENCY_SYMBOLS` statt hartkodiertem `€`.
+- **A11y**: aria-label auf RemoteControl-Close + PayoutEditor-Select, `role="alert"` auf Validierungsfehlern, 32px-Touch-Targets im GameDayEditor.
+- **Lint**: 20 Warnungen → 4 (0 Errors).
+- **6 neue Translation-Keys** (3 DE + 3 EN): `clipboard.copyFailed`, `finished.pdfFailed`, `app.fullscreenFailed`
+- **1399 Tests gesamt** (21 Testdateien)
 
 ### v6.12.1 — Controls Redesign: Icon Buttons & Details Toggle
 

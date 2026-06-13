@@ -11,6 +11,10 @@ interface UseRemoteControlOptions {
 interface UseRemoteControlReturn {
   /** Ref to the RemoteHost instance (for sending state updates) */
   hostRef: React.RefObject<RemoteHost | null>;
+  /** Peer ID of the active host session (null when no host is running) */
+  hostPeerId: string | null;
+  /** HMAC secret of the active host session (null when no host is running) */
+  hostSecret: string | null;
   /** Current host status */
   hostStatus: HostStatus | null;
   /** Number of currently connected controller peers */
@@ -45,6 +49,9 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
   const [hostStatusRaw, setHostStatusRaw] = useState<HostStatus | null>(null);
   const [controllerCountRaw, setControllerCountRaw] = useState(0);
   const [hostResumed, setHostResumed] = useState(false);
+  // peerId/secret mirrored into state so consumers can render them
+  // without reading hostRef during render (rules-of-React violation)
+  const [hostInfo, setHostInfo] = useState<{ peerId: string; secret: string } | null>(null);
 
   // Keep onCommand ref fresh so the host always calls the latest handler
   const onCommandRef = useRef(onCommand);
@@ -97,9 +104,15 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
       persisted ? { peerId: persisted.peerId, secret: persisted.secret } : undefined,
     );
     hostRef.current = host;
+    setHostInfo({ peerId: host.peerId, secret: host.secret });
     setHostResumed(host.resumed);
     setShowRemoteModal(true);
   }, []);
+
+  // Clear mirrored host info when leaving game mode — render-phase adjustment
+  if (!enabled && hostInfo !== null) {
+    setHostInfo(null);
+  }
 
   // Cleanup host when switching away from game mode
   useEffect(() => {
@@ -112,6 +125,8 @@ export function useRemoteControl({ onCommand, enabled }: UseRemoteControlOptions
 
   return {
     hostRef,
+    hostPeerId: hostInfo?.peerId ?? null,
+    hostSecret: hostInfo?.secret ?? null,
     hostStatus,
     controllerCount,
     showRemoteModal,

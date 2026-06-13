@@ -298,7 +298,7 @@ export function useVoiceAnnouncements({
         fireAlertRef.current(alert, idx, activePlayerCountRef.current);
       }
     }
-  }, [timerState.currentLevelIndex]);
+  }, [timerState.currentLevelIndex, activePlayerCountRef, configLevelsRef, customAlertsRef, displaySecondsRef, modeRef]);
 
   // Custom alerts: time_remaining
   useEffect(() => {
@@ -318,7 +318,7 @@ export function useVoiceAnnouncements({
         fireAlertRef.current(alert, idx, activePlayerCountRef.current);
       }
     }
-  }, [displaySeconds]);
+  }, [displaySeconds, activePlayerCountRef, currentLevelIndexRef, customAlertsRef, displaySecondsRef, modeRef]);
 
   // Custom alerts: player_count
   const prevActiveForAlertsRef = useRef(activePlayerCount);
@@ -344,7 +344,7 @@ export function useVoiceAnnouncements({
       }
     }
     prevActiveForAlertsRef.current = activePlayerCount;
-  }, [activePlayerCount]);
+  }, [activePlayerCount, currentLevelIndexRef, customAlertsRef, displaySecondsRef, modeRef]);
 
   // Reset function for switchToSetup
   const reset = useCallback(() => {
