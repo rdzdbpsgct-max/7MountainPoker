@@ -13,12 +13,15 @@ import type {
   PointSystem,
   Currency,
 } from './types';
+import { deflateSync, inflateSync } from 'fflate';
 import { parseConfigObject } from './configPersistence';
 import { generateId, generatePlayerId } from './helpers';
 
 export const SEVENMPX_FMT = '7mpx' as const;
 export const SEVENMPX_VERSION = 1 as const;
 export const SEVENMPX_HASH_PREFIX = '#7mpx=';
+/** Marks a compressed (raw-DEFLATE) hash payload. Plain payloads omit it (backward compatible). */
+export const SEVENMPX_COMPRESSION_MARKER = 'z.';
 /** Hard cap on accepted payload size (defensive, matches QR/URL limits). */
 const MAX_ENCODED_BYTES = 64 * 1024;
 
@@ -54,18 +57,24 @@ const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 // Base64URL (UTF-8 safe) — for #7mpx= hash / QR transport
 // ---------------------------------------------------------------------------
 
-export function toBase64Url(text: string): string {
-  const bytes = new TextEncoder().encode(text);
+function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = '';
   for (const b of bytes) binary += String.fromCharCode(b);
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-export function fromBase64Url(encoded: string): string {
+function base64UrlToBytes(encoded: string): Uint8Array {
   const b64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
   const binary = atob(b64);
-  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
+  return Uint8Array.from(binary, (c) => c.charCodeAt(0));
+}
+
+export function toBase64Url(text: string): string {
+  return bytesToBase64Url(new TextEncoder().encode(text));
+}
+
+export function fromBase64Url(encoded: string): string {
+  return new TextDecoder().decode(base64UrlToBytes(encoded));
 }
 
 // ---------------------------------------------------------------------------
@@ -114,9 +123,19 @@ export function encodeLeague7mpx(payload: SevenMpxLeaguePayload, pretty = false)
   return wrap('league', payload, pretty);
 }
 
-/** Wrap any 7MPX JSON string into a `#7mpx=<base64url>` hash for QR / links. */
+/**
+ * Wrap a 7MPX JSON string into a `#7mpx=` hash for QR / links.
+ * Compresses with raw DEFLATE (fflate, compatible with Apple Compression on iOS)
+ * when that yields a shorter payload — keeps links short enough for QR codes.
+ * Compressed payloads carry a `z.` marker; plain payloads stay backward compatible.
+ */
 export function to7mpxHash(json: string): string {
-  return SEVENMPX_HASH_PREFIX + toBase64Url(json);
+  const raw = new TextEncoder().encode(json);
+  const deflated = deflateSync(raw);
+  if (deflated.length < raw.length) {
+    return SEVENMPX_HASH_PREFIX + SEVENMPX_COMPRESSION_MARKER + bytesToBase64Url(deflated);
+  }
+  return SEVENMPX_HASH_PREFIX + bytesToBase64Url(raw);
 }
 
 // ---------------------------------------------------------------------------
@@ -163,20 +182,48 @@ export function decode7mpx(input: string): SevenMpxEnvelope | null {
   }
 }
 
-/** Decode a `#7mpx=` hash (or raw base64url) into an envelope. */
-export function parse7mpxHash(hash: string): SevenMpxEnvelope | null {
+/**
+ * Extract & validate the raw 7MPX JSON string from a `#7mpx=` / `7mpx=` hash
+ * (or raw encoded payload). Handles both compressed (`z.`-prefixed, raw DEFLATE)
+ * and plain payloads, and tolerates URL-encoded input. Returns null if invalid.
+ */
+export function json7mpxFromHash(hash: string): string | null {
+  if (typeof hash !== 'string') return null;
+  const encoded = hash.startsWith(SEVENMPX_HASH_PREFIX)
+    ? hash.slice(SEVENMPX_HASH_PREFIX.length)
+    : hash.startsWith('7mpx=')
+      ? hash.slice('7mpx='.length)
+      : hash;
+  if (!encoded) return null;
+
+  for (const candidate of [encoded, safeDecodeURIComponent(encoded)]) {
+    if (candidate == null) continue;
+    const json = decodeEncodedPayload(candidate);
+    if (json && decode7mpx(json)) return json;
+  }
+  return null;
+}
+
+function safeDecodeURIComponent(s: string): string | null {
+  try { return decodeURIComponent(s); } catch { return null; }
+}
+
+function decodeEncodedPayload(encoded: string): string | null {
   try {
-    if (typeof hash !== 'string') return null;
-    const encoded = hash.startsWith(SEVENMPX_HASH_PREFIX)
-      ? hash.slice(SEVENMPX_HASH_PREFIX.length)
-      : hash.startsWith('7mpx=')
-        ? hash.slice('7mpx='.length)
-        : hash;
-    if (!encoded) return null;
-    return decode7mpx(fromBase64Url(decodeURIComponent(encoded)));
+    if (encoded.startsWith(SEVENMPX_COMPRESSION_MARKER)) {
+      const bytes = base64UrlToBytes(encoded.slice(SEVENMPX_COMPRESSION_MARKER.length));
+      return new TextDecoder().decode(inflateSync(bytes));
+    }
+    return new TextDecoder().decode(base64UrlToBytes(encoded));
   } catch {
     return null;
   }
+}
+
+/** Decode a `#7mpx=` hash (or raw base64url) into an envelope. */
+export function parse7mpxHash(hash: string): SevenMpxEnvelope | null {
+  const json = json7mpxFromHash(hash);
+  return json ? decode7mpx(json) : null;
 }
 
 /**

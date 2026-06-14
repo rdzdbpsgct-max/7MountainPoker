@@ -59,10 +59,27 @@ Ein Parser MUSS ablehnen, wenn `fmt !== "7mpx"`, `kind` unbekannt ist, oder
 |---|---|
 | Datei (`.7mpx.json`) | UTF-8 JSON, optional pretty-printed |
 | Clipboard | UTF-8 JSON, kompakt (keine Whitespaces) |
-| QR / Deep-Link | `#7mpx=<base64url(JSON)>` an die App-URL bzw. Custom-Scheme `sevenmtn://7mpx=<...>` |
+| QR / Deep-Link | `#7mpx=<[z.]base64url(payload)>` an die App-URL bzw. Custom-Scheme `sevenmtn://7mpx=<...>` |
 
-QR-Limit beachten: Ein `result`-Payload mit vollem Event-Log kann groß werden.
-Für QR gilt: **Event-Log (`events`) weglassen**, wenn die kodierte Länge
+### Kompression (für QR-taugliche Linklänge)
+
+Der base64url-kodierte Payload **darf raw-DEFLATE-komprimiert** sein (RFC 1951,
+ohne zlib/gzip-Header). Komprimierte Payloads werden mit dem Präfix **`z.`**
+direkt nach `7mpx=` markiert; unkomprimierte Payloads haben kein Präfix und
+bleiben **rückwärtskompatibel** (ältere Links dekodieren unverändert).
+
+Decoder-Regel: Beginnt der Teil nach `7mpx=` mit `z.`, dann base64url-dekodieren
+→ raw-inflate → UTF-8-JSON; sonst base64url-dekodieren → UTF-8-JSON.
+
+Codec-Kompatibilität: **Web** nutzt `fflate` `deflateSync`/`inflateSync`
+(raw DEFLATE), **iOS** `Compression`-Framework `COMPRESSION_ZLIB`
+(ebenfalls raw DEFLATE) — byte-kompatibel (durch geteiltes Test-Fixture
+verifiziert). Ein volles 25-Level-Template schrumpft so von ~3,6 kB auf
+~0,5 kB Link und passt damit in einen QR-Code.
+
+QR-Limit beachten: Ein `result`-Payload mit vollem Event-Log kann auch
+komprimiert groß werden. Für QR gilt zusätzlich: **Event-Log (`events`)
+weglassen**, wenn die kodierte Länge
 > 2 KB überschreitet. Der Envelope SOLL dann `payload.truncated: true` setzen.
 
 ---

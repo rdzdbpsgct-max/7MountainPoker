@@ -11,6 +11,7 @@ import {
   decodeLeague7mpx,
   to7mpxHash,
   parse7mpxHash,
+  json7mpxFromHash,
   toBase64Url,
   fromBase64Url,
   SEVENMPX_HASH_PREFIX,
@@ -194,5 +195,41 @@ describe('7MPX hash transport', () => {
 
   it('parse7mpxHash returns null on garbage', () => {
     expect(parse7mpxHash('#7mpx=@@@not-base64@@@')).toBeNull();
+  });
+});
+
+describe('7MPX compression (raw DEFLATE)', () => {
+  // A full standard structure (25 levels) — the realistic worst case for QR size.
+  const bigConfig = (() => {
+    const cfg = defaultConfig();
+    cfg.levels = Array.from({ length: 25 }, (_, i) => ({
+      id: `l${i}`, type: 'level' as const, smallBlind: 25 * (i + 1), bigBlind: 50 * (i + 1), ante: 0, durationSeconds: 1200,
+    }));
+    return cfg;
+  })();
+
+  it('compresses a large template hash (z. marker) and round-trips', () => {
+    const hash = to7mpxHash(encodeTemplate7mpx(bigConfig));
+    expect(hash.startsWith('#7mpx=z.')).toBe(true);
+    // Must fit inside a QR code (byte-mode capacity < 2953).
+    expect(hash.length).toBeLessThan(1500);
+    const cfg = decodeTemplate7mpx(json7mpxFromHash(hash)!);
+    expect(cfg).not.toBeNull();
+    expect(cfg!.levels.length).toBe(25);
+  });
+
+  it('still decodes a plain (uncompressed, legacy) hash', () => {
+    // Simulate an old-style link without the z. marker.
+    const legacy = SEVENMPX_HASH_PREFIX + toBase64Url(encodeTemplate7mpx(defaultConfig()));
+    const env = parse7mpxHash(legacy);
+    expect(env).not.toBeNull();
+    expect(env!.kind).toBe('template');
+  });
+
+  it('round-trips result and league through compressed hashes', () => {
+    const rHash = to7mpxHash(encodeResult7mpx(sampleResult));
+    expect(decodeResult7mpx(json7mpxFromHash(rHash)!)?.name).toBe('Freitagsrunde');
+    const lHash = to7mpxHash(encodeLeague7mpx(sampleLeague));
+    expect(decodeLeague7mpx(json7mpxFromHash(lHash)!)?.leagueName).toBe('Mittwochsliga 2026');
   });
 });

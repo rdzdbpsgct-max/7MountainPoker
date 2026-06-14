@@ -6,7 +6,7 @@ import {
   decodeTemplate7mpx,
   decodeResult7mpx,
   decodeLeague7mpx,
-  fromBase64Url,
+  json7mpxFromHash,
   SEVENMPX_HASH_PREFIX,
 } from '../domain/logic';
 import type { TournamentConfig } from '../domain/types';
@@ -18,24 +18,6 @@ const clearHash = () => {
   history.replaceState(null, '', window.location.pathname + window.location.search);
 };
 
-/** Extract the raw 7MPX JSON string from a `#7mpx=` hash, or null. */
-function json7mpxFromHash(hash: string): string | null {
-  if (!hash.startsWith(SEVENMPX_HASH_PREFIX)) return null;
-  const encoded = hash.slice(SEVENMPX_HASH_PREFIX.length);
-  for (const candidate of [encoded, safeDecodeURIComponent(encoded)]) {
-    if (!candidate) continue;
-    try {
-      const json = fromBase64Url(candidate);
-      if (decode7mpx(json)) return json;
-    } catch { /* try next */ }
-  }
-  return null;
-}
-
-function safeDecodeURIComponent(s: string): string | null {
-  try { return decodeURIComponent(s); } catch { return null; }
-}
-
 /** Decode a `#7mpx=` envelope once on mount, routed by kind. */
 function read7mpx(): {
   result: SharedResult | null;
@@ -43,7 +25,9 @@ function read7mpx(): {
   template: TournamentConfig | null;
 } {
   const empty = { result: null, league: null, template: null };
-  const json = json7mpxFromHash(window.location.hash);
+  const hash = window.location.hash;
+  if (!hash.startsWith(SEVENMPX_HASH_PREFIX)) return empty;
+  const json = json7mpxFromHash(hash);
   if (!json) return empty;
   const env = decode7mpx(json);
   if (!env) return empty;

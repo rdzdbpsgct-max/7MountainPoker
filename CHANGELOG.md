@@ -5,6 +5,23 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [7.2.0] – 2026-06-14
+
+### 7MPX-Kompression + QR-Codes (iOS) — QR-taugliche Links
+
+- **Raw-DEFLATE-Kompression** des 7MPX-Hash-Payloads (`fflate` auf Web,
+  `Compression`-Framework auf iOS — byte-kompatibel, per geteiltem Test-Fixture
+  verifiziert). `z.`-Präfix markiert komprimierte Payloads, unkomprimierte
+  Links bleiben rückwärtskompatibel. Ein volles 25-Level-Template schrumpft von
+  ~3,6 kB auf ~0,5 kB → passt jetzt in einen QR-Code.
+- **iOS QR-Codes**: `Services/QRCode.swift` (`CIFilter.qrCodeGenerator`) +
+  `QRCodeShareSheet` — scannbarer QR-Code für 7MPX-Vorlagen (TemplatesSheet:
+  Menü „Als QR-Code" + Swipe-Aktion). Auf einem Gerät zeigen, mit einem anderen
+  scannen (Web oder iOS).
+- **Neue Dependency**: `fflate` (~8 kB, ES2020-kompatibel).
+- 1423 Unit-Tests + 21 E2E grün; iOS Build + Interchange/QRCode-Tests grün.
+- Spec `docs/7mpx-v1.md` (beide Repos) um Kompressions-Abschnitt erweitert.
+
 ## [7.1.2] – 2026-06-14
 
 ### 7MPX vollständig bidirektional + In-App-Hilfe

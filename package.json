@@ -1,7 +1,7 @@
 {
   "name": "7mountain-poker",
   "private": true,
-  "version": "7.1.2",
+  "version": "7.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -20,6 +20,7 @@
     "@sentry/react": "^10.43.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "fflate": "^0.8.3",
     "html-to-image": "^1.11.13",
     "idb": "^8.0.3",
     "jspdf": "^4.2.1",

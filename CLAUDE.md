@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 7.1.2
+**Version**: 7.2.0
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -442,6 +442,12 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v7.2.0 — 7MPX-Kompression + QR-Codes (iOS)
+
+- **Raw-DEFLATE-Kompression** des 7MPX-Hash-Payloads: `fflate` (`deflateSync`/`inflateSync`) auf Web, `Compression`-Framework (`COMPRESSION_ZLIB`) auf iOS — byte-kompatibel (geteiltes Fixture verifiziert). `z.`-Präfix markiert komprimierte Payloads; unkomprimierte Links bleiben rückwärtskompatibel. 25-Level-Template: ~3,6 kB → ~0,5 kB Link.
+- **iOS QR-Codes**: `Services/QRCode.swift` (`CIFilter.qrCodeGenerator`) + `Components/QRCodeShareSheet.swift`, im TemplatesSheet (Menü + Swipe). Komprimierte Links passen jetzt in QR-Codes.
+- Neue Dependency Web: `fflate`. Spec `docs/7mpx-v1.md` (beide Repos) um Kompression erweitert. 1423 Unit + 21 E2E + iOS-Tests grün.
 
 ### v7.1.2 — 7MPX vollständig bidirektional + In-App-Hilfe
 
