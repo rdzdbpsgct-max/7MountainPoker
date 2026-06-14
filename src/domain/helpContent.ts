@@ -107,6 +107,13 @@ export const helpSections: HelpSection[] = [
           en: 'Game state is auto-saved on every action. On app restart, you can resume or discard the running tournament. The timer is always restored paused.',
         },
       },
+      {
+        title: { de: '7MPX-Link teilen (Web ↔ iOS)', en: 'Share via 7MPX Link (Web ↔ iOS)' },
+        body: {
+          de: 'Mit dem "7MPX-Link"-Button (im Vorlagen-Dialog, auf dem Ergebnis-Screen und in der Liga-Tabelle) kopierst du einen Link, der die Vorlage, das Ergebnis oder die Liga-Tabelle auf jedem Gerät öffnet — in der Web-App genauso wie in der nativen iOS-App. Ideal, um eine Turnierstruktur vom iPhone aufs TV-Display zu bringen oder Ergebnisse zu teilen. Das Format heißt 7MPX und ist in beiden Apps identisch.',
+          en: 'The "7MPX link" button (in the templates dialog, on the results screen, and in the league table) copies a link that opens the template, result, or league standings on any device — in the web app and in the native iOS app alike. Perfect for moving a tournament structure from your iPhone to the TV display or sharing results. The format is called 7MPX and is identical across both apps.',
+        },
+      },
     ],
   },
   {
@@ -640,6 +647,13 @@ export const helpSections: HelpSection[] = [
 ];
 
 export const faqEntries: FaqEntry[] = [
+  {
+    question: { de: 'Wie teile ich eine Vorlage/ein Ergebnis mit der iOS-App?', en: 'How do I share a template/result with the iOS app?' },
+    answer: {
+      de: 'Nutze den "7MPX-Link"-Button (Vorlagen-Dialog, Ergebnis-Screen, Liga-Tabelle). Der kopierte Link öffnet die Daten auf jedem Gerät — in der Web-App und in der iOS-App. Umgekehrt erzeugt die iOS-App ebenfalls 7MPX-Links, die hier per Link-Aufruf importiert werden.',
+      en: 'Use the "7MPX link" button (templates dialog, results screen, league table). The copied link opens the data on any device — in the web app and in the iOS app. The iOS app likewise creates 7MPX links that import here when opened.',
+    },
+  },
   {
     question: { de: 'Wie starte ich ein Turnier?', en: 'How do I start a tournament?' },
     answer: {

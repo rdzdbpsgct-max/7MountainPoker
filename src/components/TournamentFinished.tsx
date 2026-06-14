@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import type { Player, PayoutConfig, BountyConfig, RebuyConfig, AddOnConfig, TournamentResult, TournamentEvent, Currency } from '../domain/types';
 import { CURRENCY_SYMBOLS } from '../domain/types';
-import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, formatResultAsHendonMobCSV, formatEventAsText, formatTime } from '../domain/logic';
+import { computeTotalRebuys, computeTotalAddOns, computePrizePool, computePayouts, computeRebuyPot, formatResultAsText, formatResultAsCSV, formatResultAsHendonMobCSV, formatEventAsText, formatTime, encodeResult7mpx, to7mpxHash } from '../domain/logic';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
 import { ChevronIcon } from './ChevronIcon';
@@ -58,6 +58,18 @@ export function TournamentFinished({
       showToast(t('clipboard.copyFailed'));
     }
   }, [tournamentResult, language, t]);
+
+  const handleCopy7mpxLink = useCallback(async () => {
+    if (!tournamentResult) return;
+    const link = window.location.origin + window.location.pathname +
+      to7mpxHash(encodeResult7mpx(tournamentResult, { forQR: true }));
+    try {
+      await navigator.clipboard.writeText(link);
+      showToast(t('interchange.linkCopied'));
+    } catch {
+      showToast(t('clipboard.copyFailed'));
+    }
+  }, [tournamentResult, t]);
 
   const handleDownloadCSV = useCallback(() => {
     if (!tournamentResult) return;
@@ -587,6 +599,13 @@ export function TournamentFinished({
               title={t('finished.print')}
             >
               {t('finished.print')}
+            </button>
+            <button
+              onClick={handleCopy7mpxLink}
+              className="flex-1 px-4 py-2.5 bg-gray-100/80 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200 dark:border-gray-700/40 active:scale-[0.97]"
+              title={t('interchange.linkHint')}
+            >
+              {t('interchange.copyLink')}
             </button>
           </div>
           <div className="flex gap-2">

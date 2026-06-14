@@ -5,6 +5,16 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [7.1.2] – 2026-06-14
+
+### 7MPX vollständig bidirektional + In-App-Hilfe
+
+- **Web-Export erweitert**: 7MPX-Link-Buttons jetzt auch auf dem Ergebnis-Screen (TournamentFinished) und in der Liga-Tabelle (LeagueStandingsTable) — nicht mehr nur für Vorlagen. Damit sind alle drei Payload-Typen (template/result/league) sowohl sende- als auch empfangsseitig verdrahtet.
+- **iOS-Teilen**: TemplatesSheet teilt jetzt die aktuelle Konfiguration und einzelne gespeicherte Vorlagen als universellen 7MPX-Web-Link (Menü + Swipe-Aktion, via Share-Sheet). Link öffnet auf jedem Gerät (Web oder iOS).
+- **URL-Scheme verifiziert**: `sevenmtn://7mpx=`-Deep-Link auf dem iOS-Simulator getestet — iOS routet den Link korrekt an die App (OS-seitige Registrierung bestätigt).
+- **In-App-Hilfe**: Neuer Help-Center-Eintrag + FAQ zum 7MPX-Teilen (DE/EN).
+- 1420 Unit-Tests + 21 E2E grün; iOS-Build + InterchangeTests grün.
+
 ## [7.1.1] – 2026-06-14
 
 ### Bugfix: Listen-Aktualisierung nach Speichern + E2E-Suite repariert

@@ -4,7 +4,7 @@
 
 Poker tournament timer — a fully client-side React/TypeScript SPA for managing home poker tournaments. Handles blind levels, timers, player tracking, rebuys, bounties, chip management, and payouts. No server required, all data persisted in IndexedDB (with localStorage fallback).
 
-**Version**: 7.1.1
+**Version**: 7.1.2
 **Live**: Deployed to [GitHub Pages](https://rdzdbpsgct-max.github.io/7MountainPoker/) and [Vercel](https://7mountainpoker.vercel.app/)
 
 ## Tech Stack
@@ -442,6 +442,17 @@ Version numbers, test counts, feature lists, and project structure must stay in 
 - When chips are enabled, the blind generator uses the smallest chip denomination as rounding base
 
 ## Changelog
+
+### v7.1.2 — 7MPX vollständig bidirektional + In-App-Hilfe
+
+- 7MPX-Link-Export auf Ergebnis-Screen (TournamentFinished) und Liga-Tabelle (LeagueStandingsTable) ergänzt (vorher nur Vorlagen). Alle 3 Payload-Typen sende- + empfangsseitig.
+- iOS TemplatesSheet teilt aktuelle Konfiguration + einzelne Vorlagen als universellen 7MPX-Web-Link (Menü + Swipe, Share-Sheet) via `ShareContent.templateShareItems`.
+- `sevenmtn://`-URL-Scheme auf Simulator verifiziert (OS routet Deep-Link an App). In-App-Hilfe + FAQ zum 7MPX-Teilen.
+
+### v7.1.1 — Bugfix: Listen-Re-Render nach Speichern + E2E-Suite repariert
+
+- `setCachedItem`/`deleteCachedItem` erzeugen neue Array-Referenz (immutable) → Vorlagen-/Liga-/Serien-/Historien-Listen aktualisieren nach Speichern/Löschen sofort.
+- E2E-Suite repariert (Wizard/Setup-Tab-`data-testid`s, neue Texte), alle 21 E2E grün, CI-Deploy wieder grün.
 
 ### v7.1.0 — 7MPX: plattformübergreifendes Austauschformat mit der iOS-App
 

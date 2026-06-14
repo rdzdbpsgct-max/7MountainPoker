@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { League, ExtendedLeagueStanding, GameDay, RankingAlgorithm } from '../domain/types';
-import { formatLeagueStandingsAsText, formatLeagueStandingsAsCSV, encodeLeagueStandingsForQR, normalizePlayerName } from '../domain/logic';
+import { formatLeagueStandingsAsText, formatLeagueStandingsAsCSV, encodeLeagueStandingsForQR, normalizePlayerName, encodeLeague7mpx, to7mpxHash } from '../domain/logic';
 import { Sparkline } from './Sparkline';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
@@ -118,6 +118,29 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
     window.print();
   }, []);
 
+  const handleCopy7mpxLink = useCallback(async () => {
+    if (standings.length === 0) return;
+    const json = encodeLeague7mpx({
+      name: league.name,
+      ...(league.pointSystem ? { pointSystem: league.pointSystem } : {}),
+      standings: standings.map((s) => ({
+        rank: s.rank,
+        name: s.name,
+        points: s.points,
+        tournaments: s.tournaments,
+        wins: s.wins,
+        netBalance: s.netBalance,
+      })),
+    });
+    const link = window.location.origin + window.location.pathname + to7mpxHash(json);
+    try {
+      await navigator.clipboard.writeText(link);
+      showToast(t('interchange.linkCopied'));
+    } catch {
+      showToast(t('clipboard.copyFailed'));
+    }
+  }, [league, standings, t]);
+
   const qrValue = useMemo(() => {
     if (standings.length === 0) return '';
     const base = window.location.origin + window.location.pathname;
@@ -206,6 +229,13 @@ export function LeagueStandingsTable({ league, standings, gameDays, onUpdatePoin
               className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded transition-colors"
             >
               {t('league.standings.downloadCSV')}
+            </button>
+            <button
+              onClick={handleCopy7mpxLink}
+              className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded transition-colors"
+              title={t('interchange.linkHint')}
+            >
+              {t('interchange.copyLink')}
             </button>
             <button
               onClick={handlePrint}

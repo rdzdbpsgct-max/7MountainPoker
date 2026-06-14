@@ -6,7 +6,7 @@
 
 **Der Poker-Turnier-Timer für deinen Spieleabend**
 
-[![Version](https://img.shields.io/badge/Version-7.1.1-blue?style=flat-square)](#)
+[![Version](https://img.shields.io/badge/Version-7.1.2-blue?style=flat-square)](#)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-34d399?style=flat-square&logo=github)](https://rdzdbpsgct-max.github.io/7MountainPoker/)
 [![Vercel](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=flat-square&logo=vercel)](https://7mountainpoker.vercel.app/)
 [![Tests](https://img.shields.io/badge/Tests-1380%20passed-brightgreen?style=flat-square)](#)
@@ -74,6 +74,7 @@ Eine vollständig clientseitige Web-App zur Verwaltung von Poker-Heimturnieren. 
 | Clean View | Reduzierte Ansicht im Spielmodus — nur Timer, Blinds und Bubble (Taste: F) |
 | Screenshot/Teilen | Turnier-Ergebnisse als PNG — Web Share API auf Mobile, Download auf Desktop |
 | QR-Codes | App-URL + Turnierergebnis als QR-Code — scannen und Ergebnis in der App sehen |
+| 7MPX-Austausch | Vorlagen, Ergebnisse & Liga-Tabellen als plattformübergreifenden „7MPX"-Link teilen — öffnet auf Web **und** der nativen iOS-App (`#7mpx=` / `sevenmtn://`) |
 | Sound | Countdown-Beeps, Level-Ende, Bubble-Spannung, ITM-Fanfare, Sieges-Melodie (Web Audio API) |
 | Sprachansagen | Professionelle ElevenLabs-MP3-Stimmen (Deutsch + Englisch) für Level-Wechsel, Pausen (1–30 Min), 5-Min-Warnung, Letzte Hand, Bubble, dynamische Spieleranzahl (basierend auf Auszahlungsplätzen), Heads-Up, ITM, Eliminierungen, Rebuys, Sieger, Turnierstart, Color-Up, Tischwechsel, Timer-Status. Dreistufiger Fallback: Web Audio API → HTMLAudioElement → Web Speech API. 590 Audio-Dateien (295 pro Sprache), offline via PWA. |
 | TV-Modus | Split-Layout: Timer permanent oben, 8 rotierende Screens unten (Spieler, Stats, Auszahlung, Blindstruktur, Chips, Sitzplan, Liga, Side-Pots) — optimiert für TV/Beamer. 4 Display-Layouts (Standard, Kompakt, Timer-Only, Ultra Large). Sofortige Anzeige beim Öffnen (auch bei pausiertem Timer) |
@@ -188,6 +189,7 @@ A fully client-side web app for managing home poker tournaments. No server, no a
 | Clean view | Reduced game mode — only timer, blinds and bubble visible (key: F) |
 | Screenshot/share | Tournament results as PNG — Web Share API on mobile, download on desktop |
 | QR Codes | App URL + tournament result as QR code — scan and view results in the app |
+| 7MPX exchange | Share templates, results & league standings as a cross-platform "7MPX" link — opens in the web app **and** the native iOS app (`#7mpx=` / `sevenmtn://`) |
 | Sound | Countdown beeps, level end, bubble tension, ITM fanfare, victory melody (Web Audio API) |
 | Voice announcements | Professional ElevenLabs MP3 voices (German + English) for level changes, breaks (1–30 min), 5-min warning, last hand, bubble, dynamic player count milestones (based on paid places), heads-up, ITM, eliminations, rebuys, winner, tournament start, color-up, table moves, timer status. Triple fallback: Web Audio API → HTMLAudioElement → Web Speech API. 590 audio files (295 per language), offline via PWA. |
 | Clock display | Real-time clock in game mode header — never lose track of time at the table |
