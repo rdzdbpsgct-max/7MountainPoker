@@ -283,6 +283,7 @@ export function SetupWizard({ onComplete, onSkip }: Props) {
             )}
             {isLast ? (
               <button
+                data-testid="wizard-start"
                 onClick={handleComplete}
                 className="px-6 py-2 btn-accent-gradient text-white rounded-lg text-sm font-bold transition-all duration-200 active:scale-[0.97]"
               >
@@ -290,6 +291,7 @@ export function SetupWizard({ onComplete, onSkip }: Props) {
               </button>
             ) : (
               <button
+                data-testid="wizard-next"
                 onClick={goNext}
                 className="px-6 py-2 btn-accent-gradient text-white rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97]"
               >

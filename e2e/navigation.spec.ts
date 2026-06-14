@@ -23,9 +23,8 @@ test.describe('Navigation — Mode Switching', () => {
   test('Language switching DE → EN', async ({ page }) => {
     await goToSetup(page);
 
-    // Default language is German — verify a German UI element
-    // The start button should contain "Turnier starten" (German)
-    const startBtn = page.locator('button:has-text("Turnier starten")').first();
+    // Default language is German — the persistent start button says "Spiel starten"
+    const startBtn = page.locator('button:has-text("Spiel starten")').first();
     await expect(startBtn).toBeVisible({ timeout: 10000 });
 
     // Find and click the EN language button to switch to English
@@ -35,8 +34,8 @@ test.describe('Navigation — Mode Switching', () => {
     await enButton.click();
     await page.waitForTimeout(500);
 
-    // Verify UI text changed to English — start button should now say "Start Tournament"
-    const startBtnEn = page.locator('button:has-text("Start Tournament")').first();
+    // Verify UI text changed to English — start button should now say "Start Game"
+    const startBtnEn = page.locator('button:has-text("Start Game")').first();
     await expect(startBtnEn).toBeVisible({ timeout: 5000 });
 
     // Switch back to German
@@ -46,6 +45,6 @@ test.describe('Navigation — Mode Switching', () => {
     await page.waitForTimeout(500);
 
     // Verify back to German
-    await expect(page.locator('button:has-text("Turnier starten")').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('button:has-text("Spiel starten")').first()).toBeVisible({ timeout: 5000 });
   });
 });

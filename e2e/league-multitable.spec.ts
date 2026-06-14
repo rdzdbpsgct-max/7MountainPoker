@@ -44,6 +44,10 @@ test.describe('League and Multi-Table happy paths', () => {
     // Use completeWizard to get 6 players (needed for multi-table section to appear)
     await completeWizard(page);
 
+    // Multi-Table lives on the Players tab (tab index 1) — navigate there first
+    await page.getByTestId('setup-tab-1').click();
+    await page.waitForTimeout(300);
+
     // Open the Multi-Table collapsible section
     const multiTableSectionToggle = page.locator('button:has-text("Multi-Table")').first();
     await expect(multiTableSectionToggle).toBeVisible({ timeout: 8000 });

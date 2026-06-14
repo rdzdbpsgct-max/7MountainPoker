@@ -5,6 +5,14 @@ All notable changes to the 7Mountain Poker app.
 
 ---
 
+## [7.1.1] – 2026-06-14
+
+### Bugfix: Listen-Aktualisierung nach Speichern + E2E-Suite repariert
+
+- **Echter Bug behoben**: Nach dem Speichern/Löschen einer Vorlage (sowie Liga/Serie/Historie/Spieler) aktualisierte sich die Liste im Modal nicht, weil `setCachedItem`/`deleteCachedItem` das gecachte Array in-place mutierten und `getCached` dieselbe Referenz zurückgab — `setState(getCached(...))` wurde von React als unverändert übersprungen. Die Setter erzeugen jetzt eine neue Array-Referenz (immutable update). Kein Performance-Effekt auf Read-Pfaden.
+- **E2E-Suite repariert** (war seit Tagen rot, blockierte den GitHub-Pages-Deploy): Ursache war Test-Drift nach dem Setup-Redesign (Tabs) und ein veralteter Wizard-Selektor, der einen gleichnamigen Button hinter dem Wizard-Backdrop traf. Stabile `data-testid`s an Wizard- (`wizard-next`/`wizard-start`) und Setup-Tab-Buttons (`setup-tab-N`); Tests auf neue Texte (`Spiel starten`/`Start Game`) und Tab-Navigation umgestellt.
+- **Alle 21 E2E-Tests grün**, 1420 Unit-Tests grün, Lint 0 Errors.
+
 ## [7.1.0] – 2026-06-13
 
 ### 7MPX — plattformübergreifendes Austauschformat mit der iOS-App

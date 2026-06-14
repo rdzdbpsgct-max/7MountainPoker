@@ -281,11 +281,16 @@ export function setCached<K extends StoreKey>(store: K, value: StoreTypeMap[K]):
 export function setCachedItem<K extends CollectionStore>(store: K, item: CollectionItemMap[K]): void {
   const arr = cache[store] as Array<{ id: string }>;
   const idx = arr.findIndex((existing) => existing.id === (item as { id: string }).id);
+  // Replace the array with a new reference (immutable update) so React consumers
+  // that do setState(getCached(store)) after a mutation actually re-render —
+  // an in-place mutation would keep the same reference and be skipped.
+  const next = arr.slice();
   if (idx >= 0) {
-    arr[idx] = item as { id: string };
+    next[idx] = item as { id: string };
   } else {
-    arr.push(item as { id: string });
+    next.push(item as { id: string });
   }
+  cache[store] = next as typeof cache[K];
   persistSingleItem(store, item as { id: string });
 }
 
@@ -296,7 +301,8 @@ export function deleteCachedItem<K extends CollectionStore>(store: K, id: string
   const arr = cache[store] as Array<{ id: string }>;
   const idx = arr.findIndex((item) => item.id === id);
   if (idx >= 0) {
-    arr.splice(idx, 1);
+    // New array reference (immutable update) — see setCachedItem for why.
+    cache[store] = arr.filter((item) => item.id !== id) as typeof cache[K];
     persistStore(store);
   }
 }

@@ -20,29 +20,22 @@ export async function completeWizard(page: Page) {
   });
   await page.goto('/');
 
-  // Step 1: Welcome — click "Weiter" (Next)
+  // The wizard renders on top of the setup page, which also has a "Weiter"
+  // button — so target the wizard's nav buttons via stable data-testids, not text.
+  const next = page.getByTestId('wizard-next');
+
+  // Step 1: Welcome
   await expect(page.locator('text=Willkommen!').first()).toBeVisible({ timeout: 15000 });
-  await page.locator('button:has-text("Weiter")').first().click();
+  await next.click();
 
-  // Step 2: Players — leave default (6 players), click next
-  await page.waitForTimeout(400);
-  await page.locator('button:has-text("Weiter")').first().click();
+  // Steps 2–5: Players, Buy-In, Blind Speed, Tips — leave defaults, advance
+  for (let i = 0; i < 4; i++) {
+    await expect(next).toBeVisible();
+    await next.click();
+  }
 
-  // Step 3: Buy-In — leave default, click next
-  await page.waitForTimeout(400);
-  await page.locator('button:has-text("Weiter")').first().click();
-
-  // Step 4: Blind Speed — leave default, click next
-  await page.waitForTimeout(400);
-  await page.locator('button:has-text("Weiter")').first().click();
-
-  // Step 5: Tips — click next
-  await page.waitForTimeout(400);
-  await page.locator('button:has-text("Weiter")').first().click();
-
-  // Step 6: Review — click "Turnier starten!" (wizard.start) — exact match
-  await page.waitForTimeout(400);
-  await page.locator('button:has-text("Turnier starten!")').first().click();
+  // Step 6: Review — start the tournament setup
+  await page.getByTestId('wizard-start').click();
 
   // Now we should be on the setup page — wait for the start button with the ▶ prefix
   // Use a more specific selector to avoid matching the wizard's "Turnier starten!" button

@@ -39,6 +39,7 @@ export function SetupTabs({ activeTab, onTabChange, tabStatus }: Props) {
               <button
                 key={key}
                 role="tab"
+                data-testid={`setup-tab-${i}`}
                 aria-selected={isActive}
                 onClick={() => onTabChange(i)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium transition-colors relative
